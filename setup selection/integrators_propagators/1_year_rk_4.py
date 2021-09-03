@@ -135,5 +135,5 @@ plt.plot(np.array(time)/24, altitudes/1e3)
 plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
 plt.show()
 
-np.savetxt(dir_path + "/rkf_45_basline", np.array([time, altitudes]), fmt="%.5e")
+np.savetxt(dir_path + "/rk_4_baseline.dat", np.array([time, altitudes]), fmt="%.5e")
 # baseline took 110 seconds

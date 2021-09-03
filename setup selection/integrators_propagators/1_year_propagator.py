@@ -160,9 +160,9 @@ plt.plot(np.array(time)/24, altitudes/1e3)
 plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
 plt.show()
 
-rkf_45_basline = np.loadtxt(dir_path + "/rkf_45_basline")
-baseline_t = rkf_45_basline[0,:]
-baseline_h = rkf_45_basline[1,:]
+rk_4_baseline = np.loadtxt(dir_path + "/rk_4_baseline.dat")
+baseline_t = rk_4_baseline[0,:]
+baseline_h = rk_4_baseline[1,:]
 
 latest_time = min(baseline_t[-1], time[-1])
 interp_times = np.arange(0, latest_time, 0.1)
