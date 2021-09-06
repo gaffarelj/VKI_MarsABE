@@ -55,10 +55,11 @@ N = int(1e5)
 t0 = time.time()
 for i in range(N):
     xdate = np.random.uniform(call_mcd_Ls[0], call_mcd_Ls[-1])
+    localtime = np.random.uniform(0, 24)
     i_module = np.where(call_mcd_Ls - xdate <= 15)
     i_module = i_module[0][-1]
     call_mcd = call_mcd_list[i_module]
     pres,dens,temp,zonwind,merwind,meanvar,extvars,seedout,ier = call_mcd(zkey,xz,xlon,xlat,hireskey,datekey,xdate,localtime,dset,scena,perturkey,seedin,gwlength,extvarkeys)
 call_time = time.time() - t0
 print("Calling the MCD with different times took %.5f seconds." % (call_time))
-print("This is an average of %.5f milliseconds per call" % (call_time*1e3/N)) # takes around 0.025 ms per call with pre-loaded modules
+print("This is an average of %.5f milliseconds per call" % (call_time*1e3/N)) # takes around 0.05 ms per call with pre-loaded modules
