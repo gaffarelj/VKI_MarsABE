@@ -2,6 +2,14 @@ import numpy as np
 from scipy.optimize import fsolve
 
 def JD_to_Ls(JD, JD_ref=2459940.032):
+    """
+    This functions converts a Julian Date to a Solar Longitude for Mars.
+    Input:
+     * JD (float): Julian Date to be converted
+     * JD_ref (float): optional, Julian date at which Ls=0deg.
+    Output:
+     * Ls (float): Solar Longitude in [deg], between 0 and 360.
+    """
     # Compute the Martian sol number Ds
     DS = (JD - JD_ref) * 86400/88775.245 % 668.6
     # Compute the mean anomaly
