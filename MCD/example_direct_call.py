@@ -1,6 +1,5 @@
 from fmcd import call_mcd
 import numpy as np
-import time
 
 zkey = 1                    # xz is thus the radial distance from the centre of Mars
 xz = 3389.5e3+300e3         # [m], distance from the centre of Mars (300km altitude for tests)
@@ -29,8 +28,6 @@ species_frac = []
 for n in range(*n_species):
     species_frac.append(extvars[n])
 species_dict = dict(zip(species_name, species_frac))
-
-# Convert the volumetric ratio of each species to their density (TODO)
 
 # Print the results
 print("Density = %.5e [kg/m3]" % dens)
