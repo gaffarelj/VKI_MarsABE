@@ -149,7 +149,7 @@ def plot_difference(diff_times, diff_vals):
     plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
     plt.show()
 
-def get_integrator_settings(settings_index, verbose=False):
+def get_integrator_settings(settings_index=10, verbose=False):
     """
     Return integrators settings corresponding to a given index.
     Input:

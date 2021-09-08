@@ -34,21 +34,21 @@ The comparison of the different integrators can be seen in the following table.
 | BS                 | Step of 10-500s<br> Tolerances of 1E-9 <br> Max 4 steps    | 21.6                  | 0.89                              |
 
 In light of these results, the current recommendation is to use a RKDP87 integrator with a step size varying between 10s and 300s, with a tolerance of 2.5E-8.
-This leads to a low propagation time of 10.5, with a deviation of only 600m compared to the benchmark.
+This leads to a low propagation time of 10.5 seconds, with a deviation of only 630m compared to the benchmark.
 
 ## Propagator selection
 All of the propagators available in the simulation framework have been tested, using the integrator recommended above.
 This has been done in [1_year_propagator.py](1_year_propagator.py), and lead to the results of the table below.
 
-| Propagator                                             | Simulation time [s] | Maximum difference in altitude [km] | Comment *(to be added)* |
-|--------------------------------------------------------|---------------------|-------------------------------------|-------------------------|
-| Cowell                                                 | 10.5                | 0.6                                 |                         |
-| Encke                                                  | 11.5                | 0.6                                 |                         |
-| Gauss Keplerian                                        | 11.5                | 5                                   |                         |
-| Gauss Modified Equinoctial                             | 10                  | 5                                   |                         |
-| Unified State Model with Quaternions                   | 10                  | 0.05                                |                         |
-| Unified State Model with Modified Rodrigues Parameters | 10.5                | 0.05                                |                         |
-| Unified State Model with Exponential Map               | 10.5                | 0.05                                |                         |
+| Propagator                                             | Simulation time [s] | Maximum difference in altitude [km] | Comment                                      |
+|--------------------------------------------------------|---------------------|-------------------------------------|----------------------------------------------|
+| Cowell                                                 | 10.5                | 0.65                                |                                              |
+| Encke                                                  | 11.4                | 0.66                                | Singularity for eccectricity of 0.           |
+| Gauss Keplerian                                        | 11.5                | 0.35                                | Singularity for inclination of 0 deg.        |
+| Gauss Modified Equinoctial                             | 10.1                | 0.35                                | Singularity for inclination of 0 or 180 deg. |
+| Unified State Model with Quaternions                   | 10.4                | 0.35                                |                                              |
+| Unified State Model with Modified Rodrigues Parameters | 10.5                | 0.35                                |                                              |
+| Unified State Model with Exponential Map               | 10.6                | 0.35                                |                                              |
 
 From these, it is advised to use the Unified State Model propagator, most likely the one using Quaternions as the state.
 
