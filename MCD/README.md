@@ -4,7 +4,7 @@ This folder contains different files and modules that can be used to call the Ma
 The full version (v5.3) of this database has been obtained from [the MCD website](http://www-mars.lmd.jussieu.fr/mars/access.html).
 Note that the MCD data files are not included in this Github repository, because they are above the file limit set by Github, and because they should not be openely shared.
 
-# Fortran to Python interface
+## Fortran to Python interface
 The `F2PY` Python module has been used to compile the Fortran interface into a Python module, [fmcd.so](fmcd.so).
 Please not that, on a different machine, this module may need to be recompiled. Please refer to the MCD documentation to do this.
 Also, the MCD Fortran to Python interface has been compiled using Linux subsystem for Windows, as compilation did not work on Windows directly.
@@ -18,7 +18,7 @@ A code that times a series of MCD calls can be found in [time_mcd_call.py](time_
 This shows that loading the file for a Martian month takes around 3.5 seconds, and any sucsessive call to the MCD for the same month takes around 0.025 ms.
 However, using a time in a different month results in different files being loaded, costing 3.5 seconds again.
 
-# Parallel loading of the MCD modules
+## Parallel loading of the MCD modules
 To get around the waiting time when calls to the MCD are made for distinct Martian months, the `fmcd.so` interface can be loaded not once but 13 times.
 This way, the call to the MCD can be made using the module that always has the files loaded for the same Martian month.
 Such Martian month is defined every 30 deg of solar longitude.
