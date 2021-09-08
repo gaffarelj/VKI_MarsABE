@@ -14,24 +14,24 @@ The comparison of the different integrators can be seen in the following table.
 
 | Integration scheme | Settings changed                                           | Simulation time [s] | Maximum difference in altitude [km] |
 |--------------------|------------------------------------------------------------|---------------------|-------------------------------------|
-| RK4                | Step of 10s                                                | 110                 | 0 (benchmark)                       |
-| RK4                | Step of 30s                                                | 35                  | 11                                  |
-| RK4                | Step of 60s                                                | 17                  | 70                                  |
-| RKF45              | Step of 1-300s<br> Tolerances of 1E-9                     | 42                  | 5                                   |
-| RKF45              | Step of 1-300s<br> Tolerances of 1E-8                     | 27                  | 48                                  |
-| RKF45              | Step of 1-300s<br> Tolerances of 1E-6                     | 11                  | 130                                 |
-| RKF45              | Step of 1-500s<br> Tolerances of 1E-9                     | 40                  | 5                                   |
-| RKF56              | Step of 10-300s<br> Tolerances of 1E-9                    | 27                  | 32                                  |
-| RKF78              | Step of 10-300s<br> Tolerances of 1E-9                    | 16                  | 9                                   |
-| RKDP87             | Step of 10-300s<br> Tolerances of 1E-9                    | 15                  | 0.16                                |
-| RKDP87             | Step of 10-300s<br> Tolerances of 2.5E-8                  | 10.5                | 0.6                                 |
-| RKDP87             | Step of 10-300s<br> Tolerances of 1E-8                    | 12                  | 0.8                                 |
-| RKDP87             | Step of 10-300s<br> Tolerances of 1E-7                    | 10                  | 1                                   |
-| ABM                | Step of 10-300s<br> Tolerances of 1E-9 <br>Order of 6-11 | 44                  | 0.04                                |
-| ABM                | Step of 30-300s<br> Tolerances of 1E-9 <br>Order of 6-11 | 20                  | 25                                  |
-| ABM                | Step of 10-500s<br> Tolerances of 1E-9 <br>Order of 6-11 | 45                  | 0.05                                |
-| BS                 | Step of 10-500s<br> Tolerances of 1E-9 <br> Max 5 steps        | 28                  | 0.1                                 |
-| BS                 | Step of 10-500s<br> Tolerances of 1E-9 <br> Max 5 steps        | 22                  | 0.8                                 |
+| RK4                | Step of 10s                                                | 104.6                 | 0.0 (benchmark)                   |
+| RK4                | Step of 30s                                                | 34.5                  | 11.0                              |
+| RK4                | Step of 60s                                                | 17.0                  | 70.0                              |
+| RKF45              | Step of 1-300s<br> Tolerances of 1E-9                      | 40.5                  | 5.0                               |
+| RKF45              | Step of 1-300s<br> Tolerances of 1E-8                      | 26.2                  | 48.2                              |
+| RKF45              | Step of 1-300s<br> Tolerances of 1E-6                      | 11.4                  | 129.7                             |
+| RKF45              | Step of 1-500s<br> Tolerances of 1E-9                      | 40.7                  | 5.0                               |
+| RKF56              | Step of 10-300s<br> Tolerances of 1E-9                     | 27.2                  | 31.6                              |
+| RKF78              | Step of 10-300s<br> Tolerances of 1E-9                     | 17.9                  | 8.4                               |
+| RKDP87             | Step of 10-300s<br> Tolerances of 1E-9                     | 15.0                  | 0.34                              |
+| RKDP87             | Step of 10-300s<br> Tolerances of 2.5E-8                   | 10.5                  | 0.63                              |
+| RKDP87             | Step of 10-300s<br> Tolerances of 1E-8                     | 11.9                  | 0.49                              |
+| RKDP87             | Step of 10-300s<br> Tolerances of 1E-7                     | 10.0                  | 0.69                              |
+| ABM                | Step of 10-300s<br> Tolerances of 1E-9 <br>Order of 6-11   | 44.2                  | 0.35                              |
+| ABM                | Step of 30-300s<br> Tolerances of 1E-9 <br>Order of 6-11   | 20.3                  | 25.1                              |
+| ABM                | Step of 10-500s<br> Tolerances of 1E-9 <br>Order of 6-11   | 43.4                  | 0.35                              |
+| BS                 | Step of 10-500s<br> Tolerances of 1E-9 <br> Max 5 steps    | 19.2                  | 1.28                              |
+| BS                 | Step of 10-500s<br> Tolerances of 1E-9 <br> Max 4 steps    | 21.6                  | 0.89                              |
 
 In light of these results, the current recommendation is to use a RKDP87 integrator with a step size varying between 10s and 300s, with a tolerance of 2.5E-8.
 This leads to a low propagation time of 10.5, with a deviation of only 600m compared to the benchmark.

@@ -97,10 +97,10 @@ def simulation_settings(end_time, end_altitude=50e3):
         termination_settings_list, fulfill_single_condition = True )
     return termination_settings
 
-def run_simulation(bodies, integrator_settings, propagator_settings):
+def run_simulation(bodies, integrator_settings, propagator_settings, verbose=False):
     t0 = time.time()
     dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
-        bodies, integrator_settings, propagator_settings
+        bodies, integrator_settings, propagator_settings, print_dependent_variable_data = verbose
     )
 
     states = dynamics_simulator.state_history
@@ -138,3 +138,126 @@ def compare_to_baseline(time_l, altitudes):
     diff_times = list(model_difference.keys())
     diff_vals = list(model_difference.values())
     return diff_times, diff_vals
+
+def plot_altitude(times, altitudes):
+    plt.plot(np.array(time)/24, altitudes/1e3)
+    plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
+    plt.show()
+
+def plot_difference(diff_times, diff_vals):
+    plt.plot(np.array(diff_times[:-1])/24, np.array(diff_vals[:-1])/1e3)
+    plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
+    plt.show()
+
+def get_integrator_settings(settings_index, verbose=False):
+    """
+    Return integrators settings corresponding to a given index.
+    Input:
+     * settings_index: int in range 0-17:
+        0: RK4 intergator, step size of 10s (baseline)
+        1: RK4 intergator, step size of 30s
+        2: RK4 intergator, step size of 60s
+        3: RKF45 intergator, step size of 1-300s, tolerance of 1E-9
+        4: RKF45 intergator, step size of 1-300s, tolerance of 1E-8
+        5: RKF45 intergator, step size of 1-300s, tolerance of 1E-6
+        6: RKF45 intergator, step size of 1-500s, tolerance of 1E-9
+        7: RKF56 intergator, step size of 10-300s, tolerance of 1E-9
+        8: RKF78 intergator, step size of 10-300s, tolerance of 1E-9
+        9: RKDP87 intergator, step size of 10-300s, tolerance of 1E-9
+        10: RKDP87 intergator, step size of 10-300s, tolerance of 2.5E-8
+        11: RKDP87 intergator, step size of 10-300s, tolerance of 1E-8
+        12: RKDP87 intergator, step size of 10-300s, tolerance of 1E-7
+        13: ABM intergator, step size of 10-300s, tolerance of 1E-9, order of 6-11
+        14: ABM intergator, step size of 30-300s, tolerance of 1E-9, order of 6-11
+        15: ABM intergator, step size of 10-500s, tolerance of 1E-9, order of 6-11
+        16: BS intergator, step size of 10-500s, tolerance of 1E-9, max 5 steps
+        17: BS intergator, step size of 10-500s, tolerance of 1E-9, max 4 steps
+    """
+    initial_time = 0
+    minimum_step_size = 10
+    maximum_step_size = 300
+    tolerance = 1e-9
+    initial_time_step = 20
+    if settings_index in range(0, 3):
+        step_sizes = [10, 30, 60]
+        integrator_settings = propagation_setup.integrator.runge_kutta_4(
+            initial_time,
+            step_sizes[settings_index],
+            save_frequency = 1,
+            assess_termination_on_minor_steps = False
+        )
+        if verbose: print(settings_index, "RK4", step_sizes[settings_index])
+    elif settings_index in range(3, 13):
+        if settings_index in range(3, 7):
+            coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkf_45
+            minimum_step_size = 1
+            if settings_index == 4:
+                tolerance = 1e-8
+            elif settings_index == 5:
+                tolerance = 1e-6
+            elif settings_index == 6:
+                maximum_step_size = 500
+        elif settings_index == 7:
+            coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkf_56
+        elif settings_index == 8:
+            coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkf_78
+        elif settings_index in range(9, 13):
+            coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87
+            if settings_index == 10:
+                tolerance = 2.5e-8
+            elif settings_index == 11:
+                tolerance = 1e-8
+            elif settings_index == 12:
+                tolerance = 1e-7
+        integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
+	        initial_time,
+	        initial_time_step,
+	        coefficient_set,
+	        minimum_step_size,
+	        maximum_step_size,
+	        tolerance,
+	        tolerance,
+            save_frequency= 1,
+            assess_termination_on_minor_steps = False,
+            safety_factor = 0.8,
+            maximum_factor_increase = 4.0,
+            minimum_factor_increase = 0.1 )
+        if verbose: print(settings_index, coefficient_set, minimum_step_size, maximum_step_size, tolerance)
+    elif settings_index in range(13, 16):
+        minimum_order = 6
+        maximum_order = 11
+        if settings_index == 14:
+            minimum_step_size = 30
+            initial_time_step = 60
+        elif settings_index == 15:
+            maximum_step_size = 500
+        integrator_settings = propagation_setup.integrator.adams_bashforth_moulton(
+	        initial_time,
+	        initial_time_step,
+	        minimum_step_size,
+	        maximum_step_size,
+	        tolerance,
+	        tolerance,
+	        minimum_order,
+	        maximum_order
+        )
+        if verbose: print(settings_index, "ABM", minimum_step_size, maximum_step_size, tolerance, minimum_order, maximum_order)
+    elif settings_index in range(16, 18):
+        extrapolation_sequence = propagation_setup.integrator.ExtrapolationMethodStepSequences.bulirsch_stoer_sequence
+        maximum_number_of_steps = 5
+        if settings_index == 17:
+            maximum_number_of_steps = 4
+        maximum_step_size = 500
+        integrator_settings = propagation_setup.integrator.bulirsch_stoer(
+	        initial_time,
+	        initial_time_step,
+	        extrapolation_sequence,
+	        maximum_number_of_steps,
+	        minimum_step_size,
+	        maximum_step_size,
+	        tolerance,
+	        tolerance
+        )
+        if verbose: print(settings_index, extrapolation_sequence, minimum_step_size, maximum_step_size, tolerance, maximum_number_of_steps)
+
+    return integrator_settings
