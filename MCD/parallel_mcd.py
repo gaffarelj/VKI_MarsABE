@@ -2,24 +2,28 @@ import numpy as np
 
 class parallel_mcd:
 
-    def __init__(self, default_inputs=False, load_on_init=False):
+    def __init__(self, default_inputs=False, load_on_init=False, load_parallel=True):
         # The following two arrays contain the starting time in Ls and Julian date at which the given module should be used
         self.limiting_Ls = np.arange(0, 330.01, 30)
         self.call_mcd_list = []
         self.n_species = (56, 65)
         self.Mars_R = 3389.5e3
+        self.load_parallel = load_parallel
         if default_inputs:
             self.default_inputs()
-        if load_on_init:
+        if load_on_init and load_parallel:
             self.load_mcd()
+        if not load_parallel:
+            from fmcd import call_mcd as call_mcd
+            self.call_mcd_list = [call_mcd]
 
     def default_inputs(self):
         # Load default inputs for the MCD.
-        self.zkey = 1               # xz is thus the radial distance from the centre of Mars
-        self.xz = self.Mars_R+200e3    # [m], distance from the centre of Mars (200km altitude as default)
+        self.zkey = 1                    # xz is thus the radial distance from the centre of Mars
+        self.xz = self.Mars_R+200e3      # [m], distance from the centre of Mars (200km altitude as default)
         self.xlon = 137.4                # [deg], East longitude
         self.xlat = -4.6                 # [deg], Latitude
-        self.hireskey = 1                # use the lower resolution grid of 5.625x3.75 deg
+        self.hireskey = 0                # use the lower resolution grid of 5.625x3.75 deg
         self.localtime = 12              # time of the day in hours
         self.dset = "/mnt/c/MCD/data/"   # path to the MCD data
         self.scena = 1                   # Climatology Scenario, solar EUV average conditions; use 2 for minimum solar conditions, and 3 for maximum
@@ -69,7 +73,10 @@ class parallel_mcd:
         if lon is not None: self.xlon = lon
         if h is not None: self.xz = self.Mars_R+h
         # Find what module should be used for the given solar longitude
-        i_module = np.where(self.limiting_Ls - self.xdate <= 15)[0][-1]
+        if self.load_parallel:
+            i_module = np.where(self.limiting_Ls - self.xdate <= 15)[0][-1]
+        else:
+            i_module = 0
         call_mcd = self.call_mcd_list[i_module]
         self.pres,self.dens,self.temp,self.zonwind,self.merwind,self.meanvar,self.extvars,self.seedout,self.ier = \
             call_mcd(self.zkey,self.xz,self.xlon,self.xlat,self.hireskey,self.datekey,self.xdate,\
@@ -83,7 +90,6 @@ class parallel_mcd:
 
         # Print the results
         if print_results:
-            print((self.xdate, self.localtime, self.xlat, self.xlon, self.xz-self.Mars_R))
             print("Call MCD at Ls=%.2f deg and %.2f hrs, Lat=%.2f deg, Lon=%.2f deg, and h=%.2f km" % (self.xdate, self.localtime, self.xlat, self.xlon, (self.xz-self.Mars_R)/1e3))
             print("Density = %.5e [kg/m3]" % self.dens)
             print("Wind = %.5f E / %.5f N [m/s]" % (self.zonwind, self.merwind))

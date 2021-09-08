@@ -2,10 +2,17 @@ from parallel_mcd import parallel_mcd as PMCD
 import time
 import numpy as np
 
+# Test the module without loading the MCD in parallel for each Month
+mcd_simple = PMCD(default_inputs=True, load_parallel=False)
+mcd_simple.call(27, 11, -15, 35, 250e3, print_results=True)
+
+input("Press ENTER to load modules in parallel next.")
 mcd = PMCD(True, True)
 
+# Test one call of the MCD and print the results
 mcd.call(27, 11, -15, 35, 250e3, print_results=True)
 
+# Test thousands of calls, changing the inputs every time
 N = int(1e6)
 t0 = time.time()
 for i in range(N):
