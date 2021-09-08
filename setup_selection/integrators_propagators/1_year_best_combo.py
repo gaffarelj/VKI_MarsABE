@@ -73,6 +73,7 @@ plt.show()
 print("Final altitude of %.2f km, at a time of %.2f years" % (altitudes[-1]/1e3, time[-1]/365/24))
 print("Max difference with rk_4 is of %.3f km, with a cpu time of %.2f seconds." % (max(diff_vals)/1e3, cpu_time))
 
+## Note: the change in settings has been done manually, starting from the integrator and propagator suggested in the previous steps.
 # rk_4 from baseline (step of 10s) is around 110 seconds
 # rkdp_87 from 1_year_integrators is around 10.5 seconds, 0.9 km difference
 

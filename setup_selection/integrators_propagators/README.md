@@ -54,6 +54,7 @@ From these, it is advised to use the Unified State Model propagator, most likely
 
 ## Overall 
 Finally, [1_year_best_combo.py](1_year_best_combo.py) explores finer tuning of the integrator, using the suggested propagator.
+Note that the change in settings has been done manually, starting from the integrator and propagator suggested in the previous steps
 This lead to the findings of the following table.
 
 | Change in integrator settings                 | Simulation time [s] | Maximum difference in altitude [km] | Comment                                                             |
