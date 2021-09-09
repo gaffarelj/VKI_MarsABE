@@ -1,27 +1,33 @@
 import numpy as np
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
+sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
 from tools import time_conversions as TC
 
 class parallel_mcd:
-
+    """
+    This class is used as an interface to the Mars Climate Database.
+    It also allows to keep the MCD files in cache instead of re-opening them each time different Martian months are requested.
+    """
     def __init__(self, default_inputs=True, load_on_init=True, load_parallel=True):
-        # The following two arrays contain the starting time in Ls and Julian date at which the given module should be used
+        # The following two arrays contain the times in solar longitude (Ls) at which different files will be loaded
         self.limiting_Ls = np.arange(0, 330.01, 30)
-        self.call_mcd_list = []
-        self.n_species = (56, 65)
-        self.Mars_R = 3389.5e3
+        self.call_mcd_list = []     # list that will contain the loaded MCD interface modules
+        self.n_species = (56, 65)   # list of the index at which the atmospheric atomic volumetric fractions are to be loaded
+        self.Mars_R = 3389.5e3      # Mars radius in [m]
         self.load_parallel = load_parallel
+        # Load a set of default inputs to the MCD
         if default_inputs:
             self.default_inputs()
+        # If desired, pre-fill the list with the MCD interface modules
         if load_parallel:
             self.load_mcd(charge_files=load_on_init)
         else:
+            # Otherwise, load only one MCD interface module
             from MCD.fmcd import call_mcd as call_mcd
             self.call_mcd_list = [call_mcd]
 
     def default_inputs(self):
-        # Load default inputs for the MCD.
+        # Load a set of default inputs for the MCD interface module
         self.zkey = 1                    # xz is thus the radial distance from the centre of Mars
         self.xz = self.Mars_R+200e3      # [m], distance from the centre of Mars (200km altitude as default)
         self.xlon = 137.4                # [deg], East longitude
@@ -57,12 +63,11 @@ class parallel_mcd:
         from MCD.fmcd_11 import call_mcd as call_mcd_11
         from MCD.fmcd_12 import call_mcd as call_mcd_12
         from MCD.fmcd_13 import call_mcd as call_mcd_13
-        
         # Load the MCD corresponding to each Ls range (solar longitude)
         for i_module, xdate in enumerate(self.limiting_Ls):
             call_mcd = eval("call_mcd_%i" % (i_module+1))
             self.call_mcd_list.append(call_mcd)
-            # Load the MCD data
+            # Load the MCD data for each module
             if charge_files:
                 # Load all of the MCD files for one Martian year, in different modules (to keep them loaded)
                 print("The MCD is loading for a full Martian year, please wait up to a few minutes...")
@@ -71,44 +76,64 @@ class parallel_mcd:
 
     def call(self, Ls=None, localtime=None, lat=None, lon=None, h=None, print_results=False):
         # Call the MCD
-        if Ls is not None: self.xdate = Ls
-        if localtime is not None: self.localtime = localtime
-        if lat is not None: self.xlat = lat
-        if lon is not None: self.xlon = lon
-        if h is not None: self.xz = self.Mars_R+h
+        if Ls is not None: self.xdate = Ls                      # solar longitude [deg], between 0 and 360
+        if localtime is not None: self.localtime = localtime    # local time [hours], between 0 and 24
+        if lat is not None: self.xlat = lat                     # latitude [deg], between -90 and 90
+        if lon is not None: self.xlon = lon                     # longitude [deg], between -180 and 180
+        if h is not None: self.xz = self.Mars_R+h               # distance from Mars centre [m], specified using the altitude h in [m]
         # Find what module should be used for the given solar longitude
+        # (the 15 deg value comes from the fact that each module actually loads two datasets, before and after the centre of the 30deg interval)
         if self.load_parallel:
             i_module = np.where(self.limiting_Ls - self.xdate <= 15)[0][-1]
         else:
             i_module = 0
         call_mcd = self.call_mcd_list[i_module]
+        # Make the actual call to the MCD (with the dataset already loaded, this takes in the order of 0.05 ms)
         self.pres,self.dens,self.temp,self.zonwind,self.merwind,self.meanvar,self.extvars,self.seedout,self.ier = \
             call_mcd(self.zkey,self.xz,self.xlon,self.xlat,self.hireskey,self.datekey,self.xdate,\
             self.localtime,self.dset,self.scena,self.perturkey,self.seedin,self.gwlength,self.extvarkeys)
         # Extract the volumetric ratio of each species in the atmosphere
-        self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He also accessible if required later, at index 77
+        self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He also accessible if required, at index 77
         self.species_frac = []
         for n in range(*self.n_species):
             self.species_frac.append(self.extvars[n])
+        # Save the atomic composition in a dictionnary
         self.species_dict = dict(zip(self.species_name, self.species_frac))
 
         # Print the results
         if print_results:
-            print("Call MCD at Ls=%.2f deg and %.2f hrs, Lat=%.2f deg, Lon=%.2f deg, and h=%.2f km" % (self.xdate, self.localtime, self.xlat, self.xlon, (self.xz-self.Mars_R)/1e3))
+            print("Call MCD at Ls=%.2f deg and %.2f hrs, Lat=%.2f deg, Lon=%.2f deg, and h=%.2f km" % \
+                (self.xdate, self.localtime, self.xlat, self.xlon, (self.xz-self.Mars_R)/1e3))
             print("Density = %.5e [kg/m3]" % self.dens)
             print("Wind = %.5f E / %.5f N [m/s]" % (self.zonwind, self.merwind))
             print("Species [mol/mol] = %s" % self.species_dict)
 
-    def density(self, h, lat, lon, time, update_inputs=True, time_is_JD=True, JD_Tudat=True):
-        self.xz = self.Mars_R + h
+    def density(self, h, lat, lon, time, time_is_JD=True, JD_Tudat=True):
+        """
+        Return the density at a specific position and time. Used mainly interfaced to Tudat.
+        Inputs:
+         * h: altitude, in [m]
+         * lat: latitude, in [deg]
+         * lon: longitude, in [deg]
+         * time: Julian date in seconds since J2000 by default. Can be changed (see optional inputs)
+        Optional inputs:
+         * time_is_JD: boolean specifying whether the input time is a Julian date (true), or a tuple containing the solar longitude and time of day (false)
+         * JD_Tudat: boolean specifying whether the input time is a Julian date from Tudat (true, in seconds from J2000), or from the MCD (false, in days since J2023)
+        Output:
+         * density: float, in [kg/m3]
+        """
+        self.xz = self.Mars_R + h   # convert altitude to distance from centre of Mars
         self.xlat = lat
         self.xlon = lon
-        # TODO: check the date conversion
+        # If the time is a Julian date, convert it to solar longitude and day of the year
         if time_is_JD:
             Ls, Ds = TC.JD_to_Ls(time, JD_Tudat=JD_Tudat)
         else:
             Ls, Ds = time
+        # Convert the day of the year to hour of the day
         self.localtime = Ds % 1 * 24
         self.xdate = Ls
+        # Call the MCD
         self.call()
+        # Return the density
         return self.dens
