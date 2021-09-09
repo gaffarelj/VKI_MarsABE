@@ -5,14 +5,13 @@ from tudatpy.kernel.simulation import environment_setup
 from tudatpy.kernel.simulation import propagation_setup
 from tudatpy.kernel.astro import conversion
 from tudatpy.kernel.math import interpolators
-from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use("pdf")
+import matplotlib.pyplot as plt
 import time
-# Get the path in which this script runs
-import os
-dir_path = os.path.dirname(os.path.realpath(__file__))
 spice_interface.load_standard_kernels()
 
-def create_bodies():
+def create_bodies(use_MCD_atmo=False):
     # Create bodies
     bodies_to_create = ["Mars"]
 
@@ -22,10 +21,21 @@ def create_bodies():
         bodies_to_create,
         base_frame_orientation=global_frame_orientation
     )
-    density_scale_height = 11.1e3
-    density_at_zero_altitude = 0.020
-    body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.exponential(
-        density_scale_height, density_at_zero_altitude)
+
+    # Select the atmospheric model
+    if not use_MCD_atmo:
+        # Exponential parameters taken from http://link.springer.com/content/pdf/10.1007%2F978-3-540-73647-9_3.pdf
+        density_scale_height = 7.295e3
+        density_at_zero_altitude = 0.0525
+        body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.exponential(
+            density_scale_height, density_at_zero_altitude)
+    else:
+        from MCD.parallel_mcd import parallel_mcd as PMCD
+        mcd = PMCD(load_on_init=False) # SET TO TRUE AFTER TESTS
+        body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
+            mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
+        # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
+        # TODO: CHECK THAT THE CONSTANT VALUES ABOVE DO NOT INFLUENCE DRAG RESULTS
 
     bodies = environment_setup.create_system_of_bodies(body_settings)
 
@@ -98,6 +108,7 @@ def simulation_settings(end_time, end_altitude=50e3):
     return termination_settings
 
 def run_simulation(bodies, integrator_settings, propagator_settings, verbose=False):
+    print("Starting simulation...")
     t0 = time.time()
     dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
         bodies, integrator_settings, propagator_settings, print_dependent_variable_data = verbose
@@ -111,7 +122,8 @@ def run_simulation(bodies, integrator_settings, propagator_settings, verbose=Fal
     print("Simulation took %.2f seconds." % cpu_time)
 
     # Compute results
-    time_l = [t / 3600 for t in dependent_variables.keys()]
+    #time_l = [t / 3600 for t in dependent_variables.keys()]
+    time_l = np.array(list(dependent_variables.keys()))
 
     dependent_variable_list = np.vstack( list( dependent_variables.values( ) ) )
 
@@ -260,4 +272,27 @@ def get_integrator_settings(settings_index=10, verbose=False):
         )
         if verbose: print(settings_index, extrapolation_sequence, minimum_step_size, maximum_step_size, tolerance, maximum_number_of_steps)
 
+    return integrator_settings
+
+def get_best_integrator():
+    # Setup the optimal integrator settings
+    tolerance = 1e-9
+    initial_time = 0
+    initial_time_step = 20
+    minimum_step_size = 0.1
+    maximum_step_size = 1800
+    coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87
+    integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
+	    initial_time,
+	    initial_time_step,
+	    coefficient_set,
+	    minimum_step_size,
+	    maximum_step_size,
+	    tolerance,
+	    tolerance,
+        save_frequency= 1,
+        assess_termination_on_minor_steps = False,
+        safety_factor = 0.95,
+        maximum_factor_increase = 4.0,
+        minimum_factor_increase = 0.1 )
     return integrator_settings
