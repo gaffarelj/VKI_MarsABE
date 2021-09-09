@@ -19,7 +19,10 @@ This way, the propagation time of a satellite orbiting one year around Mars has 
 ### Tools
 The [tools](tools) folder contains the common tools that are commonly used.
 
-This includes a function to convert Julian dates to the corresponding Martian sol number and corresponding solar longitude.
+The [time conversions](tools/time_conversions.py) module includes a function to convert Julian dates to the corresponding Martian sol number and corresponding solar longitude.
+This function can also convert Julian dates from Tudat (in seconds since J2000) to Julian dates understood by the MCD (in days since J2023).
+
+The [plot utilities](tools/plot_utilities.py) module contains functions for plotting.
 
 ## Requirements
 First of, the MCD data files are required. By default, the code wants them to be in `/mnt/c/MCD/data/`.
