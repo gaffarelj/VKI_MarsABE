@@ -8,7 +8,7 @@ class parallel_mcd:
     This class is used as an interface to the Mars Climate Database.
     It also allows to keep the MCD files in cache instead of re-opening them each time different Martian months are requested.
     """
-    def __init__(self, default_inputs=True, load_on_init=True, load_parallel=True):
+    def __init__(self, default_inputs=True, load_on_init=False, load_parallel=True):
         # The following two arrays contain the times in solar longitude (Ls) at which different files will be loaded
         self.limiting_Ls = np.arange(0, 330.01, 30)
         self.call_mcd_list = []     # list that will contain the loaded MCD interface modules

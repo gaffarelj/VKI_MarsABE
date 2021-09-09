@@ -31,7 +31,7 @@ def create_bodies(use_MCD_atmo=False):
             density_scale_height, density_at_zero_altitude)
     else:
         from MCD.parallel_mcd import parallel_mcd as PMCD
-        mcd = PMCD(load_on_init=False) # SET TO TRUE AFTER TESTS
+        mcd = PMCD()
         body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
             mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
         # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
