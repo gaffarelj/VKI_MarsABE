@@ -15,6 +15,7 @@ class parallel_mcd:
         self.n_species = (56, 65)   # list of the index at which the atmospheric atomic volumetric fractions are to be loaded
         self.Mars_R = 3389.5e3      # Mars radius in [m]
         self.load_parallel = load_parallel
+        self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He also accessible if required, at index 77
         # Load a set of default inputs to the MCD
         if default_inputs:
             self.default_inputs()
@@ -93,12 +94,14 @@ class parallel_mcd:
             call_mcd(self.zkey,self.xz,self.xlon,self.xlat,self.hireskey,self.datekey,self.xdate,\
             self.localtime,self.dset,self.scena,self.perturkey,self.seedin,self.gwlength,self.extvarkeys)
         # Extract the volumetric ratio of each species in the atmosphere
-        self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He also accessible if required, at index 77
         self.species_frac = []
         for n in range(*self.n_species):
             self.species_frac.append(self.extvars[n])
         # Save the atomic composition in a dictionnary
         self.species_dict = dict(zip(self.species_name, self.species_frac))
+        # Save the atomic composition as a function of density
+        self.species_dens = np.array(self.species_frac) * self.dens
+        self.species_dict_dens = dict(zip(self.species_name, self.species_dens))
 
         # Print the results
         if print_results:
