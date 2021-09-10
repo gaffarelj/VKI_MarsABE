@@ -1,11 +1,11 @@
 import numpy as np
 from scipy.optimize import fsolve
 
-# This value is the time in seconds since J2000 and corresponds to January 1st 2023 at midnight (MCD JD_ref)
-MCD_0_TUDAT = 725330764.8000107
 JULIAN_DAY = 86400
+JD_MCD_ref = 2459940.032
+JD_Tudat_ref = 2451545
 
-def JD_to_Ls(JD, JD_ref=2459940.032, JD_Tudat=False):
+def JD_to_Ls(JD, JD_ref=JD_MCD_ref, JD_Tudat=False):
     """
     This functions converts a Julian Date to a Solar Longitude for Mars.
     Input:
@@ -19,8 +19,7 @@ def JD_to_Ls(JD, JD_ref=2459940.032, JD_Tudat=False):
     """
     # If the Julian Date is from Tudat (in seconds from J2000), convert it in the MCD format (days since J2023)
     if JD_Tudat:
-        JD += MCD_0_TUDAT
-        JD /= JULIAN_DAY
+        JD = Tudat_to_MCD(JD)
     # Compute the Martian sol number Ds
     Ds = (JD - JD_ref) * 86400/88775.245 % 668.6
     # Compute the mean anomaly
@@ -33,3 +32,19 @@ def JD_to_Ls(JD, JD_ref=2459940.032, JD_Tudat=False):
     # Compute Ls
     Ls = (theta*180/np.pi + 250.99) % 360
     return Ls, Ds
+
+def Tudat_to_MCD(JD):
+    # Convert a Tudat (seconds since J2000) Julian Date to a MCD (days since J2023)
+    # First convert in days
+    JD /= JULIAN_DAY
+    # Then remove the offset between J2000 and J2023
+    JD -= (JD_MCD_ref - JD_Tudat_ref)
+    return JD
+
+def MCD_to_Tudat(JD):
+    # Convert a MCD (days since J2023) Julian Date to a Tudat (seconds since J2000)
+    # First add the offset between J2000 and J2023
+    JD -= JD_Tudat_ref
+    # Then convert to seconds
+    JD *= JULIAN_DAY
+    return JD
