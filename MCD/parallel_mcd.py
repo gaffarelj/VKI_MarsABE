@@ -64,6 +64,8 @@ class parallel_mcd:
         from MCD.fmcd_11 import call_mcd as call_mcd_11
         from MCD.fmcd_12 import call_mcd as call_mcd_12
         from MCD.fmcd_13 import call_mcd as call_mcd_13
+        if charge_files:
+            print("The MCD is loading for a full Martian year, please wait up to a few minutes...")
         # Load the MCD corresponding to each Ls range (solar longitude)
         for i_module, xdate in enumerate(self.limiting_Ls):
             call_mcd = eval("call_mcd_%i" % (i_module+1))
@@ -71,7 +73,6 @@ class parallel_mcd:
             # Load the MCD data for each module
             if charge_files:
                 # Load all of the MCD files for one Martian year, in different modules (to keep them loaded)
-                print("The MCD is loading for a full Martian year, please wait up to a few minutes...")
                 call_mcd(self.zkey,self.xz,self.xlon,self.xlat,self.hireskey,self.datekey,xdate,\
                     self.localtime,self.dset,self.scena,self.perturkey,self.seedin,self.gwlength,self.extvarkeys)
 
