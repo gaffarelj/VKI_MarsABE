@@ -4,10 +4,12 @@ from tudatpy.kernel import constants
 from tudatpy.kernel.simulation import propagation_setup
 import setup_selection.setup_utils as SU
 import tools.plot_utilities as PU
+import tools.time_conversions as TC
 import numpy as np
 
-simulation_start_epoch = 0.0
-simulation_end_epoch = 1*constants.JULIAN_DAY
+simulation_days = 20
+simulation_start_epoch = TC.MCD_to_Tudat(2459942)
+simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN_DAY
 
 # Define the environment and bodies
 bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True)
@@ -24,7 +26,7 @@ dependent_variables_to_save = [
 ]
 
 # Define the integrator settings
-integrator_settings = SU.get_best_integrator()
+integrator_settings = SU.get_best_integrator(simulation_start_epoch)
 # Propagator settings
 propagator_settings = propagation_setup.propagator.translational(
     central_bodies,

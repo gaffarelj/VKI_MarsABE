@@ -3,14 +3,17 @@ sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 from tudatpy.kernel import constants
 from tudatpy.kernel.simulation import propagation_setup
 from setup_selection import setup_utils as SU
+from tools import plot_utilities as PU
+from tools import time_conversions as TC
 import matplotlib.pyplot as plt
 import numpy as np
 
-simulation_start_epoch = 0.0
-simulation_end_epoch = 1*constants.JULIAN_YEAR
+simulation_days = 20
+simulation_start_epoch = TC.MCD_to_Tudat(2459942)
+simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN_DAY
 
 # Define the environment and bodies
-bodies, bodies_to_propagate, central_bodies = SU.create_bodies()
+bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True)
 # Define the accelerations to be included
 acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies)
 # Define the initial state of the satellite
@@ -33,6 +36,7 @@ propagator_settings = propagation_setup.propagator.translational(
     output_variables = dependent_variables_to_save
 )
 
+#fixed_step_size = 10
 fixed_step_size = 10
 integrator_settings = propagation_setup.integrator.runge_kutta_4(
     simulation_start_epoch,
@@ -42,10 +46,10 @@ integrator_settings = propagation_setup.integrator.runge_kutta_4(
 # Run the simulation
 time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_settings, propagator_settings)
 
-# Make plots
-plt.plot(np.array(time)/24, altitudes/1e3)
-plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
-plt.show()
+# Make plot
+PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "test_rk4_%sday" % simulation_days)
 
-np.savetxt(dir_path + "\\integrators_propagators\\rk_4_baseline.dat", np.array([time, altitudes]), fmt="%.5e")
-# baseline took 110 seconds
+np.savetxt("setup_selection/integrators_propagators/rk_4_baseline_MCD_%sday.dat" % simulation_days, \
+   np.array([time, altitudes]), fmt="%.5e")
+#np.savetxt("setup_selection/integrators_propagators/rk_4_baseline.dat", np.array([time, altitudes]), fmt="%.5e")
+# baseline took 110 seconds (225 seconds including MCD atmosphere, for 50 days, step of 10 s, 7.7 seconds for 1 day, 89 seconds for 20 days)

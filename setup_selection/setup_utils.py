@@ -9,6 +9,8 @@ import matplotlib
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt
 import time
+import sys
+sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
 spice_interface.load_standard_kernels()
 
 def create_bodies(use_MCD_atmo=False):
@@ -124,6 +126,7 @@ def run_simulation(bodies, integrator_settings, propagator_settings, verbose=Fal
     # Compute results
     #time_l = [t / 3600 for t in dependent_variables.keys()]
     time_l = np.array(list(dependent_variables.keys()))
+    time_l -= time_l[0]
 
     dependent_variable_list = np.vstack( list( dependent_variables.values( ) ) )
 
@@ -132,13 +135,17 @@ def run_simulation(bodies, integrator_settings, propagator_settings, verbose=Fal
 
     return time_l, altitudes, densities, cpu_time
 
-def compare_to_baseline(time_l, altitudes):
-    rk_4_baseline = np.loadtxt(dir_path + "\\integrators_propagators\\rk_4_baseline.dat")
+def compare_to_baseline(time_l, altitudes, baseline_f="rk_4_baseline", trunc_ends=False):
+    rk_4_baseline = np.loadtxt("setup_selection/integrators_propagators/%s.dat" % baseline_f)
     baseline_t = rk_4_baseline[0,:]
     baseline_h = rk_4_baseline[1,:]
 
+    earliest_time = baseline_t[0]
     latest_time = min(baseline_t[-1], time_l[-1])
-    interp_times = np.arange(0, latest_time, 0.1)
+    interp_times = np.arange(earliest_time, latest_time, 0.1)
+    if trunc_ends:
+        trunc_length = max(int(len(interp_times)*0.025), 3)
+        interp_times = interp_times[trunc_length:-trunc_length]
 
     interpolator_settings = interpolators.lagrange_interpolation(8, boundary_interpolation=interpolators.use_boundary_value)
     first_interpolator = interpolators.create_one_dimensional_interpolator(dict(zip(time_l, altitudes)), interpolator_settings)
@@ -147,7 +154,7 @@ def compare_to_baseline(time_l, altitudes):
     model_difference = {t: second_interpolator.interpolate(t)- first_interpolator.interpolate(t) 
                         for t in interp_times}
 
-    diff_times = list(model_difference.keys())
+    diff_times = np.array(list(model_difference.keys()))-earliest_time
     diff_vals = list(model_difference.values())
     return diff_times, diff_vals
 
@@ -274,25 +281,26 @@ def get_integrator_settings(settings_index=10, verbose=False):
 
     return integrator_settings
 
-def get_best_integrator():
+def get_best_integrator(simulation_start_epoch):
     # Setup the optimal integrator settings
-    tolerance = 1e-9
-    initial_time = 0
-    initial_time_step = 20
-    minimum_step_size = 0.1
-    maximum_step_size = 1800
+    initial_time = simulation_start_epoch # seconds since J2000
+    initial_time_step = 20 # seconds
     coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87
+    minimum_step_size = 10 # seconds
+    maximum_step_size = 1800 # seconds
+    relative_error_tolerance = 7.5e-7 # -
+    absolute_error_tolerance = 7.5e-7 # -
     integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
-	    initial_time,
-	    initial_time_step,
-	    coefficient_set,
-	    minimum_step_size,
-	    maximum_step_size,
-	    tolerance,
-	    tolerance,
+        initial_time,
+        initial_time_step,
+        coefficient_set,
+        minimum_step_size,
+        maximum_step_size,
+        relative_error_tolerance,
+        absolute_error_tolerance,
         save_frequency= 1,
         assess_termination_on_minor_steps = False,
-        safety_factor = 0.95,
-        maximum_factor_increase = 4.0,
+        safety_factor = 0.65,
+        maximum_factor_increase = 2.0,
         minimum_factor_increase = 0.1 )
     return integrator_settings

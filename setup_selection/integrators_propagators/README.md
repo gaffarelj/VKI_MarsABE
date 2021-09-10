@@ -77,3 +77,17 @@ The settings that resulted from this study are thus the followings:
 * An Unified State Model propagator with Quaternions
 
 This leads to a simulation time of 5 seconds, with a deviation from the benchmark of a maximum of 600 meters in altitude.
+
+## MCD inclusion
+More tuning has been made with the inclusion of the Mars Climate Database to get the atmospheric densities.
+Because this model results in highly more varying densities than the exponential model, the steps taken by the variable step integrator are much smaller.
+
+To remediate to this, the tolerance and safety factor of the RKDP78 integrator have been tuned so that the error w.r.t. the baseline is under 1 m for one propagated day, and under 100 m for 20 propagated days.
+
+This is achieved by first switching the propagator to a Cowell propagator, and by using the following settings for the RKDP87 integrator:
+    * A step size range of 10s to 1800s
+    * A relative and absolute tolerance of 7.5E-7
+    * A safety factor of 0.65
+    * A factor increase ranging between 0.1 and 2.0
+
+This results in an error of 76.5 m after 20 days of simulation, taking a CPU time of 10.0 seconds (including roughly 4 seconds to load the MCD file).
