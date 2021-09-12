@@ -13,6 +13,7 @@ class parallel_mcd:
         self.limiting_Ls = np.arange(0, 330.01, 30)
         self.call_mcd_list = []     # list that will contain the loaded MCD interface modules
         self.n_species = (56, 65)   # list of the index at which the atmospheric atomic volumetric fractions are to be loaded
+        self.n_wind = 25            # index of the vertical wind
         self.Mars_R = 3389.5e3      # Mars radius in [m]
         self.load_parallel = load_parallel
         self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He also accessible if required, at index 77
@@ -43,6 +44,7 @@ class parallel_mcd:
         # select which external variables to return
         self.extvarkeys = np.zeros(100)
         self.extvarkeys[self.n_species[0]:self.n_species[1]+1] = 1
+        self.extvarkeys[self.n_wind] = 1
         self.datekey = 1                 # 0 = Julian, 1 = Ls
         self.xdate = 0
 
@@ -94,6 +96,8 @@ class parallel_mcd:
         self.pres,self.dens,self.temp,self.zonwind,self.merwind,self.meanvar,self.extvars,self.seedout,self.ier = \
             call_mcd(self.zkey,self.xz,self.xlon,self.xlat,self.hireskey,self.datekey,self.xdate,\
             self.localtime,self.dset,self.scena,self.perturkey,self.seedin,self.gwlength,self.extvarkeys)
+        # Extract the vertical wind
+        self.vertwind = self.extvars[self.n_wind]
         # Extract the volumetric ratio of each species in the atmosphere
         self.species_frac = []
         for n in range(*self.n_species):
@@ -109,7 +113,7 @@ class parallel_mcd:
             print("Call MCD at Ls=%.2f deg and %.2f hrs, Lat=%.2f deg, Lon=%.2f deg, and h=%.2f km" % \
                 (self.xdate, self.localtime, self.xlat, self.xlon, (self.xz-self.Mars_R)/1e3))
             print("Density = %.5e [kg/m3]" % self.dens)
-            print("Wind = %.5f E / %.5f N [m/s]" % (self.zonwind, self.merwind))
+            print("Wind = %.5f E / %.5f N / %.5f vert [m/s]" % (self.zonwind, self.merwind, self.vertwind))
             print("Species [mol/mol] = %s" % self.species_dict)
 
     def density(self, h, lat, lon, time, time_is_JD=True, JD_Tudat=True):
