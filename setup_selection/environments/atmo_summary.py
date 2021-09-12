@@ -12,7 +12,7 @@ from tools import plot_utilities as PU
 mcd = PMCD()
 
 altitudes = np.arange(100, 351, 0.1)
-legends = mcd.species_name
+legends = mcd.species_name.copy()
 legends.insert(0, "Air")
 all_dens = np.empty((len(legends), len(altitudes)))
 all_frac = np.empty((len(legends), len(altitudes)))
