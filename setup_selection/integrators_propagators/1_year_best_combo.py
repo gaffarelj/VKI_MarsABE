@@ -63,13 +63,13 @@ integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_siz
 time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_settings, propagator_settings)
 
 # Make plot
-PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "test_best_combo_%sday" % simulation_days)
+PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "integ_prop/test_best_combo_%sday" % simulation_days)
 
 # Compute the difference with the baseline
 diff_times, diff_vals = SU.compare_to_baseline(time, altitudes, baseline_f="rk_4_baseline_MCD_%sday" % simulation_days, trunc_ends=True)
 
 # Plot difference
-PU.plot_single(np.array(diff_times)/3600, np.array(diff_vals), "Time [hr]", "Difference in altitude [m]", "diff_best_combo_%sday" % simulation_days)
+PU.plot_single(np.array(diff_times)/3600, np.array(diff_vals), "Time [hr]", "Difference in altitude [m]", "integ_prop/diff_best_combo_%sday" % simulation_days)
 #plt.plot(np.array(diff_times[:-1])/24, np.array(diff_vals[:-1])/1e3)
 #plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
 #plt.show()

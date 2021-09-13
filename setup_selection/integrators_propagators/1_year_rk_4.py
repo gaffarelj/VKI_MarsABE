@@ -47,7 +47,7 @@ integrator_settings = propagation_setup.integrator.runge_kutta_4(
 time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_settings, propagator_settings)
 
 # Make plot
-PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "test_rk4_%sday" % simulation_days)
+PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "integ_prop/test_rk4_%sday" % simulation_days)
 
 np.savetxt("setup_selection/integrators_propagators/rk_4_baseline_MCD_%sday.dat" % simulation_days, \
    np.array([time, altitudes]), fmt="%.5e")
