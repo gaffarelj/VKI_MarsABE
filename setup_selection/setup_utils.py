@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
 spice_interface.load_standard_kernels()
 
-def create_bodies(use_MCD_atmo=False):
+def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
     # Create bodies
     bodies_to_create = ["Mars"]
 
@@ -31,6 +31,8 @@ def create_bodies(use_MCD_atmo=False):
         density_at_zero_altitude = 0.0525
         body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.exponential(
             density_scale_height, density_at_zero_altitude)
+        if use_MCD_winds:
+            print("Warning: MCD winds cannot be used sperately from the MCD atmosphere.")
     else:
         from MCD.parallel_mcd import parallel_mcd as PMCD
         mcd = PMCD()
@@ -39,7 +41,11 @@ def create_bodies(use_MCD_atmo=False):
         # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
         # TODO: CHECK THAT THE CONSTANT VALUES ABOVE DO NOT INFLUENCE DRAG RESULTS
 
+
     bodies = environment_setup.create_system_of_bodies(body_settings)
+    # If specified, add winds from the MCD. Only possible if the MCD atmospheric model is used
+    if use_MCD_winds and use_MCD_atmo:
+        environment_setup.set_custom_wind_model( bodies, "Mars", mcd.wind )
 
     # Add satellite body
     bodies.create_empty_body("Satellite")
