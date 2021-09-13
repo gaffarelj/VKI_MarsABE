@@ -15,12 +15,14 @@ spice_interface.load_standard_kernels()
 
 def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
     # Create bodies
-    bodies_to_create = ["Mars"]
+    bodies_to_create = ["Mars", "Sun"]
+    global_frame_origin = 'Mars'
 
     global_frame_orientation = "ECLIPJ2000"
 
     body_settings = environment_setup.get_default_body_settings(
         bodies_to_create,
+        global_frame_origin,
         base_frame_orientation=global_frame_orientation
     )
 
@@ -57,6 +59,14 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
     aero_coefficient_settings = environment_setup.aerodynamic_coefficients.constant(S_ref, [C_d, C_l, C_m])
     environment_setup.add_aerodynamic_coefficient_interface(bodies, "Satellite", aero_coefficient_settings )
 
+    # Add solar radiation settings
+    reference_area_radiation = 4.0
+    radiation_pressure_coefficient = 1.2
+    occulting_bodies = ["Mars"]
+    radiation_pressure_settings = environment_setup.radiation_pressure.cannonball(
+    "Sun", reference_area_radiation, radiation_pressure_coefficient, occulting_bodies)
+    environment_setup.add_radiation_pressure_interface(bodies, "Satellite", radiation_pressure_settings)
+
     bodies_to_propagate = ["Satellite"]
     central_bodies = ["Mars"]
     return bodies, bodies_to_propagate, central_bodies
@@ -92,7 +102,7 @@ def get_initial_state(bodies, altitude=300e3, inclination=np.deg2rad(0)):
         eccentricity = 0.01,
         inclination = inclination,
         argument_of_periapsis = np.deg2rad(0),
-        longitude_of_ascending_node = np.deg2rad(0),
+        longitude_of_ascending_node = np.deg2rad(45),
         true_anomaly = np.deg2rad(0)
     )
     return initial_state
@@ -115,7 +125,7 @@ def simulation_settings(end_time, end_altitude=50e3):
         termination_settings_list, fulfill_single_condition = True )
     return termination_settings
 
-def run_simulation(bodies, integrator_settings, propagator_settings, verbose=False):
+def run_simulation(bodies, integrator_settings, propagator_settings, verbose=False, return_raw=False):
     print("Starting simulation...")
     t0 = time.time()
     dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
@@ -123,6 +133,7 @@ def run_simulation(bodies, integrator_settings, propagator_settings, verbose=Fal
     )
 
     states = dynamics_simulator.state_history
+    states_elements = np.vstack(list(states.values()))
 
     dependent_variables = dynamics_simulator.dependent_variable_history
     cpu_time = time.time() - t0
@@ -138,6 +149,9 @@ def run_simulation(bodies, integrator_settings, propagator_settings, verbose=Fal
 
     altitudes = dependent_variable_list[:,0]
     densities = dependent_variable_list[:,1]
+
+    if return_raw:
+        return np.array(time_l), np.array(states_elements), np.array(dependent_variable_list)
 
     return time_l, altitudes, densities, cpu_time
 
@@ -287,15 +301,16 @@ def get_integrator_settings(settings_index=10, verbose=False):
 
     return integrator_settings
 
-def get_best_integrator(simulation_start_epoch):
+def get_best_integrator(simulation_start_epoch, extra_accurate=False):
+    tolerance = 1e-9 if extra_accurate else 7.5e-7
     # Setup the optimal integrator settings
     initial_time = simulation_start_epoch # seconds since J2000
     initial_time_step = 20 # seconds
     coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87
-    minimum_step_size = 10 # seconds
+    minimum_step_size = 1 if extra_accurate else 10 # seconds
     maximum_step_size = 1800 # seconds
-    relative_error_tolerance = 7.5e-7 # -
-    absolute_error_tolerance = 7.5e-7 # -
+    relative_error_tolerance = tolerance # -
+    absolute_error_tolerance = tolerance # -
     integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
         initial_time,
         initial_time_step,
