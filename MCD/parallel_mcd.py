@@ -145,3 +145,36 @@ class parallel_mcd:
         self.call()
         # Return the density
         return self.dens
+
+    def wind(self, h, lat, lon, time, time_is_JD=True, JD_Tudat=True):
+        """
+        Return the density at a specific position and time. Used mainly interfaced to Tudat.
+        Inputs:
+         * h: altitude, in [m]
+         * lat: latitude, in [deg]
+         * lon: longitude, in [deg]
+         * time: Julian date in seconds since J2000 by default. Can be changed (see optional inputs)
+        Optional inputs:
+         * time_is_JD: boolean specifying whether the input time is a Julian date (true), or a tuple containing the solar longitude and time of day (false)
+         * JD_Tudat: boolean specifying whether the input time is a Julian date from Tudat (true, in seconds from J2000), or from the MCD (false, in days since J2023)
+        Output:
+         * wind: [float, float, float], in [m/s]. It is a right-handed orthogonal vector in the vertical frame as follows:
+           * x component: points to the North, positive towards North
+           * y component: points to the East, positive towards East
+           * z component: points to the centre of Mars, positive down
+        """
+        self.xz = self.Mars_R + h   # convert altitude to distance from centre of Mars
+        self.xlat = lat
+        self.xlon = lon
+        # If the time is a Julian date, convert it to solar longitude and day of the year
+        if time_is_JD:
+            Ls, Ds = TC.JD_to_Ls(time, JD_Tudat=JD_Tudat)
+        else:
+            Ls, Ds = time
+        # Convert the day of the year to hour of the day
+        self.localtime = Ds % 1 * 24
+        self.xdate = Ls
+        # Call the MCD
+        self.call()
+        # Return the wind vector
+        return [self.merwind, self.zonwind, self.vertwind]
