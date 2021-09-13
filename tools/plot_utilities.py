@@ -25,7 +25,8 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False)
     # Save the plot in the figure folder, as a pdf
     plt.savefig("figures/%s.pdf" % fname)
 
-def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, colors=None, xlog=False, ylog=False, ylim=None, xlim=None):
+def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, colors=None, xlog=False,\
+     ylog=False, ylim=None, xlim=None, legend_loc=0, lstyle="solid"):
     """
     Plot multiple lines
     """
@@ -36,12 +37,12 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
         if colors is not None and len(colors) > i:
             ax.plot(x_datas[i], y_datas[i], color=colors[i])
         else:
-            ax.plot(x_datas[i], y_datas[i])
+            ax.plot(x_datas[i], y_datas[i], linestyle=lstyle)
     # Set labels
     ax.set_xlabel(x_label), ax.set_ylabel(y_label)
     # Set legend
     if legends is not None:
-        ax.legend(legends)
+        ax.legend(legends, loc=legend_loc)
     # Save space
     fig.tight_layout()
     ax.grid()
