@@ -41,11 +41,11 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
         # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
         # TODO: CHECK THAT THE CONSTANT VALUES ABOVE DO NOT INFLUENCE DRAG RESULTS
 
+        # If specified, add winds from the MCD. Only possible if the MCD atmospheric model is used
+        if use_MCD_winds and use_MCD_atmo:
+            body_settings.get("Mars").atmosphere_settings.wind_settings = environment_setup.atmosphere.custom_wind_model(mcd.wind)
 
     bodies = environment_setup.create_system_of_bodies(body_settings)
-    # If specified, add winds from the MCD. Only possible if the MCD atmospheric model is used
-    if use_MCD_winds and use_MCD_atmo:
-        environment_setup.set_custom_wind_model( bodies, "Mars", mcd.wind )
 
     # Add satellite body
     bodies.create_empty_body("Satellite")
