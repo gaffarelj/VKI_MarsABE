@@ -16,7 +16,8 @@ class parallel_mcd:
         self.n_wind = 25            # index of the vertical wind
         self.Mars_R = 3389.5e3      # Mars radius in [m]
         self.load_parallel = load_parallel
-        self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He also accessible if required, at index 77
+        self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He is also accessible if required, at index 77
+        self.species_weight = [44.01, 28.0134, 39.948, 28.01, 15.999, 31.999, 48, 1.00784, 1.00784] # [g/mol], molecular weights
         # Load a set of default inputs to the MCD
         if default_inputs:
             self.default_inputs()
@@ -105,7 +106,8 @@ class parallel_mcd:
         # Save the atomic composition in a dictionnary
         self.species_dict = dict(zip(self.species_name, self.species_frac))
         # Save the atomic composition as a function of density
-        self.species_dens = np.array(self.species_frac) * self.dens
+        mass = np.array(self.species_frac) * np.array(self.species_weight)
+        self.species_dens = mass / mass.sum() * self.dens
         self.species_dict_dens = dict(zip(self.species_name, self.species_dens))
 
         # Print the results

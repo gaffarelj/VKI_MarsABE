@@ -11,7 +11,7 @@ from tools import plot_utilities as PU
 # Load the MCD interface
 mcd = PMCD()
 
-altitudes = np.arange(100, 351, 0.1)
+altitudes = np.arange(50, 351, 0.1)
 legends = mcd.species_name.copy()
 legends.insert(0, "Air")
 all_dens = np.empty((len(legends), len(altitudes)))
@@ -22,7 +22,7 @@ for i, h in enumerate(altitudes):
     all_dens[0,i] = mcd.dens
     for j, dens in enumerate(mcd.species_dens):
         all_dens[j+1,i] = dens
-        all_frac[j+1,i] = dens/mcd.dens
+        all_frac[j+1,i] = mcd.species_frac[j]
 
 # Remove O3 (density too low)
 legends.pop(7)
