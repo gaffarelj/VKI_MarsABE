@@ -35,5 +35,11 @@ matplotlib
 scipy
 ```
 
-In addition, it is required to install the `tudat-space` environment. This contains the TU Delft Astrodynamics Toolbox used to run the astrodynamic simulations.
-Installing this environment can be done by following the steps described [on this page](https://tudat-space.readthedocs.io/en/latest/_src_first_steps/tudat_py.html).
+In addition, it is required to install `TudatPy`. This is the TU Delft Astrodynamics Toolbox used to run the astrodynamic simulations.
+Installing this environment can be done by following the steps described [on this page](https://github.com/tudat-team/tudat-bundle#readme).
+Please note that, in my case, the Windows Subsystem for Linux (v2) has been used.
+
+Also, before compiling Tudat on your machine, [this line](https://github.com/tudat-team/tudatpy/blob/4169c827eaa16bf4b6cc9b8626d29f54c6724a76/tudatpy/kernel/expose_simulation/expose_environment_setup/expose_atmosphere_setup.cpp#L86) shall be changed to:
+```
+m.def("custom_constant_temperature_detailed",
+```
