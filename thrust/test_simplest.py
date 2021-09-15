@@ -37,7 +37,7 @@ acceleration_settings = {"Satellite":
             propagation_setup.acceleration.aerodynamic()
         ],
         Sun = [ propagation_setup.acceleration.cannonball_radiation_pressure() ],
-        Satellite = [  T.thrust_settings(bodies, simulation_start_epoch) ]
+        Satellite = [  T.thrust_settings(bodies, simulation_start_epoch, save_solar=True) ]
     )}
 accelerations = propagation_setup.create_acceleration_models(bodies, acceleration_settings, bodies_to_propagate, central_bodies)
 
@@ -56,13 +56,17 @@ propagator_settings = propagation_setup.propagator.translational(
 # Run the simulation
 time, states, dep_vars = SU.run_simulation(bodies, integrator_settings, propagator_settings, return_raw=True)
 
-# Compute the positions and velocities
+# Extract values for plotting
 positions = np.linalg.norm(states[:,:3], axis=1)
 thrust_acc = dep_vars[:,:3]
 densities = dep_vars[:,3]
 aoa = dep_vars[:,4]
+time_solar = np.array(list(T.solar_irradiances.keys()))
+time_solar = time_solar - time_solar[0]
 
 # Make plot
-PU.plot_single(time/1e3, (positions-positions[0])/1e3, "Time [hr]", "$|r(t) - r_0|$ [km]", "thrust/test_pos")
-PU.plot_dual(time/1e3, np.linalg.norm(thrust_acc, axis=1), densities, "Time [hr]", "Thrust acceleration [m/s$^2$]", "Density [kg/m$^3$]", "thrust/test_acc_dens")
-PU.plot_multiple([time/1e3]*3, thrust_acc.T, "Time [hr]", "Thrust acceleration [m/s$^2$]", "thrust/test_acc", ["x-direction", "y-direction", "z-direction"])
+PU.plot_single(time/3600, (positions-positions[0])/1e3, "Time [hr]", "$|r(t) - r_0|$ [km]", "thrust/test_pos")
+PU.plot_dual(time/3600, np.linalg.norm(thrust_acc, axis=1), densities, "Time [hr]", "Thrust acceleration [m/s$^2$]", "Density [kg/m$^3$]", "thrust/test_acc_dens")
+PU.plot_dual([time/3600, time_solar/3600], np.linalg.norm(thrust_acc, axis=1), T.solar_irradiances.values(), "Time [hr]", \
+    "Thrust acceleration [m/s$^2$]", "Solar irradiance [W/m$^2$]", "thrust/test_acc_solar", diff_x=True)
+PU.plot_multiple([time/3600]*3, thrust_acc.T, "Time [hr]", "Thrust acceleration [m/s$^2$]", "thrust/test_acc", ["x-direction", "y-direction", "z-direction"])
