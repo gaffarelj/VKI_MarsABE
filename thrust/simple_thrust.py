@@ -1,12 +1,7 @@
 import numpy as np
-import tudatpy
 from tudatpy.kernel.simulation import propagation_setup
-import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
-from MCD import parallel_mcd as PMCD
 
 class thrust_model:
-
     def __init__(self, vehicle, init_time=0, Isp_base=800, dens_treshold=1e-13):
         self.vehicle = vehicle
         self.init_time = init_time
@@ -20,14 +15,8 @@ class thrust_model:
         return self.Isp_base
 
     def is_thrust_on(self, time):
-        if self.is_MCD_loaded:
-            # Engine is on if the air density is above a given treshold
-            return self.vehicle.get_flight_conditions().current_density > self.dens_treshold
-        return True
-    
-    def is_MCD_loaded(self):
-        # Check if the MCD is loaded.
-        return PMCD.LAST_RESULTS is not None or len(PMCD.MODULE_LIST) == 0
+        # Engine is on if the air density is above a given treshold
+        return self.vehicle.get_flight_conditions().current_density > self.dens_treshold
 
 def thrust_settings(bodies, init_time=0):
     # Define the thrust guidance function
