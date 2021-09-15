@@ -60,17 +60,22 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     plt.savefig("figures/%s.pdf" % fname)
 
 
-def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname):
+def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, diff_x=False):
     """
     Plot with two y axis. Inputs should be self-explanatory.
     """
+    # Check if the x_data is the same for both y or not
+    if diff_x:
+        x_data_1, x_data_2 = x_data[0], x_data[1]
+    else:
+        x_data_1, x_data_2 = x_data, x_data
     fig, ax1 = plt.subplots()
     # Set the color of the left y axis
     color = "tab:red"
     ax1.set_xlabel(x_label)
     ax1.set_ylabel(y_label_1, color=color)
     # Plot the data for the left axis
-    ax1.plot(x_data, y_data_1, color=color)
+    ax1.plot(x_data_1, y_data_1, color=color)
     ax1.tick_params(axis="y", labelcolor=color)
     # Add the grid based on the left axis (the horizontal lines are based on the left axis)
     ax1.grid()
@@ -80,7 +85,7 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname):
     color = "tab:blue"
     ax2.set_ylabel(y_label_2, color=color)
     # Plot the data on the right axis
-    ax2.plot(x_data, y_data_2, color=color)
+    ax2.plot(x_data_2, y_data_2, color=color)
     ax2.tick_params(axis="y", labelcolor=color)
     # Save space
     fig.tight_layout()
