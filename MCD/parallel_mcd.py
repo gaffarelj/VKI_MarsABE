@@ -3,15 +3,18 @@ import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
 from tools import time_conversions as TC
 
+MODULE_LIST = []    # list that will contain the loaded MCD interface modules
+LAST_RESULTS = None # list that will contain the results from the last MCD call
+
 class parallel_mcd:
     """
     This class is used as an interface to the Mars Climate Database.
     It also allows to keep the MCD files in cache instead of re-opening them each time different Martian months are requested.
     """
     def __init__(self, default_inputs=True, load_on_init=False, load_parallel=True):
+        global MODULE_LIST
         # The following two arrays contain the times in solar longitude (Ls) at which different files will be loaded
         self.limiting_Ls = np.arange(0, 330.01, 30)
-        self.call_mcd_list = []     # list that will contain the loaded MCD interface modules
         self.n_species = (56, 65)   # list of the index at which the atmospheric atomic volumetric fractions are to be loaded
         self.n_wind = 25            # index of the vertical wind
         self.Mars_R = 3389.5e3      # Mars radius in [m]
@@ -27,7 +30,7 @@ class parallel_mcd:
         else:
             # Otherwise, load only one MCD interface module
             from MCD.fmcd import call_mcd as call_mcd
-            self.call_mcd_list = [call_mcd]
+            MODULE_LIST = [call_mcd]
 
     def default_inputs(self):
         # Load a set of default inputs for the MCD interface module
@@ -50,6 +53,7 @@ class parallel_mcd:
         self.xdate = 0
 
     def load_mcd(self, charge_files=True):
+        global MODULE_LIST
         # Import the same Fortran interface compiled with different names in Python.
         # This is not an elegant solution, but a very efficient one.
         # This way, the required file can be loaded only once per module,
@@ -72,7 +76,7 @@ class parallel_mcd:
         # Load the MCD corresponding to each Ls range (solar longitude)
         for i_module, xdate in enumerate(self.limiting_Ls):
             call_mcd = eval("call_mcd_%i" % (i_module+1))
-            self.call_mcd_list.append(call_mcd)
+            MODULE_LIST.append(call_mcd)
             # Load the MCD data for each module
             if charge_files:
                 # Load all of the MCD files for one Martian year, in different modules (to keep them loaded)
@@ -80,6 +84,7 @@ class parallel_mcd:
                     self.localtime,self.dset,self.scena,self.perturkey,self.seedin,self.gwlength,self.extvarkeys)
 
     def call(self, Ls=None, localtime=None, lat=None, lon=None, h=None, print_results=False):
+        global MODULE_LIST, LAST_RESULTS
         # Call the MCD
         if Ls is not None: self.xdate = Ls                      # solar longitude [deg], between 0 and 360
         if localtime is not None: self.localtime = localtime    # local time [hours], between 0 and 24
@@ -92,7 +97,7 @@ class parallel_mcd:
             i_module = np.where(self.limiting_Ls - self.xdate <= 15)[0][-1]
         else:
             i_module = 0
-        call_mcd = self.call_mcd_list[i_module]
+        call_mcd = MODULE_LIST[i_module]
         # Make the actual call to the MCD (with the dataset already loaded, this takes in the order of 0.05 ms)
         self.pres,self.dens,self.temp,self.zonwind,self.merwind,self.meanvar,self.extvars,self.seedout,self.ier = \
             call_mcd(self.zkey,self.xz,self.xlon,self.xlat,self.hireskey,self.datekey,self.xdate,\
@@ -109,6 +114,8 @@ class parallel_mcd:
         mass = np.array(self.species_frac) * np.array(self.species_weight)
         self.species_dens = mass / mass.sum() * self.dens
         self.species_dict_dens = dict(zip(self.species_name, self.species_dens))
+
+        LAST_RESULTS = self
 
         # Print the results
         if print_results:
