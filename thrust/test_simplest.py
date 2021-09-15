@@ -24,6 +24,7 @@ termination_settings = SU.simulation_settings(simulation_end_epoch)
 dependent_variables_to_save = [
     propagation_setup.dependent_variable.single_acceleration(
         propagation_setup.acceleration.thrust_acceleration_type, "Satellite", "Satellite"),
+    propagation_setup.dependent_variable.density("Satellite", "Mars"),
     propagation_setup.dependent_variable.angle_of_attack("Satellite", "Mars")
 ]
 integrator_settings = SU.get_best_integrator(simulation_start_epoch, extra_accurate=True)
@@ -58,7 +59,10 @@ time, states, dep_vars = SU.run_simulation(bodies, integrator_settings, propagat
 # Compute the positions and velocities
 positions = np.linalg.norm(states[:,:3], axis=1)
 thrust_acc = dep_vars[:,:3]
+densities = dep_vars[:,3]
+aoa = dep_vars[:,4]
 
 # Make plot
 PU.plot_single(time/1e3, (positions-positions[0])/1e3, "Time [hr]", "$|r(t) - r_0|$ [km]", "thrust/test_pos")
+PU.plot_dual(time/1e3, np.linalg.norm(thrust_acc, axis=1), densities, "Time [hr]", "Thrust acceleration [m/s$^2$]", "Density [kg/m$^3$]", "thrust/test_acc_dens")
 PU.plot_multiple([time/1e3]*3, thrust_acc.T, "Time [hr]", "Thrust acceleration [m/s$^2$]", "thrust/test_acc", ["x-direction", "y-direction", "z-direction"])
