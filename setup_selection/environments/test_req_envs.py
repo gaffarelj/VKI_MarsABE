@@ -25,7 +25,7 @@ dependent_variables_to_save = [
     propagation_setup.dependent_variable.relative_position("Satellite", "Mars"),
     propagation_setup.dependent_variable.relative_position("Sun", "Mars")
 ]
-integrator_settings = SU.get_best_integrator(simulation_start_epoch, extra_accurate=True)
+integrator_settings = SU.get_best_integrator(simulation_start_epoch)
 
 check_grav = False
 check_rel = False

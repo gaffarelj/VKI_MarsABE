@@ -301,14 +301,14 @@ def get_integrator_settings(settings_index=10, verbose=False):
 
     return integrator_settings
 
-def get_best_integrator(simulation_start_epoch, extra_accurate=False):
-    tolerance = 1e-9 if extra_accurate else 7.5e-7
+def get_best_integrator(simulation_start_epoch):
+    tolerance = 1e-8
     # Setup the optimal integrator settings
     initial_time = simulation_start_epoch # seconds since J2000
-    initial_time_step = 20 # seconds
-    coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87
-    minimum_step_size = 1 if extra_accurate else 10 # seconds
-    maximum_step_size = 1800 # seconds
+    initial_time_step = 150  # seconds
+    coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87 
+    minimum_step_size = 0.05 # seconds
+    maximum_step_size = 600  # seconds
     relative_error_tolerance = tolerance # -
     absolute_error_tolerance = tolerance # -
     integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
@@ -321,7 +321,7 @@ def get_best_integrator(simulation_start_epoch, extra_accurate=False):
         absolute_error_tolerance,
         save_frequency= 1,
         assess_termination_on_minor_steps = False,
-        safety_factor = 0.65,
-        maximum_factor_increase = 2.0,
-        minimum_factor_increase = 0.1 )
+        safety_factor = 0.85,
+        maximum_factor_increase = 3.0,
+        minimum_factor_increase = 0.25 )
     return integrator_settings

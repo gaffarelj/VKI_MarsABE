@@ -27,7 +27,7 @@ dependent_variables_to_save = [
     propagation_setup.dependent_variable.density("Satellite", "Mars"),
     propagation_setup.dependent_variable.angle_of_attack("Satellite", "Mars")
 ]
-integrator_settings = SU.get_best_integrator(simulation_start_epoch, extra_accurate=True)
+integrator_settings = SU.get_best_integrator(simulation_start_epoch)
 
 acceleration_settings = {"Satellite":
     dict(
@@ -49,12 +49,16 @@ propagator_settings = propagation_setup.propagator.translational(
     bodies_to_propagate,
     initial_state,
     termination_settings,
-    propagation_setup.propagator.cowell,
+    propagation_setup.propagator.encke,
     dependent_variables_to_save
 )
 
 # Run the simulation
 time, states, dep_vars = SU.run_simulation(bodies, integrator_settings, propagator_settings, return_raw=True)
+
+# Print the minimum and maximum time step
+# dt = time[1:] - time[:-1]
+# print(max(dt), min(dt))
 
 # Extract values for plotting
 positions = np.linalg.norm(states[:,:3], axis=1)
