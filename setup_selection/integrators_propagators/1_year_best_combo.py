@@ -33,7 +33,7 @@ propagator_settings = propagation_setup.propagator.translational(
     bodies_to_propagate,
     initial_state,
     termination_settings,
-    propagation_setup.propagator.cowell,
+    propagation_setup.propagator.encke,
     dependent_variables_to_save
 )
 # Define the integrator settings
