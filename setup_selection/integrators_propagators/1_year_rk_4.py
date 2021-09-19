@@ -15,7 +15,7 @@ simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN
 # Define the environment and bodies
 bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True)
 # Define the accelerations to be included
-acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies)
+acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies, detail_level=1) # takes 100 s for 20 days, MCD, envs
 # Define the initial state of the satellite
 initial_state = SU.get_initial_state(bodies)
 # Define the termination settings
@@ -49,7 +49,7 @@ time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_sett
 # Make plot
 PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "integ_prop/test_rk4_%sday" % simulation_days)
 
-np.savetxt("setup_selection/integrators_propagators/rk_4_baseline_MCD_%sday.dat" % simulation_days, \
+np.savetxt("setup_selection/integrators_propagators/rk_4_baseline_envs_%sday.dat" % simulation_days, \
    np.array([time, altitudes]), fmt="%.5e")
 #np.savetxt("setup_selection/integrators_propagators/rk_4_baseline.dat", np.array([time, altitudes]), fmt="%.5e")
 # baseline took 110 seconds (225 seconds including MCD atmosphere, for 50 days, step of 10 s, 7.7 seconds for 1 day, 89 seconds for 20 days)
