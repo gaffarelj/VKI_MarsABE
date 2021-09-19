@@ -14,9 +14,9 @@ simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN
 # Define the environment and bodies
 bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True)
 # Define the accelerations to be included
-acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies)
+acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies, detail_level=1)
 # Define the initial state of the satellite
-initial_state = SU.get_initial_state(bodies, inclination=np.deg2rad(0.001))
+initial_state = SU.get_initial_state(bodies, inclination=np.deg2rad(0.01))
 # Define the termination settings
 termination_settings = SU.simulation_settings(simulation_end_epoch)
 # Define the dependent variables to save
@@ -53,7 +53,7 @@ for propagator in available_propagators:
 
     # Compute the difference with the baseline
     print("Computing difference from baseline...")
-    diff_times, diff_vals = SU.compare_to_baseline(time, altitudes, baseline_f="rk_4_baseline_MCD_%sday" % simulation_days, trunc_ends=True)
+    diff_times, diff_vals = SU.compare_to_baseline(time, altitudes, baseline_f="rk_4_baseline_envs_%sday" % simulation_days, trunc_ends=True)
 
     print("Final altitude of %.2f km, at a time of %.2f years" % (altitudes[-1]/1e3, (time[-1]-time[0])/365/24))
     print("Max difference with rk_4 is of %.3f m, with a cpu time of %.2f seconds." % (max(diff_vals), cpu_time))
