@@ -17,7 +17,7 @@ bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True
 # Define the accelerations to be included
 acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies, detail_level=1) # takes 100 s for 20 days, MCD, envs
 # Define the initial state of the satellite
-initial_state = SU.get_initial_state(bodies)
+initial_state = SU.get_initial_state(bodies, inclination=np.deg2rad(0.01))
 # Define the termination settings
 termination_settings = SU.simulation_settings(simulation_end_epoch)
 # Define the dependent variables to save
