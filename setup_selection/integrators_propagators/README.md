@@ -2,9 +2,11 @@
 This folders contains different various scripts that have been used to select a robust yet efficient combination of integrator and propagator for the simulation of a Martian orbit during one year.
 
 ## Benchmark
-First, [1_year_rk_4.py](1_year_rk_4.py) establishes a benchmark of the orbit during one year. It does so using a Cowell propagators, and a Runge Kutta 4 integrator with a fixed step of 10 seconds.
-This simulation takes around 110 seconds to run on my CPU.
+First, [1_year_rk_4.py](1_year_rk_4.py) establishes a benchmark of the orbit during one year. It does so using a Cowell propagator, and a Runge Kutta 4 integrator with a fixed step of 10 seconds.
+This simulation takes around 110 seconds to run on my CPU, for a simulated orbit of 1 year.
 Once this benchmark simulation is done, the resulting altitudes as a function of time are saved in [rk_4_baseline.dat](rk_4_baseline.dat).
+
+The same benchmark has then been run with the inclusion of densities from the Mars Climate Database. The propagation has then been run for 50 days, 20 days, and 1 day. The results have also been saved in `.dat` files.
 
 ## Integrator selection
 Various integration scheme and settings have been tested, as to reduce the simulation time without introducing significant deviations w.r.t. the benchmark.
@@ -38,7 +40,8 @@ This leads to a low propagation time of 10.5 seconds, with a deviation of only 6
 
 ## Propagator selection
 All of the propagators available in the simulation framework have been tested, using the integrator recommended above.
-This has been done in [1_year_propagator.py](1_year_propagator.py), and lead to the results of the table below.
+This has been done in [1_year_propagator.py](1_year_propagator.py), first without including the density from the MCD, and only using Mars as a point mass and the aerodynamic drag as the accelerations.
+This lead to the results of the table below.
 
 | Propagator                                             | Simulation time [s] | Maximum difference in altitude [km] | Comment                                      |
 |--------------------------------------------------------|---------------------|-------------------------------------|----------------------------------------------|
@@ -50,7 +53,17 @@ This has been done in [1_year_propagator.py](1_year_propagator.py), and lead to 
 | Unified State Model with Modified Rodrigues Parameters | 10.5                | 0.35                                |                                              |
 | Unified State Model with Exponential Map               | 10.6                | 0.35                                |                                              |
 
-From these, it is advised to use the Unified State Model propagator, most likely the one using Quaternions as the state.
+Then, using the density from the MCD, keeping only Mars as a point mass and the aerodynamic drag as accelerations, and simulating a 20 days orbit, the following table has been made.
+
+| Propagator                                             | Simulation time [s] | Maximum difference in altitude [m] |
+|--------------------------------------------------------|---------------------|------------------------------------|
+| Cowell                                                 | 10.92               | 6.883                              |
+| Encke                                                  | 10.62               | 4.616                              |
+| Gauss Keplerian                                        | 6.57                | 4.887                              |
+| Gauss Modified Equinoctial                             | 4.54                | 4.968                              |
+| Unified State Model with Quaternions                   | 4.83                | 4.911                              |
+| Unified State Model with Modified Rodrigues Parameters | 4.79                | 4.923                              |
+| Unified State Model with Exponential Map               | 4.71                | 4.928                              |
 
 ## Overall 
 Finally, [1_year_best_combo.py](1_year_best_combo.py) explores finer tuning of the integrator, using the suggested propagator.
