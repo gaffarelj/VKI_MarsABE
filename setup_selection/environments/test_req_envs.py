@@ -15,7 +15,7 @@ simulation_start_epoch = TC.MCD_to_Tudat(2459942)
 simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN_DAY
 
 # Define the environment and bodies
-bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=False, use_MCD_winds=True)
+bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=False)
 # Define the initial state of the satellite
 initial_state = SU.get_initial_state(bodies)
 # Define the termination settings
@@ -25,7 +25,7 @@ dependent_variables_to_save = [
     propagation_setup.dependent_variable.relative_position("Satellite", "Mars"),
     propagation_setup.dependent_variable.relative_position("Sun", "Mars")
 ]
-integrator_settings = SU.get_best_integrator(simulation_start_epoch)
+integrator_settings = SU.get_best_integrator(simulation_start_epoch, extra_accurate=True)
 
 check_grav = False
 check_rel = False
@@ -144,7 +144,7 @@ for i, accelerations in enumerate(accelerations_list):
         bodies_to_propagate,
         initial_state,
         termination_settings,
-        propagation_setup.propagator.cowell,
+        propagation_setup.propagator.gauss_modified_equinoctial,
         dependent_variables_to_save
     )
 

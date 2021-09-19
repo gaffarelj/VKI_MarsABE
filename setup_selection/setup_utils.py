@@ -301,8 +301,8 @@ def get_integrator_settings(settings_index=10, verbose=False):
 
     return integrator_settings
 
-def get_best_integrator(simulation_start_epoch):
-    tolerance = 1e-8
+def get_best_integrator(simulation_start_epoch, extra_accurate=False):
+    tolerance = 1e-12 if extra_accurate else 1e-8
     # Setup the optimal integrator settings
     initial_time = simulation_start_epoch # seconds since J2000
     initial_time_step = 150  # seconds
