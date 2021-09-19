@@ -71,17 +71,40 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
     central_bodies = ["Mars"]
     return bodies, bodies_to_propagate, central_bodies
 
-def setup_environment(bodies, bodies_to_propagate, central_bodies):
+def setup_environment(bodies, bodies_to_propagate, central_bodies, detail_level=0):
+    # Detail level: 0 = PM, aero; 1 = SH D/O 4, aero; 2 = SG D/O 8, aero, canonnball radiation
     # Setup environment
-    acceleration_settings = {"Satellite":
-        dict(
-            Mars=
-            [
-                propagation_setup.acceleration.point_mass_gravity(),
-                propagation_setup.acceleration.aerodynamic()
-            ]
-        )
-    }
+    if detail_level == 0:
+        acceleration_settings = {"Satellite":
+            dict(
+                Mars=
+                [
+                    propagation_setup.acceleration.point_mass_gravity(),
+                    propagation_setup.acceleration.aerodynamic()
+                ]
+            )
+        }
+    elif detail_level == 1:
+        acceleration_settings = {"Satellite":
+            dict(
+                Mars=
+                [
+                    propagation_setup.acceleration.spherical_harmonic_gravity(4, 4),
+                    propagation_setup.acceleration.aerodynamic()
+                ]
+            )
+        }
+    elif detail_level == 2:
+        acceleration_settings = {"Satellite":
+            dict(
+                Mars=
+                [
+                    propagation_setup.acceleration.spherical_harmonic_gravity(8, 8),
+                    propagation_setup.acceleration.aerodynamic()
+                ],
+                Sun = [ propagation_setup.acceleration.cannonball_radiation_pressure() ] 
+            )
+        }
 
     acceleration_models = propagation_setup.create_acceleration_models(
         bodies,
