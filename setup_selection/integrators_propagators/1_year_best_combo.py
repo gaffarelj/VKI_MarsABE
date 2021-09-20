@@ -15,9 +15,9 @@ simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN
 # Define the environment and bodies
 bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True)
 # Define the accelerations to be included
-acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies)
+acceleration_models = SU.setup_environment(bodies, bodies_to_propagate, central_bodies, detail_level=1)
 # Define the initial state of the satellite
-initial_state = SU.get_initial_state(bodies)
+initial_state = SU.get_initial_state(bodies, inclination=np.deg2rad(0.01))
 # Define the termination settings
 termination_settings = SU.simulation_settings(simulation_end_epoch)
 # Define the dependent variables to save
@@ -33,17 +33,18 @@ propagator_settings = propagation_setup.propagator.translational(
     bodies_to_propagate,
     initial_state,
     termination_settings,
-    propagation_setup.propagator.encke,
+    propagation_setup.propagator.gauss_modified_equinoctial,
     dependent_variables_to_save
 )
 # Define the integrator settings
+tolerance = 1e-10
 initial_time = simulation_start_epoch # seconds since J2000
-initial_time_step = 20 # seconds
-coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87
-minimum_step_size = 10 # seconds
-maximum_step_size = 1800 # seconds
-relative_error_tolerance = 7.5e-7 # -
-absolute_error_tolerance = 7.5e-7 # -
+initial_time_step = 150  # seconds
+coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87 
+minimum_step_size = 0.05 # seconds
+maximum_step_size = 600  # seconds
+relative_error_tolerance = tolerance # -
+absolute_error_tolerance = tolerance # -
 integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
     initial_time,
     initial_time_step,
@@ -54,10 +55,9 @@ integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_siz
     absolute_error_tolerance,
     save_frequency= 1,
     assess_termination_on_minor_steps = False,
-    safety_factor = 0.65,
-    maximum_factor_increase = 2.0,
-    minimum_factor_increase = 0.1 )
-
+    safety_factor = 0.6,
+    maximum_factor_increase = 3.5,
+    minimum_factor_increase = 0.15)
 
 # Run the simulation
 time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_settings, propagator_settings)
@@ -66,7 +66,7 @@ time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_sett
 PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "integ_prop/test_best_combo_%sday" % simulation_days)
 
 # Compute the difference with the baseline
-diff_times, diff_vals = SU.compare_to_baseline(time, altitudes, baseline_f="rk_4_baseline_MCD_%sday" % simulation_days, trunc_ends=True)
+diff_times, diff_vals = SU.compare_to_baseline(time, altitudes, baseline_f="rk_4_baseline_envs_%sday" % simulation_days, trunc_ends=True)
 
 # Plot difference
 PU.plot_single(np.array(diff_times)/3600, np.array(diff_vals), "Time [hr]", "Difference in altitude [m]", "integ_prop/diff_best_combo_%sday" % simulation_days)
