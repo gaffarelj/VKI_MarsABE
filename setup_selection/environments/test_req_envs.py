@@ -29,7 +29,8 @@ integrator_settings = SU.get_best_integrator(simulation_start_epoch, extra_accur
 
 check_grav = False
 check_rel = False
-check_rad = True
+check_rad = False
+check_PM = True
 
 # Define the accelerations to be included
 if check_grav:
@@ -130,6 +131,45 @@ elif check_rad:
 
     legends = ["Mars SH D/O 4, aero", "+ Cannonball radiation pressure"]
     fname = "comparison_rad"
+elif check_PM:
+    # Mars SH D/O 4 and aero
+    acceleration_settings = {"Satellite":
+        dict(
+            Mars=
+            [
+                propagation_setup.acceleration.spherical_harmonic_gravity(4, 4),
+                propagation_setup.acceleration.aerodynamic()
+            ]
+        )}
+    accelerations_list = [propagation_setup.create_acceleration_models(bodies, acceleration_settings, bodies_to_propagate, central_bodies)]
+    
+    # Mars SH D/O 4, aero, Sun PM
+    acceleration_settings = {"Satellite":
+        dict(
+            Mars=
+            [
+                propagation_setup.acceleration.spherical_harmonic_gravity(4, 4),
+                propagation_setup.acceleration.aerodynamic()
+            ],
+            Sun = [ propagation_setup.acceleration.point_mass_gravity() ]
+        )}
+    accelerations_list.append(propagation_setup.create_acceleration_models(bodies, acceleration_settings, bodies_to_propagate, central_bodies))
+    
+    # Mars SH D/O 4, aero, Phobos PM
+    acceleration_settings = {"Satellite":
+        dict(
+            Mars=
+            [
+                propagation_setup.acceleration.spherical_harmonic_gravity(4, 4),
+                propagation_setup.acceleration.aerodynamic()
+            ],
+            Jupiter = [ propagation_setup.acceleration.point_mass_gravity() ]
+        )}
+    accelerations_list.append(propagation_setup.create_acceleration_models(bodies, acceleration_settings, bodies_to_propagate, central_bodies))
+
+    legends = ["Mars SH D/O 4, aero", "+ Sun PM", "+ Jupiter PM"]
+    fname = "comparison_PM"
+
 
 pos_t = []
 vel_t = []

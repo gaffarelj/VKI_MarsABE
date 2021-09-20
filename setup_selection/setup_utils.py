@@ -15,7 +15,7 @@ spice_interface.load_standard_kernels()
 
 def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
     # Create bodies
-    bodies_to_create = ["Mars", "Sun"]
+    bodies_to_create = ["Mars", "Sun", "Jupiter"]
     global_frame_origin = 'Mars'
 
     global_frame_orientation = "ECLIPJ2000"
@@ -102,7 +102,15 @@ def setup_environment(bodies, bodies_to_propagate, central_bodies, detail_level=
                     propagation_setup.acceleration.spherical_harmonic_gravity(8, 8),
                     propagation_setup.acceleration.aerodynamic()
                 ],
-                Sun = [ propagation_setup.acceleration.cannonball_radiation_pressure() ] 
+                Sun =
+                [
+                    propagation_setup.acceleration.cannonball_radiation_pressure(),
+                    propagation_setup.acceleration.point_mass_gravity()
+                ],
+                Jupiter =
+                [
+                    propagation_setup.acceleration.point_mass_gravity()
+                ]
             )
         }
 

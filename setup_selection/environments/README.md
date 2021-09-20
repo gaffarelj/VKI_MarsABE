@@ -41,7 +41,9 @@ No significant deviations were found.
 
 ### Other bodies contribution
 
-To do: investigate the contribution of the Sun and Phobos as Point Masses.
+The acceleration from the Sun and Jupiter as Point Masses on the satellite have been investigated.
+
+They did not lead to significant deviations for a 20 days simulations. For simulations in the order of years, it is still recommended to include them, due to their small effect.
 
 ## Recommandations
 
@@ -53,3 +55,4 @@ If more precision is required, the following can be used instead:
  * Mars gravitationnal acceleration from SH up to D/O 8.
  * Aerodynamic acceleration from the atmosphere.
  * Radiation pressure from the Sun.
+ * Point Mass gravity from the Sun and Jupiter.
