@@ -2,6 +2,7 @@ import numpy as np
 import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
 from tools import time_conversions as TC
+import time as T
 
 MODULE_LIST = []    # list that will contain the loaded MCD interface modules
 LAST_RESULTS = None # list that will contain the results from the last MCD call
@@ -98,10 +99,15 @@ class parallel_mcd:
         else:
             i_module = 0
         call_mcd = MODULE_LIST[i_module]
+        t0 = T.time()
         # Make the actual call to the MCD (with the dataset already loaded, this takes in the order of 0.05 ms)
         self.pres,self.dens,self.temp,self.zonwind,self.merwind,self.meanvar,self.extvars,self.seedout,self.ier = \
             call_mcd(self.zkey,self.xz,self.xlon,self.xlat,self.hireskey,self.datekey,self.xdate,\
             self.localtime,self.dset,self.scena,self.perturkey,self.seedin,self.gwlength,self.extvarkeys)
+        dt = T.time() - t0
+        # Print the call time if the file was loaded (call time above 2 sec)
+        if dt > 2:
+            print("Loading the MCD file took %.3f seconds." % dt)
         # Extract the vertical wind
         self.vertwind = self.extvars[self.n_wind]
         # Extract the volumetric ratio of each species in the atmosphere
