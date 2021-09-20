@@ -104,6 +104,6 @@ The settings that resulted from this study are thus the followings:
 
 This leads to a simulation time of 5 seconds, with a deviation from the benchmark of a maximum of 3.239 meters in altitude after 20 days of simulation.
 
-For a more accurate simulation, the same settings can be used but with a relative and absolute integrator tolerance of 1E-12 instead, leading to a simulation time of 10.704 seconds and a deviation of only 0.746 meters.
+For a more accurate simulation, the same settings can be used but with a relative and absolute integrator tolerance of 1E-10 instead, leading to a simulation time of 10.704 seconds and a deviation of only 0.746 meters.
 
 Finally, these settings may be tweaked again later on when accelerations such as drag or thrust are changed.
