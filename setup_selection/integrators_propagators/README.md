@@ -54,6 +54,8 @@ This lead to the results of the table below.
 | Unified State Model with Exponential Map               | 10.6                | 0.35                                |                                              |
 
 Then, using the density from the MCD, keeping only Mars as a point mass and the aerodynamic drag as accelerations, and simulating a 20 days orbit, the following table has been made.
+Because this model results in highly more varying densities than the exponential model, the steps taken by the variable step integrator are much smaller.
+
 
 | Propagator                                             | Simulation time [s] | Maximum difference in altitude [m] |
 |--------------------------------------------------------|---------------------|------------------------------------|
@@ -65,42 +67,43 @@ Then, using the density from the MCD, keeping only Mars as a point mass and the 
 | Unified State Model with Modified Rodrigues Parameters | 4.79                | 4.923                              |
 | Unified State Model with Exponential Map               | 4.71                | 4.928                              |
 
+From the table above, the Gauss Modified Equinoctial propagator has been used to select the appropriate environment to be used. This was made in [this file](../environments/test_req_envs.py).
+
+Lastly, the same process has been repeated, but adding the Martian spherical harmonics up to degree and order 4 to the gravitational acceleration, and adding a cannonball radiation pressure. This lead to the table below.
+
+| Propagator                                             | Simulation time [s] | Maximum difference in altitude [m] |
+|--------------------------------------------------------|---------------------|------------------------------------|
+| Cowell                                                 | 10.31               | 7.835                              |
+| Encke                                                  | 10.87               | 8.059                              |
+| Gauss Keplerian                                        | 6.73                | 3.754                              |
+| Gauss Modified Equinoctial                             | 4.76                | 5.182                              |
+| Unified State Model with Quaternions                   | 9.46                | 0.753                              |
+| Unified State Model with Modified Rodrigues Parameters | 9.36                | 0.787                              |
+| Unified State Model with Exponential Map               | 9.22                | 0.781                              |
+
+The current recommendation is then to use the Gauss Modified Equinoctial propagator. However, if CPU time is not an issue, the Unified State Model with Quaternions propagator leads to the most accurate results.
+
 ## Overall 
 Finally, [1_year_best_combo.py](1_year_best_combo.py) explores finer tuning of the integrator, using the suggested propagator.
 Note that the change in settings has been done manually, starting from the integrator and propagator suggested in the previous steps
-This lead to the findings of the following table.
 
-| Change in integrator settings                 | Simulation time [s] | Maximum difference in altitude [km] | Comment                                                             |
-|-----------------------------------------------|---------------------|-------------------------------------|---------------------------------------------------------------------|
-| Decrease the tolerance to 2.5E-1 (extreme).   | 10.5                | 0.6                                 | This shows that the integrator is limited by the maximum step size. |
-| Increase the maximum step from 300s to 1800s. | 1.7                 | 3.6                                 |                                                                     |
-| Set the tolerance back to 2.5E-8              | 3.5                 | 1.2                                 | The difference increases with increasing perturbations.             |
-| Set the tolerance to 1E-9                     | 5                   | 0.6                                 | Big jump in simulated altitude are seen.                            |
-| Set the tolerance to 5E-9                     | 4.2                 | 0.9                                 | Big jump in simulated altitude are seen.                            |
-| Change the safety factor from 0.75 to 0.85    | 4.3                 | 0.9                                 | Size of the jump in altitude lowered.                               |
-| Change the safety factor from 0.85 to 0.95    | 4.3                 | 0.9                                 | No more altitude jumps are present.                                 |
-| Change the tolerance back to 1E-9             | 5                   | 0.6                                 |                                                                     |
+In this process, caution has been payed so that the integrator is limited by its tolerance and not the step size.
+Also, irregulars jumps in altitude have sometime been observed. The integrator has been tuned to avoid these.
 
 The settings that resulted from this study are thus the followings:
 
 * A Runge Kutta Dormant Prince 87 integrator with:
-    * A step size range of 10s to 1800s
-    * A relative and absolute tolerance of 1E-9
-    * A safety factor of 0.95
-* An Unified State Model propagator with Quaternions
+    * A relative and absolute tolerance of 5E-8
+    * A step size range of 0.05s to 600s
+    * An initial step size of 150s
+    * A minimum and maximum factor increase of 0.15 and 3.5
 
-This leads to a simulation time of 5 seconds, with a deviation from the benchmark of a maximum of 600 meters in altitude.
+    * A safety factor of 0.6
+* A Gauss Modified Equinoctial propagator
+    * Inclinations of 0 deg and 180 deg are not possible. They can be manually changed to 0.01 deg or 179.99 deg.
 
-## MCD inclusion
-More tuning has been made with the inclusion of the Mars Climate Database to get the atmospheric densities.
-Because this model results in highly more varying densities than the exponential model, the steps taken by the variable step integrator are much smaller.
+This leads to a simulation time of 5 seconds, with a deviation from the benchmark of a maximum of 3.239 meters in altitude after 20 days of simulation.
 
-To remediate to this, the tolerance and safety factor of the RKDP78 integrator have been tuned so that the error w.r.t. the baseline is under 1 m for one propagated day, and under 100 m for 20 propagated days.
+For a more accurate simulation, the same settings can be used but with a relative and absolute integrator tolerance of 1E-12 instead, leading to a simulation time of 10.704 seconds and a deviation of only 0.746 meters.
 
-This is achieved by first switching the propagator to a Cowell propagator, and by using the following settings for the RKDP87 integrator:
-    * A step size range of 10s to 1800s
-    * A relative and absolute tolerance of 7.5E-7
-    * A safety factor of 0.65
-    * A factor increase ranging between 0.1 and 2.0
-
-This results in an error of 76.5 m after 20 days of simulation, taking a CPU time of 10.0 seconds (including roughly 4 seconds to load the MCD file).
+Finally, these settings may be tweaked again later on when accelerations such as drag or thrust are changed.
