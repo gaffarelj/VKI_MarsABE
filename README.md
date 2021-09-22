@@ -25,9 +25,13 @@ This function can also convert Julian dates from Tudat (in seconds since J2000) 
 The [plot utilities](tools/plot_utilities.py) module contains functions for plotting.
 
 ## Requirements
+This section lists the required Python packages and libraries that shall be installed.
+
+### Mars Climate Database
 First of, the MCD data files are required. By default, the code wants them to be in `/mnt/c/MCD/data/`.
 This can however be changed in the Python files of the [MCD](MCD) folder.
 
+### Python libraries
 The following Python libraries are required:
 ```
 numpy
@@ -35,6 +39,7 @@ matplotlib
 scipy
 ```
 
+### TU Delft Astrodynamics Toolbox
 In addition, it is required to install `TudatPy`. This is the TU Delft Astrodynamics Toolbox used to run the astrodynamic simulations.
 Installing this environment can be done by following the steps described [on this page](https://github.com/tudat-team/tudat-bundle#readme).
 Please note that, in my case, the Windows Subsystem for Linux (v2) has been used.
