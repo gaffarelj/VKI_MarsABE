@@ -28,7 +28,8 @@ for h in altitudes:
     termination_settings = SU.simulation_settings(simulation_end_epoch)
     # Define the dependent variables to save
     dependent_variables_to_save = [
-        propagation_setup.dependent_variable.relative_speed("Satellite", "Mars")
+        propagation_setup.dependent_variable.relative_speed("Satellite", "Mars"),
+        propagation_setup.dependent_variable.density("Satellite", "Mars")
     ]
     integrator_settings = SU.get_best_integrator(simulation_start_epoch)
 
@@ -49,6 +50,6 @@ for h in altitudes:
     time, states, dep_vars = SU.run_simulation(bodies, integrator_settings, propagator_settings, return_raw=True)
     orbit_time.append(time[-1]/constants.JULIAN_DAY)
     print("Starting from altitude of %i km, stay in orbit %.1e days" % (h, time[-1]/constants.JULIAN_DAY))
-    print("Orbital velocity of %.3f m/s" % np.mean(dep_vars[:,0]))
+    print("Orbital velocity of %.3f m/s, air density of %.5e kg/m3" % (np.mean(dep_vars[:,0]), np.mean(dep_vars[:10,1])))
 
 PU.plot_single(orbit_time, altitudes, "Time in orbit [days]", "Starting altitude [km]", "MCD/feasible_altitudes", xlog=True)
