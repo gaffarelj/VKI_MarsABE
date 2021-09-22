@@ -122,7 +122,7 @@ def setup_environment(bodies, bodies_to_propagate, central_bodies, detail_level=
     )
     return acceleration_models
 
-def get_initial_state(bodies, altitude=300e3, inclination=np.deg2rad(0)):
+def get_initial_state(bodies, altitude=300e3, inclination=np.deg2rad(0), eccentricity=0.01):
     # Define initial state
     mars_gravitational_parameter = bodies.get_body("Mars").gravitational_parameter
     mars_radius = spice_interface.get_average_radius("Mars")
@@ -130,7 +130,7 @@ def get_initial_state(bodies, altitude=300e3, inclination=np.deg2rad(0)):
     initial_state = conversion.keplerian_to_cartesian(
         gravitational_parameter = mars_gravitational_parameter,
         semi_major_axis = mars_radius + altitude,
-        eccentricity = 0.01,
+        eccentricity = eccentricity,
         inclination = inclination,
         argument_of_periapsis = np.deg2rad(0),
         longitude_of_ascending_node = np.deg2rad(45),
@@ -173,16 +173,19 @@ def run_simulation(bodies, integrator_settings, propagator_settings, verbose=Fal
 
     # Compute results
     #time_l = [t / 3600 for t in dependent_variables.keys()]
-    time_l = np.array(list(dependent_variables.keys()))
+    time_l = np.array(list(states.keys()))
     time_l -= time_l[0]
-
-    dependent_variable_list = np.vstack( list( dependent_variables.values( ) ) )
-
-    altitudes = dependent_variable_list[:,0]
-    densities = dependent_variable_list[:,1]
+    
+    if len(dependent_variables) > 0:
+        dependent_variable_list = np.vstack( list( dependent_variables.values( ) ) )
+    else:
+        dependent_variable_list = []
 
     if return_raw:
         return np.array(time_l), np.array(states_elements), np.array(dependent_variable_list)
+
+    altitudes = dependent_variable_list[:,0]
+    densities = dependent_variable_list[:,1]
 
     return time_l, altitudes, densities, cpu_time
 
