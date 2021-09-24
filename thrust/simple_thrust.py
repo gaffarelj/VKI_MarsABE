@@ -28,7 +28,7 @@ class thrust_model:
         self.solar_treshold = solar_treshold
     
     def magnitude(self, time):
-        return 0.001
+        return 0.001 * time * 1e-6
 
     def specific_impulse(self, time):
         return self.Isp_base
