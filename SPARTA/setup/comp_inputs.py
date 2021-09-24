@@ -1,15 +1,15 @@
 import numpy as np
 
 # Define conditions at different orbital altitudes
-hs = [95, 140, 190]
-rhos = [4.9E-07, 1.2E-09, 6.4E-12]
-ps = [8.5E-03, 1.5E-05, 3.5E-07]
-Ts = [125, 150, 155]
-Vs = [3303.14, 3312.32, 3402.66]
+hs = [85, 115, 150]
+rhos = [7.1E-07, 1.8E-08, 1.6E-10]
+ps = [2.3E-02, 3.7E-04, 7.1E-06]
+Ts = [135, 115, 175]
+Vs = [3494.17, 3493.29, 3483.82]
 fracs = [
-    np.array([0.8, 0.095, 0.045, 0.0275, 0.0275, 0.005]),
-    np.array([0.67, 0.07, 0.05, 0.075, 0.125, 0.01]),
-    np.array([0.26, 0.13, 0.02, 0.15, 0.43, 0.01])
+    np.array([0.905, 0.035, 0.025, 0.015, 0.015, 0.005]),
+    np.array([0.81, 0.045, 0.035, 0.05, 0.055, 0.005]),
+    np.array([0.42, 0.125, 0.045, 0.15, 0.25, 0.01])
 ]
 
 # Loop trough conditions
@@ -28,7 +28,7 @@ for i, h in enumerate(hs):
     l_box = 0.7     # box length [m]
     # Fraction of each species
     species_frac = fracs[i]
-    if sum(species_frac) != 1:
+    if round(sum(species_frac), 5) != 1:
         print("Warning, the sum of the species fraction does not add up to 1.")
 
     # Constants

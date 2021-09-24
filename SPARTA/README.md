@@ -20,9 +20,9 @@ This leads to the following parameters:
 
 | Altitude [km] | Velocity [m/s] | Density [kg/m3] | Temperature [K] | Pressure [Pa] | Mixture [mol/mol]                                     |
 |---------------|----------------|-----------------|-----------------|---------------|-------------------------------------------------------|
-| 95            | 3303.14        | 4.9E-07         | 125             | 8.5E-03       | 80% CO2, 9.5% N2, 4.5% Ar, 2.75% CO, 2.75% O, 0.5% O2 |
-| 140           | 3312.32        | 1.2E-09         | 150             | 1.5E-05       | 67% CO2, 7% N2, 5% Ar, 7.5% CO, 12.5% O, 1% O2        |
-| 190           | 3402.66        | 6.4E-12         | 155             | 3.5E-07       | 26% CO2, 13% N2, 2% Ar, 15% CO, 43% O, 1% O2          |
+| 85            | 3494.17        | 7.1E-07         | 135             | 2.3E-02       | 90.5% CO2, 3.5% N2, 2.5% Ar, 1.5% CO, 1.5% O, 0.5% O2 |
+| 115           | 3493.29        | 1.8E-08         | 115             | 3.7E-04       | 81% CO2, 4.5% N2, 3.5% Ar, 5% CO, 5.5% O, 0.5% O2     |
+| 150           | 3483.82        | 1.6E-10         | 175             | 7.1E-06       | 42% CO2, 12.5% N2, 4.5% Ar, 15% CO, 25% O, 1% O2      |
 
 The velocities have been taken from the orbital simulations made in [MCD/feasible_altitudes.py](../MCD/feasible_altitudes.py).
 The mixture, temperatures, pressures, and densities have been obtained from the [online interface](http://www-mars.lmd.jussieu.fr/mcd_python) of the Mars Climate Database, taking time and position averages. values.
@@ -32,8 +32,12 @@ This leads to the inputs as in the table below, for the "Sail" type satellite, i
 
 | Altitude [km] | Velocity [m/s] | Density [#/m3] | Mixture fractions [-]                    | Minimum grid size (x, y, z) [m] | Timestep [s] | f_num [-] | Knudsen number |
 |---------------|----------------|----------------|------------------------------------------|---------------------------------|--------------|-----------|----------------|
-| 95            | 3303.14        | 7.190E18       | 0.8, 0.095, 0.045, 0.0275, 0.0275, 0.005 | 1.734E01, 1.238E01, 1.238E01    | 4.676E-06    | 1.466E16  | 7.724E-01      |
-| 140           | 3312.32        | 1.908E16       | 0.67, 0.07, 0.05, 0.075, 0.125, 0.01     | 4.222E-02, 3.016E-02, 3.016E-02 | 1.915E-03    | 2.694E21  | 3.172E02       |
-| 190           | 3402.66        | 1.413E14       | 0.26, 0.13, 0.02, 0.15, 0.43, 0.01       | 2.259E-04, 1.614E-04, 1.614E-04 | 3.483E-01    | 1.302E26  | 2.927E04       |
+| 85            | 3494.17        | 1.003E+19      | 0.905, 0.035, 0.025, 0.015, 0.015, 0.005 | 2.403E+01, 1.717E+01, 1.717E+01 | 3.188E-06    | 7.673E+15 | 5.571E-01      |
+| 115           | 3493.29        | 2.660E+17      | 0.81, 0.045, 0.035, 0.05, 0.055, 0.005   | 6.217E-01, 4.440E-01, 4.440E-01 | 1.233E-04    | 1.176E+19 | 2.154E+01      |
+| 150           | 3483.82        | 2.983E+15      | 0.42, 0.125, 0.045, 0.15, 0.25, 0.01     | 5.994E-03, 4.281E-03, 4.281E-03 | 1.282E-02    | 1.472E+23 | 2.234E+03      |
+
+
+85km: Drag = 1.26980e-01 N (use grid of 1.7E+01 1.2E+01 1.2E+01 to avoid SPARTA error)
+
 
 ## Results

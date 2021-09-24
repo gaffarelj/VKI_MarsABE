@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 altitudes = np.arange(80, 220.1, 2.5)
-#altitudes = [95, 140, 190]
+#altitudes = [85, 115, 150]
 orbit_time = []
 
 for h in altitudes:
@@ -50,6 +50,6 @@ for h in altitudes:
     time, states, dep_vars = SU.run_simulation(bodies, integrator_settings, propagator_settings, return_raw=True)
     orbit_time.append(time[-1]/constants.JULIAN_DAY)
     print("Starting from altitude of %i km, stay in orbit %.1e days" % (h, time[-1]/constants.JULIAN_DAY))
-    print("Orbital velocity of %.3f m/s, air density of %.5e kg/m3" % (np.mean(dep_vars[:,0]), np.mean(dep_vars[:10,1])))
+    print("Orbital velocity of %.3f m/s, air density of %.5e kg/m3" % (np.mean(dep_vars[:10,0]), np.mean(dep_vars[:10,1])))
 
 PU.plot_single(orbit_time, altitudes, "Time in orbit [days]", "Starting altitude [km]", "MCD/feasible_altitudes", xlog=True)
