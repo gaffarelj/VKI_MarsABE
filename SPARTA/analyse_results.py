@@ -9,7 +9,8 @@ import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
 from tools import plot_utilities as PU
 
-file_list = natsorted(glob.glob("SPARTA/results/dump.*.dat"))
+id = "150km"
+file_list = natsorted(glob.glob("SPARTA/results/%s/dump.*.dat" % id))
     
 times, results = [], []
 
@@ -38,8 +39,8 @@ res_labels = ["tot_press", "fx", "fy", "fz", "px", "py", "pz", "etot"]
 res_dict = dict()
 for i in range(7):
     res_dict[res_labels[i]] = results[:,i]
-PU.plot_single(times, -res_dict["fx"], "Time [s]", "$F_x$ [N]", "SPARTA/f_x")
-PU.plot_single(times, -res_dict["fy"], "Time [s]", "$F_y$ [N]", "SPARTA/f_y")
-PU.plot_single(times, -res_dict["fz"], "Time [s]", "$F_y$ [N]", "SPARTA/f_z")
+PU.plot_single(times, -res_dict["fx"], "Time [s]", "$F_x$ [N]", "SPARTA/fx_%s" % id)
+PU.plot_single(times, -res_dict["fy"], "Time [s]", "$F_y$ [N]", "SPARTA/fy_%s" % id)
+PU.plot_single(times, -res_dict["fz"], "Time [s]", "$F_y$ [N]", "SPARTA/fz_%s" % id)
 
-print("Drag = %.5e N" % (-res_dict["fx"][-1]))
+print("Drag = %.5e N for %s" % (-np.mean(res_dict["fx"][-len(times)//10:]), id))
