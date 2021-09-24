@@ -69,6 +69,8 @@ For the 85km altitude, the grid size has been manually replaced to `1.75E+01 1.2
 
 For the 115km altitude, the factor `f_num` has been lowered to `1.176E+16` to increase the number of simulated particles (and prevent it of being 0). Similarly, for 150km, `f_num` has been lowered to `1.472E+14`.
 
+*Note that all SPARTA simulations assume that the satellite is 20% diffuse and 80% specular. This should be tuned.*
+
 ## Results
 
 Running SPARTA for the different altitudes, the force in each direction has been saved in `.dat` files in the [results folder](results).
