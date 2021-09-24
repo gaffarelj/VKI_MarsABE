@@ -13,7 +13,7 @@ solar_irradiances = dict()
 
 class thrust_model:
     def __init__(self, bodies, vehicle_name, init_time=0, Isp_base=800, dens_treshold=1e-13, \
-        save_solar=False, solar_constant=1360, solar_treshold=400):
+        save_solar=False, solar_constant=1360, power_treshold=100, sat_area=0.125, power_eff=0.35*0.93):
         global solar_irradiances
         self.bodies = bodies
         self.vehicle = bodies.get_body(vehicle_name)
@@ -25,10 +25,12 @@ class thrust_model:
         self.save_solar = save_solar
         self.solar_constant = solar_constant
         solar_irradiances = dict()
-        self.solar_treshold = solar_treshold
+        self.power_treshold = power_treshold
+        self.sat_area = sat_area
+        self.power_eff = power_eff
     
     def magnitude(self, time):
-        return 0.001 * time * 1e-6
+        return 0.001
 
     def specific_impulse(self, time):
         return self.Isp_base
@@ -38,8 +40,16 @@ class thrust_model:
         density_ok = self.vehicle.get_flight_conditions().current_density > self.dens_treshold
         # Engine is on if the solar irradiance is above a given treshold
         # TODO: convert to a power treshold
-        solar_ok = self.solar_irradiance(time) > self.solar_treshold
+        solar_ok = self.power_available(time) > self.power_treshold
         return density_ok and solar_ok
+
+    def power_available(self, time):
+        self.solar_irradiance(time)
+        sat_state = self.vehicle.state
+        sun_state = self.sun.state
+        self.power = MG.sat_power(sat_state, sun_state, self.irradiance, self.sat_area)
+        print(self.power), input()
+        return self.power
 
     def solar_irradiance(self, time):
         global solar_irradiances
@@ -56,6 +66,7 @@ class thrust_model:
         irradiance = self.solar_constant / (sun_dist/AU)**2 * shadow
         if self.save_solar:
             solar_irradiances[time] = irradiance
+        self.irradiance = irradiance
         return irradiance
 
 def thrust_settings(bodies, init_time=0, save_solar=False):

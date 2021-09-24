@@ -40,6 +40,31 @@ def shadow_function(occulted_pos, occulted_r, occulting_pos, occulting_r, sat_po
         return 0
     return 1
 
+def sat_power(sat_state, sun_state, sun_irradiance, sat_area):
+    """
+    Satellite power function, to compute the total power available by the satellite.
+    Inputs:
+     * sat_vel: [float]*3: velocity of the satellite in Cartesian coordinates (to compute its orientation)
+     * sun_pos: [float]*3: position of the Sun in Cartesian coordinates
+     * sun_irradiance: float: solar irradiance on the satellite (in W/m2)
+     * sat_area: float: effective frontal area of the solar panels
+    """
+    # TODO: verify/triple check these relations (especially trigonometric)
+    # Do no bother computing the power if the irradiance is 0 W/m2
+    if False:#sun_irradiance == 0:
+        return 0
+    # Convert the satellite state w.r.t. the Sun
+    sat_state = sat_state - sun_state
+    # Get velocity vector of the satellite
+    sat_vel = sat_state[3:]
+    if sat_vel[0] == 0:
+        heading = np.pi/2
+    else:
+        heading = np.arctan(sat_vel[1]/sat_vel[0])
+    power_scale = np.sin(heading)
+    #print(heading, power_scale, sun_irradiance, sat_area, sun_irradiance*sat_area)
+    return power_scale * sun_irradiance * sat_area
+
 # Tests
 tests = False
 if tests:
