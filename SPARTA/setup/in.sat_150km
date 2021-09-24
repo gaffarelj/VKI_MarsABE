@@ -16,19 +16,19 @@ boundary	    o r r
 
 create_box  	    -0.35 0.35 -0.25 0.25 -0.25 0.25
 
-create_grid         1.734E01 1.238E01 1.238E01
+create_grid         5.994E-03 4.281E-03 4.281E-03
 
 balance_grid        rcb cell
 
-global		    nrho 7.190E18 fnum 1.466E16
+global		    nrho 2.983E+15 fnum 1.472E+14
 
 species		    atmo.species CO2 N2 Ar CO O O2
-mixture		    atmo CO2 vstream -3303.14 0.0 0.0 frac 0.8
-mixture		    atmo N2  vstream -3303.14 0.0 0.0 frac 0.095
-mixture		    atmo Ar  vstream -3303.14 0.0 0.0 frac 0.045
-mixture		    atmo CO  vstream -3303.14 0.0 0.0 frac 0.0275
-mixture		    atmo O   vstream -3303.14 0.0 0.0 frac 0.0275
-mixture		    atmo O2  vstream -3303.14 0.0 0.0 frac 0.005
+mixture		    atmo CO2 vstream -3483.82 0.0 0.0 frac 0.42
+mixture		    atmo N2  vstream -3483.82 0.0 0.0 frac 0.125
+mixture		    atmo Ar  vstream -3483.82 0.0 0.0 frac 0.045
+mixture		    atmo CO  vstream -3483.82 0.0 0.0 frac 0.15
+mixture		    atmo O   vstream -3483.82 0.0 0.0 frac 0.25
+mixture		    atmo O2  vstream -3483.82 0.0 0.0 frac 0.01
 
 read_surf           data.ABE_sail
 surf_collide	    1 diffuse 293.15 0.2
@@ -38,7 +38,7 @@ collide		    vss atmo atmo.vss
 
 fix		    in emit/face atmo xhi twopass 
 
-timestep 	    4.676E-06
+timestep 	    1.282E-02
 
 compute             2 surf all all press fx fy fz px py pz etot
 fix                 save ave/surf all 1 5 5 c_2[*] ave running

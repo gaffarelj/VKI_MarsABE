@@ -37,7 +37,9 @@ This leads to the inputs as in the table below, for the "Sail" type satellite, i
 | 150           | 3483.82        | 2.983E+15      | 0.42, 0.125, 0.045, 0.15, 0.25, 0.01     | 5.994E-03, 4.281E-03, 4.281E-03 | 1.282E-02    | 1.472E+23 | 2.234E+03      |
 
 
-85km: Drag = 1.26980e-01 N (use grid of 1.7E+01 1.2E+01 1.2E+01 to avoid SPARTA error)
-
 
 ## Results
+
+85km: Drag = 1.27208e-01 N (use grid of 1.7E+01 1.2E+01 1.2E+01 to avoid SPARTA error)
+115km: Drag = 2.74057e-03 N (use fnum = 1.176E+16 instead, to increase the number of simulated particules)
+150km: Drag = 2.68587e-05 N for 150km (use fnum = 1.472E+14 instead, to increase the number of simulated particules)

@@ -65,5 +65,4 @@ for i, h in enumerate(hs):
     # Print the results
     print("Minimum grid size of x=%.3e, y=%.3e, z=%.3e" % (n_x, n_y, n_z))
     print("timestep of %.3e s, nrho=%.3e, f_num=%.3e" % (dt, nrho, f_num))
-    print("(Use f_num=%.3e for better accuracy)" % (f_num*50))
     print("Knudsen number is %.3e" % Kn)

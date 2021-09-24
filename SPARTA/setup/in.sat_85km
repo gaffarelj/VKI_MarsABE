@@ -10,25 +10,25 @@
 seed	    	    12345
 dimension   	    3
 
-global              gridcut 1e-6 comm/sort yes surfmax 5000 splitmax 100
+global              gridcut 1e-6 comm/sort yes surfmax 10000 splitmax 100
 
 boundary	    o r r
 
 create_box  	    -0.35 0.35 -0.25 0.25 -0.25 0.25
 
-create_grid         2.259E-04 1.614E-04 1.614E-04
+create_grid         1.75E+01 1.25E+01 1.25E+01
 
 balance_grid        rcb cell
 
-global		    nrho 1.413E14 fnum 1.302E26
+global		    nrho 1.003E+19 fnum 7.673E+15
 
 species		    atmo.species CO2 N2 Ar CO O O2
-mixture		    atmo CO2 vstream -3402.66 0.0 0.0 frac 0.26
-mixture		    atmo N2  vstream -3402.66 0.0 0.0 frac 0.13
-mixture		    atmo Ar  vstream -3402.66 0.0 0.0 frac 0.02
-mixture		    atmo CO  vstream -3402.66 0.0 0.0 frac 0.15
-mixture		    atmo O   vstream -3402.66 0.0 0.0 frac 0.43
-mixture		    atmo O2  vstream -3402.66 0.0 0.0 frac 0.01
+mixture		    atmo CO2 vstream -3494.17 0.0 0.0 frac 0.905
+mixture		    atmo N2  vstream -3494.17 0.0 0.0 frac 0.035
+mixture		    atmo Ar  vstream -3494.17 0.0 0.0 frac 0.025
+mixture		    atmo CO  vstream -3494.17 0.0 0.0 frac 0.015
+mixture		    atmo O   vstream -3494.17 0.0 0.0 frac 0.015
+mixture		    atmo O2  vstream -3494.17 0.0 0.0 frac 0.005
 
 read_surf           data.ABE_sail
 surf_collide	    1 diffuse 293.15 0.2
@@ -38,7 +38,7 @@ collide		    vss atmo atmo.vss
 
 fix		    in emit/face atmo xhi twopass 
 
-timestep 	    3.483E-01
+timestep 	    3.188E-06
 
 compute             2 surf all all press fx fy fz px py pz etot
 fix                 save ave/surf all 1 5 5 c_2[*] ave running
@@ -64,4 +64,4 @@ dump		    1 surf all 5 tmp_result/dump.*.dat f_save[*]
 
 stats		    10
 stats_style	    step cpu np nscoll nscheck nexit
-run 		    250
+run 		    500

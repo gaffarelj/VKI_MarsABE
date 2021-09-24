@@ -1,4 +1,4 @@
-################################################################################
+	################################################################################
 # 3d flow around a sphere
 #
 # Note:
@@ -16,19 +16,19 @@ boundary	    o r r
 
 create_box  	    -0.35 0.35 -0.25 0.25 -0.25 0.25
 
-create_grid         4.222E-02 3.016E-02 3.016E-02
+create_grid         6.217E-01 4.440E-01 4.440E-01
 
 balance_grid        rcb cell
 
-global		    nrho 1.908E16 fnum 2.694E21
+global		    nrho 2.660E+17 fnum 1.176E+16
 
 species		    atmo.species CO2 N2 Ar CO O O2
-mixture		    atmo CO2 vstream -3312.32 0.0 0.0 frac 0.67
-mixture		    atmo N2  vstream -3312.32 0.0 0.0 frac 0.07
-mixture		    atmo Ar  vstream -3312.32 0.0 0.0 frac 0.05
-mixture		    atmo CO  vstream -3312.32 0.0 0.0 frac 0.075
-mixture		    atmo O   vstream -3312.32 0.0 0.0 frac 0.125
-mixture		    atmo O2  vstream -3312.32 0.0 0.0 frac 0.01
+mixture		    atmo CO2 vstream -3493.29 0.0 0.0 frac 0.809 # should be 0.81, but this avoid a rounding error in SPARTA
+mixture		    atmo N2  vstream -3493.29 0.0 0.0 frac 0.045
+mixture		    atmo Ar  vstream -3493.29 0.0 0.0 frac 0.035
+mixture		    atmo CO  vstream -3493.29 0.0 0.0 frac 0.05
+mixture		    atmo O   vstream -3493.29 0.0 0.0 frac 0.055
+mixture		    atmo O2  vstream -3493.29 0.0 0.0 frac 0.005
 
 read_surf           data.ABE_sail
 surf_collide	    1 diffuse 293.15 0.2
@@ -38,7 +38,7 @@ collide		    vss atmo atmo.vss
 
 fix		    in emit/face atmo xhi twopass 
 
-timestep 	    1.915E-03
+timestep 	    1.233E-04
 
 compute             2 surf all all press fx fy fz px py pz etot
 fix                 save ave/surf all 1 5 5 c_2[*] ave running
@@ -64,4 +64,4 @@ dump		    1 surf all 5 tmp_result/dump.*.dat f_save[*]
 
 stats		    10
 stats_style	    step cpu np nscoll nscheck nexit
-run 		    250
+run 		    500
