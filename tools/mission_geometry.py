@@ -51,7 +51,7 @@ def sat_power(sat_state, sun_state, sun_irradiance, sat_area):
     """
     # TODO: verify/triple check these relations (especially trigonometric)
     # Do no bother computing the power if the irradiance is 0 W/m2
-    if False:#sun_irradiance == 0:
+    if sun_irradiance == 0:
         return 0
     # Convert the satellite state w.r.t. the Sun
     sat_state = sat_state - sun_state
@@ -63,7 +63,7 @@ def sat_power(sat_state, sun_state, sun_irradiance, sat_area):
         heading = np.arctan(sat_vel[1]/sat_vel[0])
     power_scale = np.sin(heading)
     #print(heading, power_scale, sun_irradiance, sat_area, sun_irradiance*sat_area)
-    return power_scale * sun_irradiance * sat_area
+    return np.fabs(power_scale * sun_irradiance * sat_area)
 
 # Tests
 tests = False
