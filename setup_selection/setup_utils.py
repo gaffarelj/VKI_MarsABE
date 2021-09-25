@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
 spice_interface.load_standard_kernels()
 
-def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
+def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, variable_drag=False):
     # Create bodies
     bodies_to_create = ["Mars", "Sun", "Jupiter"]
     global_frame_origin = 'Mars'
@@ -41,7 +41,6 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
         body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
             mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
         # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
-        # TODO: CHECK THAT THE CONSTANT VALUES ABOVE DO NOT INFLUENCE DRAG RESULTS
 
         # If specified, add winds from the MCD. Only possible if the MCD atmospheric model is used
         if use_MCD_winds and use_MCD_atmo:
@@ -54,13 +53,29 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False):
     bodies.get_body("Satellite").set_constant_mass(200)
 
     # Add aerodynamic settings
-    S_ref = 10
-    C_d, C_l, C_m = 1.2, 0.5, 0.1
-    aero_coefficient_settings = environment_setup.aerodynamic_coefficients.constant(S_ref, [C_d, C_l, C_m])
-    environment_setup.add_aerodynamic_coefficient_interface(bodies, "Satellite", aero_coefficient_settings )
+    S_ref = 0.010764
+    if variable_drag:
+        # Create a cubic spline interpolator, capped at the boundaries
+        interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.use_boundary_value)
+        # Define the drag coefficient values at given altitudes
+        drag_values = {85e3: 2.7266, 115e3: 2.3182, 150e3: 2.5699}
+        # Setup the drag interpolator
+        drag_interpolator = interpolators.create_one_dimensional_interpolator(drag_values, interpolator_settings)
+        def force_coefficients(_):
+            # Get the altitude from the flight conditions
+            h = bodies.get_body("Satellite").get_flight_conditions().current_altitude
+            # Interpolate the drag coefficient given the altitude
+            C_d = drag_interpolator.interpolate(h)
+            return [C_d, 0, 0]
+        aero_coefficient_settings = environment_setup.aerodynamic_coefficients.custom(force_coefficients, S_ref, [])
+    else:
+        C_d, C_l, C_m = 2.5, 0, 0
+        aero_coefficient_settings = environment_setup.aerodynamic_coefficients.constant(S_ref, [C_d, C_l, C_m])
+
+    environment_setup.add_aerodynamic_coefficient_interface(bodies, "Satellite", aero_coefficient_settings)
 
     # Add solar radiation settings
-    reference_area_radiation = 4.0
+    reference_area_radiation = 0.125
     radiation_pressure_coefficient = 1.2
     occulting_bodies = ["Mars"]
     radiation_pressure_settings = environment_setup.radiation_pressure.cannonball(

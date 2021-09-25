@@ -15,9 +15,9 @@ simulation_start_epoch = TC.MCD_to_Tudat(2459942)
 simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN_DAY
 
 # Define the environment and bodies
-bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True)
+bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True, variable_drag=True)
 # Define the initial state of the satellite
-initial_state = SU.get_initial_state(bodies)
+initial_state = SU.get_initial_state(bodies, altitude=140e3, eccentricity=0)
 # Define the termination settings
 termination_settings = SU.simulation_settings(simulation_end_epoch)
 # Define the dependent variables to save
