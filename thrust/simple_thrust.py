@@ -48,7 +48,6 @@ class thrust_model:
         sat_state = self.vehicle.state
         sun_state = self.sun.state
         self.power = MG.sat_power(sat_state, sun_state, self.irradiance, self.sat_area)
-        print(self.power), input()
         return self.power
 
     def solar_irradiance(self, time):
