@@ -113,6 +113,7 @@ ehash = {}
 dup = 0
 unmatch = 0
 
+
 for vert3 in triverts:
   edge = (vert3[0],vert3[1])
   if edge in ehash:
@@ -136,10 +137,13 @@ for edge in ehash:
     unmatch += 1
     unmatchedge = edge
     
-if dup or unmatch:
+if dup:
   print "WARNING: surface is not watertight"
   print "Duplicate edge count:",dup
-  print "Unmatched edge count:",unmatch
   print "One duplicate edge:",dupedge
+    
+if unmatch:
+  print "WARNING: surface is not watertight"
+  print "Unmatched edge count:",unmatch
   print "One unmatched edge:",unmatchedge
   
