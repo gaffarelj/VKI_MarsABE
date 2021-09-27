@@ -11,7 +11,7 @@ create_grid         1.0000e+01 1.0000e+01 1.0000e+01
 
 balance_grid        rcb cell
 
-global              nrho 1.0028e+19 fnum 1.5345e+17
+global              nrho 1.0028e+19 fnum 1.5345e+14
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3494.1700 0.0 0.0 frac 0.9050
