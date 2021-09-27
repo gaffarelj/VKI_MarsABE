@@ -16,6 +16,7 @@ fracs = [
 ]
 
 save_to_input = True
+run_all_cmd = "#!/bin/sh\n"
 sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
 L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
@@ -100,7 +101,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "balance_grid        rcb cell\n"
             input_s += "\n"
-            f = 1e3 if h == 115 else 1e7 if h == 150 else 1e-3 # increase number of simulated particles to avoid having 0
+            f = 1e5 if h == 115 else 1e9 if h == 150 else 1 # increase number of simulated particles to avoid having 0
             input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num/f)
             input_s += "\n"
             input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
@@ -125,7 +126,13 @@ for j, s_name in enumerate(sat_names):
             input_s += "stats_style         step cpu np nscoll nscheck nexit\n"
             input_s += "run                 500\n"
             
+            run_all_cmd += "mpirun -np 12 spa_ < in.%s_%skm \n" % (s_name, h)
+
             # Write SPARTA inputs to input
             with open(sys.path[0] + "/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
                 input_f.write(input_s)
 
+if save_to_input:
+    # Write command to run all SPARTA input files
+    with open(sys.path[0] + "/setup/inputs/run_all.sh", "w") as run_f:
+        run_f.write(run_all_cmd)

@@ -40,6 +40,11 @@ Finally, to convert an ASCII STL file to a surface that SPARTA understands, the 
 python2 stl2surf.py model_ascii.stl data.model
 ```
 
+When all of the input files have been created, they can all be run by using the following command while in the `inputs` folder:
+```
+./run_all.sh
+```
+
 ## Conditions
 
 The conditions in which the simulation has been made have been varied, as to gather different drag values, for interpolation later on.
