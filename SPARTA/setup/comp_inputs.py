@@ -16,8 +16,8 @@ fracs = [
 ]
 
 save_to_input = True
-sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020"]
-L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421]
+sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
+L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
     print("\n\n* Satellite", s_name)
     # Loop trough conditions
@@ -81,7 +81,7 @@ for j, s_name in enumerate(sat_names):
             if h == hs[0]:
                 print("Converting binary STL to SPARTA surface...")
                 # Convert STL from binary to asci
-                os.system("python2 \"%s/tools/stl_B2A.py\" \"%s/setup/STL/%s.stl\"" % (sys.path[0], sys.path[0], s_name))
+                os.system("python2 \"%s/tools/stl_B2A.py\" \"%s/setup/STL/%s.stl\" -rs" % (sys.path[0], sys.path[0], s_name))
                 # Convert STL to data surface for SPARTA
                 os.system("python2 \"%s/tools/stl2surf.py\" \"%s/setup/STL/%s_ASCII.stl\" \"%s/setup/data/data.%s\"" % (sys.path[0], sys.path[0], s_name, sys.path[0], s_name))
             print("Saving input to file...")
@@ -95,12 +95,12 @@ for j, s_name in enumerate(sat_names):
             input_s += "boundary           o r r\n"
             input_s += "create_box         -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
             input_s += "\n"
-            # prevent grid too big by using min()
-            input_s += "create_grid         %.4e %.4e %.4e\n" % (min(n_x, 15), min(n_y, 15), min(n_z, 15))
+            # Prevent grid too big compared to geometry by using min() 
+            input_s += "create_grid         %.4e %.4e %.4e\n" % (min(n_x, 10), min(n_y, 10), min(n_z, 10))
             input_s += "\n"
             input_s += "balance_grid        rcb cell\n"
             input_s += "\n"
-            f = 1e3 if h == 115 else 1e7 if h == 150 else 1 # increase number of simulated particles to avoid having 0
+            f = 1e3 if h == 115 else 1e7 if h == 150 else 1e-3 # increase number of simulated particles to avoid having 0
             input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num/f)
             input_s += "\n"
             input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
@@ -119,7 +119,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "compute             2 surf all all press fx fy fz px py pz etot\n"
             input_s += "fix                 save ave/surf all 1 5 5 c_2[*] ave running\n"
-            input_s += "dump                1 surf all 5 ../tmp_result/%s_%skm.*.dat f_save[*]\n" % (s_name, h)
+            input_s += "dump                1 surf all 5 ../results_sparta/%s_%skm.*.dat f_save[*]\n" % (s_name, h)
             input_s += "\n"
             input_s += "stats               100\n"
             input_s += "stats_style         step cpu np nscoll nscheck nexit\n"
