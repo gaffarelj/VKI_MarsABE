@@ -19,7 +19,9 @@ bin_name = sys.argv[1]
 import struct
 
 infile = open(bin_name) #import file
-out = open("ASCII_"+bin_name, 'w') #export file
+out_name = bin_name.split(".")
+out_name = out_name[0] + "_ASCII" + ".stl"
+out = open(out_name, 'w') #export file
 
 data = infile.read()
 
@@ -59,4 +61,3 @@ for x in range(0,faces):
 out.write("endsolid Body 1\n")
 
 out.close()
-print "end"
