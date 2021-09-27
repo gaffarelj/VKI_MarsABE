@@ -30,6 +30,10 @@ Most CAD softwares such as CATIA generate a binary STL file. To convert it to an
 ```
 python2 stl_B2A.py model.stl
 ```
+Additionally, the `-rs` option can be added to rescale the binary STL from `mm` to `m` when translating it to ASCII:
+```
+python2 stl_B2A.py model.stl -rs
+```
 
 Finally, to convert an ASCII STL file to a surface that SPARTA understands, the following command can be used (with `stl2surf.py` from the [tools folder](tools)):
 ```

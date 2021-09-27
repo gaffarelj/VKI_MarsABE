@@ -11,9 +11,13 @@ def error(str=None):
 
 import sys
 
-if len(sys.argv) != 2: error()
+if len(sys.argv) not in [2, 3] : error()
 
 bin_name = sys.argv[1]
+
+f = 1
+if len(sys.argv) == 3 and sys.argv[2] == "-rs": # rescale from mm to m
+  f = 1000
 
 # -*- encoding: utf-8 -*-
 import struct
@@ -24,7 +28,6 @@ out_name = out_name[0] + "_ASCII" + ".stl"
 out = open(out_name, 'w') #export file
 
 data = infile.read()
-
 
 out.write("solid Body 1\n")
 
@@ -51,9 +54,9 @@ for x in range(0,faces):
         yc = data[88+y*12+x*50] + data[89+y*12+x*50] + data[90+y*12+x*50] + data[91+y*12+x*50]
         zc = data[92+y*12+x*50] + data[93+y*12+x*50] + data[94+y*12+x*50] + data[95+y*12+x*50]
 
-        out.write(str(struct.unpack('f',xc)[0]) + " ")
-        out.write(str(struct.unpack('f',yc)[0]) + " ")
-        out.write(str(struct.unpack('f',zc)[0]) + "\n")
+        out.write(str(struct.unpack('f',xc)[0]/f) + " ")
+        out.write(str(struct.unpack('f',yc)[0]/f) + " ")
+        out.write(str(struct.unpack('f',zc)[0]/f) + "\n")
 
     out.write("endloop\n")
     out.write("endfacet\n")
