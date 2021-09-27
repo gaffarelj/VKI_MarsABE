@@ -28,12 +28,12 @@ convert image*ppm movie.gif
 
 Most CAD softwares such as CATIA generate a binary STL file. To convert it to an ASCII STL file, the following command can be used (with `stl_B2A.py` from the [tools folder](tools)):
 ```
-python2 stl_B2A.py ABE_sail.stl
+python2 stl_B2A.py model.stl
 ```
 
 Finally, to convert an ASCII STL file to a surface that SPARTA understands, the following command can be used (with `stl2surf.py` from the [tools folder](tools)):
 ```
-python2 stl2surf.py ASCII_ABE_sail.stl data.ABE_sail
+python2 stl2surf.py model_ascii.stl data.model
 ```
 
 ## Conditions
