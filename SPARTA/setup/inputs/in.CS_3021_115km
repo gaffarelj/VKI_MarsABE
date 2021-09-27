@@ -11,7 +11,7 @@ create_grid         1.3322e+00 8.8815e-01 8.8815e-01
 
 balance_grid        rcb cell
 
-global              nrho 2.6628e+17 fnum 2.3538e+12
+global              nrho 2.6628e+17 fnum 2.3538e+14
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3493.2900 0.0 0.0 frac 0.8090
@@ -35,6 +35,6 @@ compute             2 surf all all press fx fy fz px py pz etot
 fix                 save ave/surf all 1 5 5 c_2[*] ave running
 dump                1 surf all 5 ../results_sparta/CS_3021_115km.*.dat f_save[*]
 
-stats               100
+stats               25
 stats_style         step cpu np nscoll nscheck nexit
 run                 500
