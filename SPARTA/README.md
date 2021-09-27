@@ -45,6 +45,10 @@ When all of the input files have been created, they can all be run by using the 
 ./run_all.sh
 ```
 
+## Satellite configurations
+
+
+
 ## Conditions
 
 The conditions in which the simulation has been made have been varied, as to gather different drag values, for interpolation later on.
@@ -61,22 +65,16 @@ This leads to the following parameters:
 The velocities have been taken from the orbital simulations made in [MCD/feasible_altitudes.py](../MCD/feasible_altitudes.py).
 The mixture, temperatures, pressures, and densities have been obtained from the [online interface](http://www-mars.lmd.jussieu.fr/mcd_python) of the Mars Climate Database, taking time and position averages. values.
 
-The script [comp_inputs.py](setup/comp_inputs.py) has then been used to compute the relevant inputs for the SPARTA simulation.
-This leads to the inputs as in the table below, for the "Sail" type satellite, in a box of 0.5x0.5x0.7 meters.
-
-| Altitude [km] | Velocity [m/s] | Density [#/m3] | Mixture fractions [-]                    | Minimum grid size (x, y, z) [m] | Timestep [s] | f_num [-] | Knudsen number |
-|---------------|----------------|----------------|------------------------------------------|---------------------------------|--------------|-----------|----------------|
-| 85            | 3494.17        | 1.003E+19      | 0.905, 0.035, 0.025, 0.015, 0.015, 0.005 | 2.403E+01, 1.717E+01, 1.717E+01 | 3.188E-06    | 7.673E+15 | 5.571E-01      |
-| 115           | 3493.29        | 2.660E+17      | 0.81, 0.045, 0.035, 0.05, 0.055, 0.005   | 6.217E-01, 4.440E-01, 4.440E-01 | 1.233E-04    | 1.176E+19 | 2.154E+01      |
-| 150           | 3483.82        | 2.983E+15      | 0.42, 0.125, 0.045, 0.15, 0.25, 0.01     | 5.994E-03, 4.281E-03, 4.281E-03 | 1.282E-02    | 1.472E+23 | 2.234E+03      |
-
 ## Input files
-Three different SPARTA input files have been made in light of the different conditions.
-These can be found in the [setup folder](setup), and are of the format `in.*`.
+The script [comp_inputs.py](setup/comp_inputs.py) has then been used to generate the relevant input files for the SPARTA simulations.
 
-For the 85km altitude, the grid size has been manually replaced to `1.75E+01 1.25E+01 1.25E+01`. This is to avoid an error that occurs when the grid is too big compared to the geometry.
+These input files have been made for each satellite, for each of the satellite configurations.
 
-For the 115km altitude, the factor `f_num` has been lowered to `1.176E+16` to increase the number of simulated particles (and prevent it of being 0). Similarly, for 150km, `f_num` has been lowered to `1.472E+14`.
+These can be found in the [inputs](setup/inputs), and are of the format `in.*`.
+
+It is worth noting that grid size has been capped to a maximum of (10, 10, 10), to avoid having the grid size too big compared to the geometry (satellite) size.
+
+Additionally, the `f_num` parameter has been tuned to ensure that enough simulated particules are present. At h=85km, `f_num` has been increased by a factor of 100. It has been decreased by a factor of 1E3 at h=115km, and decreased by a factor of 1E7 for h=150km.
 
 *Note that all SPARTA simulations assume that the satellite is 20% diffuse and 80% specular. This should be tuned.*
 
