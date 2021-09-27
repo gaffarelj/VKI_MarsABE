@@ -10,7 +10,7 @@ sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
 from tools import plot_utilities as PU
 
 hs = [85, 115, 150]
-sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020"]
+sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
 for s_name in sat_names:
     for h in hs:
         file_list = natsorted(glob.glob("SPARTA/setup/results_sparta/%s_%skm.*.dat" % (s_name, h)))
