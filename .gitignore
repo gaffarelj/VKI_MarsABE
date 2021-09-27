@@ -350,4 +350,4 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 SPARTA/setup/tmp_result/*
-SPARTA/setup/log.sparta
+log.sparta
