@@ -63,7 +63,7 @@ This leads to the following parameters:
 | 150           | 3483.82        | 1.6E-10         | 175             | 7.1E-06       | 42% CO2, 12.5% N2, 4.5% Ar, 15% CO, 25% O, 1% O2      |
 
 The velocities have been taken from the orbital simulations made in [MCD/feasible_altitudes.py](../MCD/feasible_altitudes.py).
-The mixture, temperatures, pressures, and densities have been obtained from the [online interface](http://www-mars.lmd.jussieu.fr/mcd_python) of the Mars Climate Database, taking time and position averages. values.
+The mixture, temperatures, pressures, and densities have been obtained from the [online interface](http://www-mars.lmd.jussieu.fr/mcd_python) of the Mars Climate Database, taking time and position averaged values.
 
 ## Input files
 The script [comp_inputs.py](setup/comp_inputs.py) has then been used to generate the relevant input files for the SPARTA simulations.
@@ -96,10 +96,34 @@ The drag coefficient has then been computed at each altitude by using the follow
 
 <img src="https://render.githubusercontent.com/render/math?math=C_D%20=%20\frac{D}{q%20\cdot%20S}">
 
-This leads to the drag coefficient of the table below:
+This leads to the drag coefficients of the table below, with the Knudsen numbers included as well:
 
-| Altitude [km] | Velocity [m/s] | Density [kg/m3] | Dynamic pressure [Pa] | Drag [N]    | Drag coefficient [-] |
-|---------------|----------------|-----------------|-----------------------|-------------|----------------------|
-| 85            | 3494.17        | 7.1E-07         | 4.33E+00              | 1.27208E-01 | 2.7266               |
-| 115           | 3493.29        | 1.8E-08         | 1.10E-01              | 2.74057E-03 | 2.3182               |
-| 150           | 3483.82        | 1.6E-10         | 9.71E-04              | 2.68587E-05 | 2.5699               |
+| Satellite name | Altitude [km] | Knudsen number [-] | Drag [N] | Reference surface [m2] | Drag coefficient [-] |
+|----------------|---------------|--------------------|----------|------------------------|----------------------|
+| CS 0020        | 85            | 6.871e-01          |          |                        |                      |
+| CS 0020        | 115           |                    |          |                        |                      |
+| CS 0020        | 150           |                    |          |                        |                      |
+| CS 1020        | 85            |                    |          |                        |                      |
+| CS 1020        | 115           |                    |          |                        |                      |
+| CS 1020        | 150           |                    |          |                        |                      |
+| CS 0021        | 85            |                    |          |                        |                      |
+| CS 0021        | 115           |                    |          |                        |                      |
+| CS 0021        | 150           |                    |          |                        |                      |
+| CS 2020        | 85            |                    |          |                        |                      |
+| CS 2020        | 115           |                    |          |                        |                      |
+| CS 2020        | 150           |                    |          |                        |                      |
+| CS 1021        | 85            |                    |          |                        |                      |
+| CS 1021        | 115           |                    |          |                        |                      |
+| CS 1021        | 150           |                    |          |                        |                      |
+| CS 3020        | 85            |                    |          |                        |                      |
+| CS 3020        | 115           |                    |          |                        |                      |
+| CS 3020        | 150           |                    |          |                        |                      |
+| CS 2021        | 85            |                    |          |                        |                      |
+| CS 2021        | 115           |                    |          |                        |                      |
+| CS 2021        | 150           |                    |          |                        |                      |
+| CS 2120        | 85            |                    |          |                        |                      |
+| CS 2120        | 115           |                    |          |                        |                      |
+| CS 2120        | 150           |                    |          |                        |                      |
+| CS 3021        | 85            |                    |          |                        |                      |
+| CS 3021        | 115           |                    |          |                        |                      |
+| CS 3021        | 150           |                    |          |                        |                      |
