@@ -24,6 +24,7 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False)
         plt.yscale("log")
     # Save the plot in the figure folder, as a pdf
     plt.savefig("figures/%s.pdf" % fname)
+    plt.close()
 
 def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, colors=None, xlog=False,\
      ylog=False, ylim=None, xlim=None, legend_loc=0, lstyle="solid"):
@@ -58,6 +59,7 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
         ax.set_xlim(xlim)
     # Save the plot in the figure folder, as a pdf
     plt.savefig("figures/%s.pdf" % fname)
+    plt.close()
 
 
 def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, diff_x=False):
@@ -91,4 +93,4 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
     fig.tight_layout()
     # Save the plot in the figure folder, as a pdf
     plt.savefig("figures/%s.pdf" % fname)
-
+    plt.close()
