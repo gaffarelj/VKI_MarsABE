@@ -58,7 +58,7 @@ The naming scheme has been taken as CS ABCD:
 
 The following figure illustrates this naming scheme:
 
-<img src="CS/naming.png" width="20%">
+<img src="CS/naming.png" width="35%">
 
 The number of solar panels (of size 300x100mm) has been counted for one side of the satellite. 
 
@@ -68,19 +68,19 @@ Including PCB, these have a mass of 0.27 kg and a thickness of 1.75 mm. At EOL, 
 Finally, the area of the solar panels of each satellite has been computed across three different planes. This later simplifies solar power calculations.
 These x, y, and z planes are defined as in the figure below:
 
-<img src="CS/planes.png" width="20%">
+<img src="CS/planes.png" width="35%">
 
 | Satellite name | # of solar panels (x2) | Reference length [m] | x-area [m2] | y-area [m2] | z-area [m2] | Illustration                           |
 |----------------|------------------------|----------------------|-------------|-------------|-------------|----------------------------------------|
-| CS 0020        | 2                      | 0.3                  | 0           | 0.042426    | 0.042426    | <img src="CS/CS_0020.png" width="75%"> |
-| CS 1020        | 4                      | 0.341421             | 0           | 0.102426    | 0.042426    | <img src="CS/CS_1020.png" width="75%"> |
-| CS 0021        | 4                      | 0.589778             | 0.031058    | 0.083343    | 0.083343    | <img src="CS/CS_0021.png" width="75%"> |
-| CS 2020        | 6                      | 0.541421             | 0           | 0.162426    | 0.042426    | <img src="CS/CS_2020.png" width="75%"> |
-| CS 1021        | 6                      | 0.589778             | 0.031058    | 0.143343    | 0.083343    | <img src="CS/CS_1021.png" width="75%"> |
-| CS 3020        | 8                      | 0.741421             | 0           | 0.222426    | 0.042426    | <img src="CS/CS_3020.png" width="75%"> |
-| CS 2021        | 8                      | 0.589778             | 0.031058    | 0.203343    | 0.083343    | <img src="CS/CS_2021.png" width="75%"> |
-| CS 2120        | 10                     | 0.6                  | 0           | 0.282426    | 0.042426    | <img src="CS/CS_2120.png" width="75%"> |
-| CS 3021        | 8                      | 0.741421             | 0.031058    | 0.263343    | 0.083343    | <img src="CS/CS_3021.png" width="75%"> |
+| CS 0020        | 2                      | 0.3                  | 0           | 0.042426    | 0.042426    | <img src="CS/CS_0020.png" width="85%"> |
+| CS 1020        | 4                      | 0.341421             | 0           | 0.102426    | 0.042426    | <img src="CS/CS_1020.png" width="85%"> |
+| CS 0021        | 4                      | 0.589778             | 0.031058    | 0.083343    | 0.083343    | <img src="CS/CS_0021.png" width="85%"> |
+| CS 2020        | 6                      | 0.541421             | 0           | 0.162426    | 0.042426    | <img src="CS/CS_2020.png" width="85%"> |
+| CS 1021        | 6                      | 0.589778             | 0.031058    | 0.143343    | 0.083343    | <img src="CS/CS_1021.png" width="85%"> |
+| CS 3020        | 8                      | 0.741421             | 0           | 0.222426    | 0.042426    | <img src="CS/CS_3020.png" width="85%"> |
+| CS 2021        | 8                      | 0.589778             | 0.031058    | 0.203343    | 0.083343    | <img src="CS/CS_2021.png" width="85%"> |
+| CS 2120        | 10                     | 0.6                  | 0           | 0.282426    | 0.042426    | <img src="CS/CS_2120.png" width="85%"> |
+| CS 3021        | 8                      | 0.741421             | 0.031058    | 0.263343    | 0.083343    | <img src="CS/CS_3021.png" width="85%"> |
 
 ## Conditions
 
