@@ -40,38 +40,79 @@ def shadow_function(occulted_pos, occulted_r, occulting_pos, occulting_r, sat_po
         return 0
     return 1
 
-def sat_power(sat_state, sun_state, sun_irradiance, sat_area):
+def sat_power(sat_state, sun_state, sun_irradiance, sat_area, test=False):
     """
     Satellite power function, to compute the total power available by the satellite.
     Inputs:
      * sat_vel: [float]*3: velocity of the satellite in Cartesian coordinates (to compute its orientation)
      * sun_pos: [float]*3: position of the Sun in Cartesian coordinates
      * sun_irradiance: float: solar irradiance on the satellite (in W/m2)
-     * sat_area: float: effective frontal area of the solar panels
+     * sat_area: [float]*3: effective area of the solar panels in the x, y, z planes (see SPARTA README)
     """
-    # TODO: verify/triple check these relations (especially trigonometric)
     # Do no bother computing the power if the irradiance is 0 W/m2
     if sun_irradiance == 0:
         return 0
-    # Convert the satellite state w.r.t. the Sun
-    sat_state = sat_state - sun_state
-    # Get velocity vector of the satellite
+    # Get velocity vector of the satellite and of the Sun w.r.t. Mars
     sat_vel = sat_state[3:]
-    if sat_vel[0] == 0:
-        heading = np.pi/2
-    else:
-        heading = np.arctan(sat_vel[1]/sat_vel[0])
-    power_scale = np.sin(heading)
-    #print(heading, power_scale, sun_irradiance, sat_area, sun_irradiance*sat_area)
-    return np.fabs(power_scale * sun_irradiance * sat_area)
+    # Compute the heading of the sat w.r.t. Mars, from its velocity
+    sat_heading = np.pi/2 if sat_vel[0] == 0 else np.arctan(sat_vel[1]/sat_vel[0])
+    # Compute the heading of the Sun w.r.t. Mars from its position
+    sun_heading = 0 if sun_state[1] == 0 else np.arctan(-sun_state[0]/sun_state[1])
+    heading = sat_heading - sun_heading
+    # Compute the angle of attack of the satellite
+    AoA = np.arctan(sat_vel[2]/np.sqrt(sat_vel[0]**2 + sat_vel[1]**2))
+    # Compute scaling factor in each plane
+    power_scale = [np.fabs(np.sin(heading)), np.fabs(np.cos(heading) * np.cos(AoA)), np.fabs(np.sin(AoA))]
+    # Compute the effective solar panel surfaces
+    eff_surf = np.array(sat_area) * np.array(power_scale)
+    # Compute the satellite power
+    power = sum(eff_surf) * sun_irradiance
+
+    if test:
+        # Test the Solar power computation
+        print("Sat heading of %.2f deg, sun heading of %.2f deg"% (np.rad2deg(sat_heading), np.rad2deg(sun_heading)))
+        print("Heading of %.2f deg, angle of attack of %.2f deg" % (np.rad2deg(heading), np.rad2deg(AoA)))
+        print("Power scaled by %.4f x / %.4f y / %.4f z" % tuple(power_scale))
+        
+        do_plot = (input("Do plot? y/[n]: ") == "y")
+        if do_plot:
+            # Imports for plotting
+            import matplotlib
+            matplotlib.use("pdf")
+            import matplotlib.pyplot as plt
+            plt.rcParams.update({'font.size': 13, 'figure.figsize': (7, 7), 'savefig.format': 'pdf'})
+            import sys
+            sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
+            
+            # Plot the position of the Sun and the Satellite
+            fig, ax = plt.subplots()
+            ax.scatter(sat_state[0], sat_state[1], label="Sat")
+            ax.scatter(sun_state[0], sun_state[1], label="Sun")
+
+            # Plot the satellite direction, and the light rays directions
+            sat_vel_unit = sat_vel / np.linalg.norm(sat_vel)
+            sun_pos_unit = -sun_state[:3] / np.linalg.norm(-sun_state[:3])
+            f = 5e10
+            ax.plot([sat_state[0], sat_state[0]+sat_vel_unit[0]*f], [sat_state[1], sat_state[1]+sat_vel_unit[1]*f], label="Sat direction")
+            ax.plot([sun_state[0], sun_state[0]+sun_pos_unit[0]*f], [sun_state[1], sun_state[1]+sun_pos_unit[1]*f], label="Sunlight direction")
+
+            # Save the figure
+            fig.tight_layout(), ax.grid(), ax.legend()
+            ax.set_title("Power scaled by %.4f x / %.4f y / %.4f z" % tuple(power_scale))
+            ax.set_ylim([-2.5e11, 0.5e11]), ax.set_xlim([-1.5e11, 1.5e11])
+            plt.savefig("figures/test_sun_power.pdf")
+            plt.close()
+
+    return power
 
 # Tests
 tests = False
 if tests:
-    print("0.0 ?", end="\t")
+    # Test the shadow function
     sun_d = 149598e6
     sun_r = 6.96e8
     earth_r = 6378.137e3
+    print("0.0 ?", end="\t")
     print(shadow_function(-sun_d*np.array([1,0,0]), sun_r, np.zeros(3), earth_r, (earth_r+1e6)*np.array([1,0,0])))
     print("1.0 ?", end="\t")
     print(shadow_function(-sun_d*np.array([1,0,0]), sun_r, np.zeros(3), earth_r, (earth_r+1e6)*np.array([0,1,0])))
