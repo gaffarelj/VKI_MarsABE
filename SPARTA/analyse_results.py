@@ -1,10 +1,6 @@
 import numpy as np
 import glob
 from natsort import natsorted
-import matplotlib
-matplotlib.use("pdf")
-import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})
 import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
 from tools import plot_utilities as PU

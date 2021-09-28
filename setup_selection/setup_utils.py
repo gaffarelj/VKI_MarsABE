@@ -5,9 +5,6 @@ from tudatpy.kernel.simulation import environment_setup
 from tudatpy.kernel.simulation import propagation_setup
 from tudatpy.kernel.astro import conversion
 from tudatpy.kernel.math import interpolators
-import matplotlib
-matplotlib.use("pdf")
-import matplotlib.pyplot as plt
 import time
 import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
@@ -239,16 +236,6 @@ def compare_to_baseline(time_l, altitudes, baseline_f="rk_4_baseline", trunc_end
     diff_times = np.array(list(model_difference.keys()))-earliest_time
     diff_vals = list(model_difference.values())
     return diff_times, diff_vals
-
-def plot_altitude(times, altitudes):
-    plt.plot(np.array(time)/24, altitudes/1e3)
-    plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
-    plt.show()
-
-def plot_difference(diff_times, diff_vals):
-    plt.plot(np.array(diff_times[:-1])/24, np.array(diff_vals[:-1])/1e3)
-    plt.grid(), plt.xlabel("Time [days]"), plt.ylabel("Altitude [km]")
-    plt.show()
 
 def get_integrator_settings(settings_index=10, verbose=False):
     """

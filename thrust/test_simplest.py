@@ -7,7 +7,6 @@ from setup_selection import setup_utils as SU
 from tools import plot_utilities as PU
 from tools import time_conversions as TC
 import thrust.simple_thrust as T
-import matplotlib.pyplot as plt
 import numpy as np
 
 simulation_days = 2
