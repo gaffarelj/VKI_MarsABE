@@ -88,10 +88,11 @@ for j, s_name in enumerate(sat_names):
             print("Saving input to file...")
             # Setup the SPARTA inputs
             input_s = "# SPARTA input file for satellite %s, for an altitude of %.1fkm\n" % (s_name, h)
+            input_s += "print \"***** Running SPARTA simulation for %s, at h=%ikm *****\"\n" % (s_name, h)
             input_s += "seed               12345\n"
             input_s += "dimension          3\n"
             input_s += "\n"
-            input_s += "global              gridcut 1e-6 comm/sort yes surfmax 10000 splitmax 100\n"
+            input_s += "global             gridcut 1e-4 comm/sort yes surfmax 10000 splitmax 100\n"
             input_s += "\n"
             input_s += "boundary           o r r\n"
             input_s += "create_box         -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
@@ -101,7 +102,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "balance_grid        rcb cell\n"
             input_s += "\n"
-            f = 1e3 if h == 115 else 1e7 if h == 150 else 1e-2 # increase number of simulated particles to avoid having 0
+            f = 1e4 if h == 115 else 1e8 if h == 150 else 1e-1 # increase number of simulated particles to avoid having 0
             input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num/f)
             input_s += "\n"
             input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
@@ -124,7 +125,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "stats               25\n"
             input_s += "stats_style         step cpu np nscoll nscheck nexit\n"
-            input_s += "run                 500\n"
+            input_s += "run                 750\n"
             
             run_all_cmd += "mpirun -np 12 spa_ < in.%s_%skm \n" % (s_name, h)
 

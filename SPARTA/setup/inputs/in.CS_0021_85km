@@ -1,8 +1,9 @@
 # SPARTA input file for satellite CS_0021, for an altitude of 85.0km
+print "Running SPARTA simulation for CS_0021, at h=85km"
 seed               12345
 dimension          3
 
-global              gridcut 1e-6 comm/sort yes surfmax 10000 splitmax 100
+global             gridcut 1e-4 comm/sort yes surfmax 10000 splitmax 100
 
 boundary           o r r
 create_box         -0.7500 0.7500 -0.5000 0.5000 -0.5000 0.5000
@@ -11,7 +12,7 @@ create_grid         1.0000e+01 1.0000e+01 1.0000e+01
 
 balance_grid        rcb cell
 
-global              nrho 1.0028e+19 fnum 1.5345e+16
+global              nrho 1.0028e+19 fnum 1.5345e+15
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3494.1700 0.0 0.0 frac 0.9050
@@ -37,4 +38,4 @@ dump                1 surf all 5 ../results_sparta/CS_0021_85km.*.dat f_save[*]
 
 stats               25
 stats_style         step cpu np nscoll nscheck nexit
-run                 500
+run                 750
