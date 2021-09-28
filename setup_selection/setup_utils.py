@@ -13,7 +13,20 @@ import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
 spice_interface.load_standard_kernels()
 
-def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, variable_drag=False):
+# Drag coefficient of different satellite at given altitudes
+sat_drags = {
+    "CS_0020": {85e3: 3.08541, 115e3: 2.46291, 150e3: 2.34536},
+    "CS_0021": {85e3: 4.49286, 115e3: 4.35434, 150e3: 4.35666},
+    "CS_1020": {85e3: 4.05514, 115e3: 2.73544, 150e3: 2.67014},
+    "CS_1021": {85e3: 5.56548, 115e3: 4.57014, 150e3: 4.59003},
+    "CS_2020": {85e3: 3.69607, 115e3: 2.97278, 150e3: 2.93880},
+    "CS_2021": {85e3: 5.14644, 115e3: 4.86814, 150e3: 4.92966},
+    "CS_2120": {85e3: 5.33483, 115e3: 3.29540, 150e3: 3.22048},
+    "CS_3020": {85e3: 4.27504, 115e3: 3.28570, 150e3: 3.12841},
+    "CS_3021": {85e3: 5.43094, 115e3: 995.158049, 150e3: 5.19109},
+}
+
+def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, sat_name=""):
     # Create bodies
     bodies_to_create = ["Mars", "Sun", "Jupiter"]
     global_frame_origin = 'Mars'
@@ -54,11 +67,11 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, variable_drag=False):
 
     # Add aerodynamic settings
     S_ref = 0.010764
-    if variable_drag:
+    if sat_name != "":
         # Create a cubic spline interpolator, capped at the boundaries
         interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.use_boundary_value)
         # Define the drag coefficient values at given altitudes
-        drag_values = {85e3: 2.7266, 115e3: 2.3182, 150e3: 2.5699}
+        drag_values = sat_drags[sat_name]
         # Setup the drag interpolator
         drag_interpolator = interpolators.create_one_dimensional_interpolator(drag_values, interpolator_settings)
         def force_coefficients(_):
