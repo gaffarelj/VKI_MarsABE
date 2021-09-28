@@ -47,7 +47,40 @@ When all of the input files have been created, they can all be run by using the 
 
 ## Satellite configurations
 
-*To be added.*
+Different CubeSat configurations have been modeled, each with different solar panels configurations.
+
+The naming scheme has been taken as CS ABCD:
+ * CS: CubeSat
+ * A: Solar panels above and below the main body
+ * B: Extension of the solar panels in A (straight behind)
+ * C: Solar panels on the main body
+ * D: Extension of the solar panels in C (behind, at a 15deg angle from the centreline)
+
+The following figure illustrates this naming scheme:
+
+<img src="CS/naming.png" width="20%">
+
+The number of solar panels (of size 300x100mm) has been counted for one side of the satellite. 
+
+As an example, the [3U deployable solar array from EnduroSat](https://www.endurosat.com/cubesat-store/cubesat-solar-panels/3u-single-deployable-solar-array) could be used.
+Including PCB, these have a mass of 0.27 kg and a thickness of 1.75 mm. At EOL, they have a power efficiency of at least 29%.
+
+Finally, the area of the solar panels of each satellite has been computed across three different planes. This later simplifies solar power calculations.
+These x, y, and z planes are defined as in the figure below:
+
+<img src="CS/planes.png" width="20%">
+
+| Satellite name | # of solar panels (x2) | Reference length [m] | x-area [m2] | y-area [m2] | z-area [m2] | Illustration                           |
+|----------------|------------------------|----------------------|-------------|-------------|-------------|----------------------------------------|
+| CS 0020        | 2                      | 0.3                  | 0           | 0.042426    | 0.042426    | <img src="CS/CS_0020.png" width="75%"> |
+| CS 1020        | 4                      | 0.341421             | 0           | 0.102426    | 0.042426    | <img src="CS/CS_1020.png" width="75%"> |
+| CS 0021        | 4                      | 0.589778             | 0.031058    | 0.083343    | 0.083343    | <img src="CS/CS_0021.png" width="75%"> |
+| CS 2020        | 6                      | 0.541421             | 0           | 0.162426    | 0.042426    | <img src="CS/CS_2020.png" width="75%"> |
+| CS 1021        | 6                      | 0.589778             | 0.031058    | 0.143343    | 0.083343    | <img src="CS/CS_1021.png" width="75%"> |
+| CS 3020        | 8                      | 0.741421             | 0           | 0.222426    | 0.042426    | <img src="CS/CS_3020.png" width="75%"> |
+| CS 2021        | 8                      | 0.589778             | 0.031058    | 0.203343    | 0.083343    | <img src="CS/CS_2021.png" width="75%"> |
+| CS 2120        | 10                     | 0.6                  | 0           | 0.282426    | 0.042426    | <img src="CS/CS_2120.png" width="75%"> |
+| CS 3021        | 8                      | 0.741421             | 0.031058    | 0.263343    | 0.083343    | <img src="CS/CS_3021.png" width="75%"> |
 
 ## Conditions
 
