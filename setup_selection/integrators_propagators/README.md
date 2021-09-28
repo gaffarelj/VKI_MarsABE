@@ -93,17 +93,13 @@ Also, irregulars jumps in altitude have sometime been observed. The integrator h
 The settings that resulted from this study are thus the followings:
 
 * A Runge Kutta Dormant Prince 87 integrator with:
-    * A relative and absolute tolerance of 5E-8
-    * A step size range of 0.05s to 600s
+    * A relative and absolute tolerance of 1E-7
+    * A step size range of 1E-05s to 600s
     * An initial step size of 150s
-    * A minimum and maximum factor increase of 0.15 and 3.5
+    * A minimum and maximum factor increase of 0.25 and 3.0
+    * A safety factor of 0.85
+* An Encke propagator (that propagates the difference with a Keplerian orbit)
 
-    * A safety factor of 0.6
-* A Gauss Modified Equinoctial propagator
-    * Inclinations of 0 deg and 180 deg are not possible. They can be manually changed to 0.01 deg or 179.99 deg.
+This leads to a simulation time of around 5 seconds, with a deviation from the benchmark of a maximum of 3.239 meters in altitude after 20 days of simulation.
 
-This leads to a simulation time of 5 seconds, with a deviation from the benchmark of a maximum of 3.239 meters in altitude after 20 days of simulation.
-
-For a more accurate simulation, the same settings can be used but with a relative and absolute integrator tolerance of 1E-10 instead, leading to a simulation time of 10.704 seconds and a deviation of only 0.746 meters.
-
-Finally, these settings may be tweaked again later on when accelerations such as drag or thrust are changed.
+These settings may be tweaked again later on when accelerations such as drag or thrust are changed.
