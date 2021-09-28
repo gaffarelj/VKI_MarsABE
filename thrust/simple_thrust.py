@@ -25,7 +25,7 @@ sat_areas = {
 
 class thrust_model:
     def __init__(self, bodies, vehicle_name, init_time=0, Isp_base=800, dens_treshold=1e-13, \
-        save_solar=False, solar_constant=1366, power_treshold=100, sat_name="CS_0020", power_eff=0.35*0.93):
+        save_solar=False, solar_constant=1366, power_treshold=100, sat_name="CS_0020", power_eff=0.29*0.93):
         global solar_irradiances
         self.bodies = bodies
         self.vehicle = bodies.get_body(vehicle_name)
