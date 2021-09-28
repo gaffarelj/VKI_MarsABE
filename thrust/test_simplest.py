@@ -72,4 +72,6 @@ PU.plot_single(time/3600, (positions-positions[0])/1e3, "Time [hr]", "$|r(t) - r
 PU.plot_dual(time/3600, np.linalg.norm(thrust_acc, axis=1), densities, "Time [hr]", "Thrust acceleration [m/s$^2$]", "Density [kg/m$^3$]", "thrust/test_acc_dens")
 PU.plot_dual([time/3600, time_solar/3600], np.linalg.norm(thrust_acc, axis=1), T.solar_irradiances.values(), "Time [hr]", \
     "Thrust acceleration [m/s$^2$]", "Solar irradiance [W/m$^2$]", "thrust/test_acc_solar", diff_x=True)
+PU.plot_dual([time/3600, time_solar/3600], np.linalg.norm(thrust_acc, axis=1), T.power_dict.values(), "Time [hr]", \
+    "Thrust acceleration [m/s$^2$]", "Available power [W]", "thrust/test_acc_power", diff_x=True)
 PU.plot_multiple([time/3600]*3, thrust_acc.T, "Time [hr]", "Thrust acceleration [m/s$^2$]", "thrust/test_acc", ["x-direction", "y-direction", "z-direction"])

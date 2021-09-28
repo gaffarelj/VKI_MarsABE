@@ -10,6 +10,8 @@ from tools import mission_geometry as MG
 AU = 149597890e3
 # Solar irradiance dict
 solar_irradiances = dict()
+# Power dict
+power_dict = dict()
 # Satellite areas
 sat_areas = {
     "CS_0020": [0, 0.042426, 0.042426],
@@ -25,7 +27,7 @@ sat_areas = {
 
 class thrust_model:
     def __init__(self, bodies, vehicle_name, init_time=0, Isp_base=800, dens_treshold=1e-13, \
-        save_solar=False, solar_constant=1366, power_treshold=100, sat_name="CS_0020", power_eff=0.29*0.93):
+        save_solar=False, solar_constant=1366, power_treshold=10, sat_name="CS_0020", power_eff=0.29*0.93):
         global solar_irradiances
         self.bodies = bodies
         self.vehicle = bodies.get_body(vehicle_name)
@@ -60,6 +62,8 @@ class thrust_model:
         sat_state = self.vehicle.state
         sun_state = self.sun.state
         self.power = MG.sat_power(sat_state, sun_state, self.irradiance, self.sat_area)
+        if self.save_solar:
+            power_dict[time] = self.power
         return self.power
 
     def solar_irradiance(self, time):
