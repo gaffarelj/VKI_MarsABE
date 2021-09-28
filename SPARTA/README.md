@@ -47,7 +47,7 @@ When all of the input files have been created, they can all be run by using the 
 
 ## Satellite configurations
 
-
+*To be added.*
 
 ## Conditions
 
@@ -88,42 +88,43 @@ At each altitude, the dynamic pressure (in Pa) has been computed as follows:
 
 <img src="https://render.githubusercontent.com/render/math?math=q%20=%20\frac{1}{2}%20\cdot%20\rho%20\cdot%20V^2">
 
-For the 'Sail' satellite type, the frontal area is computed as the central square plus the width of the solar panels multiplied by their thickness. This leads to a frontal area of:
+For each satellite configuration, the reference surface `S` has been taken as the frontal area of the cubesat itself, not including the solar panels.
+In the simulation runs, `S = 0.01 m2`. This means that, later on, the same reference surface has to be used.
 
-<img src="https://render.githubusercontent.com/render/math?math=S%20=%20100%20\cdot%20100%20+%202%20\cdot%20191%20\cdot%202%20=%2010764%20mm^2%20=%200.010764%20m^2">
+If the satellite is to be scaled, the solar panels must be scaled equally to the cubesat itself for the drag coefficients to be valid.
 
-The drag coefficient has then been computed at each altitude by using the following equation:
+The drag coefficients have then been computed at each altitude by using the following equation:
 
-<img src="https://render.githubusercontent.com/render/math?math=C_D%20=%20\frac{D}{q%20\cdot%20S}">
+<img src="https://render.githubusercontent.com/render/math?math=C_D%20=%20\frac{D}{q%20\cdot%20S}=100%20\cdot%20\frac{D}{q}">
 
 This leads to the drag coefficients of the table below, with the Knudsen numbers included as well:
 
-| Satellite name | Altitude [km] | Knudsen number [-] | Drag [N] | Reference surface [m2] | Drag coefficient [-] |
-|----------------|---------------|--------------------|----------|------------------------|----------------------|
-| CS 0020        | 85            | 6.871e-01          |          |                        |                      |
-| CS 0020        | 115           |                    |          |                        |                      |
-| CS 0020        | 150           |                    |          |                        |                      |
-| CS 1020        | 85            |                    |          |                        |                      |
-| CS 1020        | 115           |                    |          |                        |                      |
-| CS 1020        | 150           |                    |          |                        |                      |
-| CS 0021        | 85            |                    |          |                        |                      |
-| CS 0021        | 115           |                    |          |                        |                      |
-| CS 0021        | 150           |                    |          |                        |                      |
-| CS 2020        | 85            |                    |          |                        |                      |
-| CS 2020        | 115           |                    |          |                        |                      |
-| CS 2020        | 150           |                    |          |                        |                      |
-| CS 1021        | 85            |                    |          |                        |                      |
-| CS 1021        | 115           |                    |          |                        |                      |
-| CS 1021        | 150           |                    |          |                        |                      |
-| CS 3020        | 85            |                    |          |                        |                      |
-| CS 3020        | 115           |                    |          |                        |                      |
-| CS 3020        | 150           |                    |          |                        |                      |
-| CS 2021        | 85            |                    |          |                        |                      |
-| CS 2021        | 115           |                    |          |                        |                      |
-| CS 2021        | 150           |                    |          |                        |                      |
-| CS 2120        | 85            |                    |          |                        |                      |
-| CS 2120        | 115           |                    |          |                        |                      |
-| CS 2120        | 150           |                    |          |                        |                      |
-| CS 3021        | 85            |                    |          |                        |                      |
-| CS 3021        | 115           |                    |          |                        |                      |
-| CS 3021        | 150           |                    |          |                        |                      |
+| Satellite name | Altitude [km] | Knudsen number [-] | Drag [N]    | Reference surface [m2] | Drag coefficient [-] |
+|----------------|---------------|--------------------|-------------|------------------------|----------------------|
+| CS 0020        | 85            | 6.871E-01          | 1.33730E-01 | 0.01                   | 3.08541              |
+| CS 0020        | 115           | 2.656e+01          | 2.70496E-03 | 0.01                   | 2.46291              |
+| CS 0020        | 150           | 2.755e+03          | 2.27725E-05 | 0.01                   | 2.34536              |
+| CS 1020        | 85            | 6.038e-01          | 1.94733E-01 | 0.0104                 | 4.49286              |
+| CS 1020        | 115           | 2.334e+01          | 4.78227E-03 | 0.0104                 | 4.35434              |
+| CS 1020        | 150           | 2.421e+03          | 4.23014E-05 | 0.0104                 | 4.35666              |
+| CS 0021        | 85            | 3.495e-01          | 1.75761E-01 | 0.041058               | 4.05514              |
+| CS 0021        | 115           | 1.351e+01          | 3.00427E-03 | 0.041058               | 2.73544              |
+| CS 0021        | 150           | 1.401e+03          | 2.59260E-05 | 0.041058               | 2.67014              |
+| CS 2020        | 85            | 3.807e-01          | 2.41223E-01 | 0.0108                 | 5.56548              |
+| CS 2020        | 115           | 1.472e+01          | 5.01928E-03 | 0.0108                 | 4.57014              |
+| CS 2020        | 150           | 1.527e+03          | 4.45674E-05 | 0.0108                 | 4.59003              |
+| CS 1021        | 85            | 3.495e-01          | 1.60198E-01 | 0.041458               | 3.69607              |
+| CS 1021        | 115           | 1.351e+01          | 3.26494E-03 | 0.041458               | 2.97278              |
+| CS 1021        | 150           | 1.401e+03          | 2.85346E-05 | 0.041458               | 2.93880              |
+| CS 3020        | 85            | 2.780e-01          | 2.23061E-01 | 0.0112                 | 5.14644              |
+| CS 3020        | 115           | 1.075e+01          | 5.34656E-03 | 0.0112                 | 4.86814              |
+| CS 3020        | 150           | 1.115e+03          | 4.78650E-05 | 0.0112                 | 4.92966              |
+| CS 2021        | 85            | 3.495e-01          | 2.31226E-01 | 0.041858               | 5.33483              |
+| CS 2021        | 115           | 1.351e+01          | 3.61926E-03 | 0.041858               | 3.29540              |
+| CS 2021        | 150           | 1.401e+03          | 3.12696E-05 | 0.041858               | 3.22048              |
+| CS 2120        | 85            | 3.436e-01          | 1.85292E-01 | 0.0108                 | 4.27504              |
+| CS 2120        | 115           | 1.328e+01          | 3.60861E-03 | 0.0108                 | 3.28570              |
+| CS 2120        | 150           | 1.378e+03          | 3.03756E-05 | 0.0108                 | 3.12841              |
+| CS 3021        | 85            | 2.780e-01          | 2.35392E-01 | 0.042258               | 5.43094              |
+| CS 3021        | 115           | 1.075e+01          | 5.66496E-03 | 0.042258               | 5.15804              |
+| CS 3021        | 150           | 1.115e+03          | 5.04034E-05 | 0.042258               | 5.19109              |
