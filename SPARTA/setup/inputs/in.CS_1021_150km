@@ -1,5 +1,5 @@
 # SPARTA input file for satellite CS_1021, for an altitude of 150.0km
-print "Running SPARTA simulation for CS_1021, at h=150km"
+print "***** Running SPARTA simulation for CS_1021, at h=150km *****"
 seed               12345
 dimension          3
 
@@ -32,10 +32,10 @@ fix                 in emit/face atmo xhi twopass
 
 timestep            1.2821e-02
 
-compute             2 surf all all press fx fy fz px py pz etot
+compute             2 surf all all press fx fy fz
 fix                 save ave/surf all 1 5 5 c_2[*] ave running
 dump                1 surf all 5 ../results_sparta/CS_1021_150km.*.dat f_save[*]
 
 stats               25
 stats_style         step cpu np nscoll nscheck nexit
-run                 750
+run                 600

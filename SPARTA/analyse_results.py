@@ -37,7 +37,7 @@ for s_name in sat_names:
             results_list = np.array(results_list)
 
             # Sum the results from each of the satellite surface
-            for i in range(8):
+            for i in range(4):#8):
                 res_vars[i] = sum(results_list[:,i])
             
             # Save the summed results
@@ -45,9 +45,9 @@ for s_name in sat_names:
 
         # Convert the results to a dict
         results = np.array(results)
-        res_labels = ["tot_press", "fx", "fy", "fz", "px", "py", "pz", "etot"]
+        res_labels = ["tot_press", "fx", "fy", "fz"]#, "px", "py", "pz", "etot"]
         res_dict = dict()
-        for i in range(7):
+        for i in range(4):#7):
             res_dict[res_labels[i]] = results[:,i]
 
         # Plot the force in each direction
