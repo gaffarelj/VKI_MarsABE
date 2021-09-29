@@ -102,7 +102,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "balance_grid        rcb cell\n"
             input_s += "\n"
-            f = 1e4 if h == 115 else 1e8 if h == 150 else 1 # increase number of simulated particles to avoid having 0
+            f = 1e4 if h == 115 else 1e8 if h == 150 else 1e-1 # increase number of simulated particles to avoid having 0
             input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num/f)
             input_s += "\n"
             input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
