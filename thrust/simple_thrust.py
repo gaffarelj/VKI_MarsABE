@@ -5,6 +5,7 @@ from tudatpy.kernel.interface import spice_interface
 import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 from tools import mission_geometry as MG
+from thrust.hall_thrusters import BHT_100
 
 # Astronomical Unit distance in [m]
 AU = 149597890e3
@@ -27,28 +28,39 @@ sat_areas = {
 
 class thrust_model:
 
-    def __init__(self, bodies, vehicle_name, init_time=0, Isp_base=800, dens_treshold=1e-13, \
-        save_power=False, solar_constant=1366, power_treshold=10, sat_name="CS_0020", power_eff=0.29*0.93):
+    def __init__(self, bodies, vehicle_name, init_time=0, Isp=800, dens_treshold=1e-13, \
+        save_power=False, solar_constant=1366, sat_name="CS_0020", \
+            thrust_mod=0, power_eff=0.29*0.93):
         self.bodies = bodies
         self.vehicle = bodies.get_body(vehicle_name)
         self.init_time = init_time
-        self.Isp_base = Isp_base
+        self.Isp = Isp
         self.dens_treshold = dens_treshold
         self.central_body = self.bodies.get_body("Mars")
         self.sun = self.bodies.get_body("Sun")
         self.save_power = save_power
         self.solar_constant = solar_constant
-        self.power_treshold = power_treshold
         self.sat_area = sat_areas[sat_name]
         self.power_eff = power_eff
+        self.thrust_mod = thrust_mod
+        if thrust_mod == 0:
+            self.power_treshold = [10, 100]
+        elif thrust_mod == 1:
+            self.power_treshold = [107, 158]
     
     def magnitude(self, time):
         # Return a constant thrust magnitude
-        return 0.001
+        if self.thrust_mod == 0:
+            return 0.001
+        # Return thrust from BHT 100 thruster, based on power
+        elif self.thrust_mod == 1:
+            # If there is more than a certain power available, keep it for the other systems
+            self.thrust, self.m_flow, self.I_sp = BHT_100.from_power(min(self.power, self.power_treshold[1]))
+            return self.thrust
 
     def specific_impulse(self, time):
-        # Return a constant specific impulse
-        return self.Isp_base
+        # Return the specific impulse
+        return self.Isp
 
     def is_thrust_on(self, time):
         """
@@ -57,7 +69,7 @@ class thrust_model:
         # Engine is on if the air density is above a given treshold
         density_ok = self.vehicle.get_flight_conditions().current_density > self.dens_treshold
         # Engine is on if the solar irradiance is above a given treshold
-        power_ok = self.power_available(time) > self.power_treshold
+        power_ok = self.power_available(time) > self.power_treshold[0]
         return density_ok and power_ok
 
     def power_available(self, time):
@@ -97,9 +109,9 @@ class thrust_model:
             solar_irradiances[time] = self.irradiance
         return self.irradiance
 
-def thrust_settings(bodies, init_time=0, save_power=False):
+def thrust_settings(bodies, init_time=0, save_power=False, sat_name="CS_0020", thrust_mod=0):
     # Define the thrust guidance function
-    thrust_guidance = thrust_model(bodies, "Satellite", init_time, save_power=save_power)
+    thrust_guidance = thrust_model(bodies, "Satellite", init_time, save_power=save_power, sat_name=sat_name, thrust_mod=thrust_mod)
     # Define the thrust settings (direction and magnitude)
     thrust_direction_s = propagation_setup.acceleration.thrust_direction_from_state_guidance(
         central_body="Mars", is_colinear_with_velocity=True, direction_is_opposite_to_vector=False)
