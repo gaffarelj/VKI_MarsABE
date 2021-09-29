@@ -2,7 +2,25 @@
 
 The Stochastic PArallel Rarefied-gas Time-accurate Analyzer (SPARTA) software library has been used to get the drag coefficient of the satellite given different atmospheric conditions. SPARTA is a Direct Simulation Monte Carlo (DSMC) simulator, suited for rarefied flow simulations.
 
-Its documentation can be accessed [here](https://sparta.github.io/), and how to compile and use it is explained in [this GitHub repository](https://github.com/sparta/sparta/blob/master/BUILD_CMAKE.md).
+## Installation
+The SPARTA documentation can be accessed [here](https://sparta.github.io/).
+
+Moreover, it can be installed and compiled by running the following commands:
+```
+git clone https://github.com/sparta/sparta
+cd sparta
+mkdir build
+cd build
+module load openmpi
+cmake -LH /path/to/sparta/cmake
+make
+```
+The `spa_` combipled file will then be found in `build/src`.
+
+This folder can be added to path using the following command:
+```
+echo "export PATH=\$PATH:/path/to/sparta/build/src" >> ~/.bash_profile
+```
 
 ## Commands
 
