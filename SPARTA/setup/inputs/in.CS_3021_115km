@@ -38,4 +38,4 @@ dump                1 surf all 5 ../results_sparta/CS_3021_115km.*.dat f_save[*]
 
 stats               25
 stats_style         step cpu np nscoll nscheck nexit
-run                 600
+run                 750
