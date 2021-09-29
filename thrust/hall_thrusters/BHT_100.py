@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
+sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 import numpy as np
 import tools.plot_utilities as PU
 
