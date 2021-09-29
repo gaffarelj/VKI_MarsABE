@@ -9,13 +9,16 @@ import numpy as np
 from scipy.interpolate import griddata
 plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})
 
-def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False):
+def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, equal_ax=False):
     """
     Simple plot
     """
     fig, ax = plt.subplots()
     # Plot
-    ax.plot(x_data, y_data)
+    if scatter:
+        ax.scatter(x_data, y_data)
+    else:
+        ax.plot(x_data, y_data)
     # Set labels
     ax.set_xlabel(x_label), ax.set_ylabel(y_label)
     # Save space
@@ -26,6 +29,8 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False)
         plt.xscale("log")
     if ylog:
         plt.yscale("log")
+    if equal_ax:
+        ax.set_aspect("equal")
     # Save the plot in the figure folder, as a pdf
     plt.savefig("figures/%s.pdf" % fname)
     plt.close()
