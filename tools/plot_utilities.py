@@ -3,6 +3,10 @@ sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
 import matplotlib
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import ticker
+import numpy as np
+from scipy.interpolate import griddata
 plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})
 
 def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False):
@@ -92,5 +96,23 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
     # Save space
     fig.tight_layout()
     # Save the plot in the figure folder, as a pdf
+    plt.savefig("figures/%s.pdf" % fname)
+    plt.close()
+
+def plot_4d(x, y, z, h, labels, fname):
+    fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+    grid_x, grid_y = np.mgrid[min(x):max(x):200j, min(y):max(y):200j]
+    grid_z = griddata((x, y), z, (grid_x, grid_y), method='nearest')
+    grid_c = griddata((x, y), h, (grid_x, grid_y), method='nearest')
+    scamap = plt.cm.ScalarMappable(cmap='rainbow')
+    fcolors = scamap.to_rgba(grid_c)
+    ax.plot_surface(grid_x, grid_y, grid_z, cmap='rainbow', facecolors=fcolors)
+    ax.view_init(30, 120)
+    clb = fig.colorbar(scamap)
+    ax.set_xlabel(labels[0], fontsize=12)
+    ax.set_ylabel(labels[1], fontsize=12)
+    ax.set_zlabel(labels[2], fontsize=12)
+    clb.ax.set_title(labels[3], fontsize=12)
+    plt.tight_layout()
     plt.savefig("figures/%s.pdf" % fname)
     plt.close()
