@@ -23,7 +23,7 @@ sat_drags = {
     "CS_3021": {85e3: 5.43094, 115e3: 995.158049, 150e3: 5.19109},
 }
 
-def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, sat_name=""):
+def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, sat_name="", sat_mass=200):
     # Create bodies
     bodies_to_create = ["Mars", "Sun", "Jupiter"]
     global_frame_origin = 'Mars'
@@ -60,7 +60,7 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, sat_name=""):
 
     # Add satellite body
     bodies.create_empty_body("Satellite")
-    bodies.get_body("Satellite").set_constant_mass(200)
+    bodies.get_body("Satellite").set_constant_mass(sat_mass)
 
     # Add aerodynamic settings
     S_ref = 0.010764
