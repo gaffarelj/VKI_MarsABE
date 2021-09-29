@@ -60,7 +60,7 @@ python2 stl2surf.py model_ascii.stl data.model
 
 When all of the input files have been created, they can all be run by using the following command while in the `inputs` folder:
 ```
-./run_all.sh
+bash run_all.sh
 ```
 
 ## Satellite configurations
