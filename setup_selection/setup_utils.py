@@ -63,7 +63,7 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, sat_name="", sat_mass
     bodies.get_body("Satellite").set_constant_mass(sat_mass)
 
     # Add aerodynamic settings
-    S_ref = 0.010764
+    S_ref = 0.01
     if sat_name != "":
         # Create a cubic spline interpolator, capped at the boundaries
         interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.use_boundary_value)
