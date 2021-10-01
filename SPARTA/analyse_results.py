@@ -16,10 +16,10 @@ sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "
 for s_name in sat_names:
     for h in hs:
         # Get the sorted file list corresponding to the satellite name and altitude
-        file_list = natsorted(glob.glob("SPARTA/setup/results_sparta/%s/force_%skm.*.dat" % (s_name, h)))
+        file_list = natsorted(glob.glob("SPARTA/setup/results_sparta/%s/force_%skm.*.gz" % (s_name, h)))
         
         if check_part_cells:
-            file_list_pc = natsorted(glob.glob("SPARTA/setup/results_sparta/%s/npart_%skm.*.dat" % (s_name, h)))
+            file_list_pc = natsorted(glob.glob("SPARTA/setup/results_sparta/%s/npart_%skm.*.gz" % (s_name, h)))
 
         # Prepare the result lists
         times, results, results_np_mean, results_np_std = [], [], [], []
