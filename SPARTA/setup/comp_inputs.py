@@ -83,7 +83,7 @@ for j, s_name in enumerate(sat_names):
         n_y = w_box / ((grid_f + grid_ps)/2)                            # number of grid segments along y
         n_z = h_box / ((grid_f + grid_ps)/2)                            # number of grid segments along z
         n_cells = n_x * n_y * n_z                                       # number of cells
-        n_sim = 10 * n_cells                                            # number of simulated particles
+        n_sim = 40 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
 
         # Compute the accomodation coefficient based on the adsorption of atomic oxygen
