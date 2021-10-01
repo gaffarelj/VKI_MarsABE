@@ -1,7 +1,11 @@
 import numpy as np
 import sys
-sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
+sys.path.insert(0,"/".join(sys.path[0].split("/")[:-2]))
 import os
+import shutil
+from tools import plot_utilities as PU
+
+check_part_cells = True     # Set to True to check the number of particles in each cells
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -21,6 +25,12 @@ sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "
 L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
     print("\n\n* Satellite", s_name)
+    # Create folder for results of this satellite
+    try:
+        os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+    except FileExistsError:
+        shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+        os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
     # Loop trough conditions
     for i, h in enumerate(hs):
         print("\nWith conditions at altitude of %i km:" % h)
@@ -49,27 +59,44 @@ for j, s_name in enumerate(sat_names):
         k_b = 1.38e-23  # Bolzmann constant
 
         # Compute values
-        weighted_m = sum(species_frac * species_m)              # weighted mass of species
-        weighted_sigma = sum(species_frac * species_sigma)      # weighted frontal area of species
-        nrho = rho / weighted_m                                 # number density [#/m3]
-        lambda_f = 1 / (np.sqrt(2) * weighted_sigma * nrho)     # mean free path [m]
-        Kn = lambda_f / L                                       # Knudsen number [-]
-        T_ps = weighted_m * u_s**2 / (7*k_b)                    # post-shock T (Cv=2.5*R) [K]
-        cr_ps = np.sqrt(16*k_b*T_ps / (np.pi*weighted_m))       # post-shock average relative velocity [m/s]\
-        nrho_ps = 7.67*nrho                                     # post-shock number density [#/m3]
-        lambda_ps = 1 / (np.sqrt(2) * weighted_sigma * nrho_ps) # post-shock mean free path [m]
-        nu_ps = weighted_sigma * nrho_ps * cr_ps                # post-shock collision frequency [Hz]
-        tau_ps = 1 / nu_ps                                      # post-shock collision time [s]
-        dt = tau_ps / 4                                         # time step [s]
-        grid_f = lambda_f / 4                                   # grid dimension before shock [m]
-        grid_ps = lambda_ps / 4                                 # post-shock grid dimension [m]
-        n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box   # real number of particles
-        n_x = l_box / ((grid_f + grid_ps)/2)                    # number of grid segments along x
-        n_y = w_box / ((grid_f + grid_ps)/2)                    # number of grid segments along y
-        n_z = h_box / ((grid_f + grid_ps)/2)                    # number of grid segments along z
-        n_cells = n_x * n_y * n_z                               # number of cells
-        n_sim = 7 * n_cells                                     # number of simulated particles
-        f_num = n_real / n_sim                                  # f_num for SPARTA
+        weighted_m = sum(species_frac * species_m)                      # weighted mass of species
+        weighted_sigma = sum(species_frac * species_sigma)              # weighted frontal area of species
+        nrho = rho / weighted_m                                         # number density [#/m3]
+        lambda_f = 1 / (np.sqrt(2) * weighted_sigma * nrho)             # mean free path [m]
+        Kn = lambda_f / L                                               # Knudsen number [-]
+        T_ps = weighted_m * u_s**2 / (7*k_b)                            # post-shock T (Cv=2.5*R) [K]
+        cr_ps = np.sqrt(16*k_b*T_ps / (np.pi*weighted_m))               # post-shock average relative velocity [m/s]\
+        nrho_ps = 7.67*nrho                                             # post-shock number density [#/m3]
+        lambda_ps = 1 / (np.sqrt(2) * weighted_sigma * nrho_ps)         # post-shock mean free path [m]
+        nu_ps = weighted_sigma * nrho_ps * cr_ps                        # post-shock collision frequency [Hz]
+        tau_ps = 1 / nu_ps                                              # post-shock collision time [s]
+        dt = tau_ps / 5                                                 # time step [s]
+        grid_f_mfp = lambda_f / 5                                       # grid dimension before shock [m] (based on mean free path)
+        grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
+        grid_f_vel = u_s*dt                                             # grid dimension before shock [m] (based on velocity)
+        grid_ps_vel = cr_ps*dt                                          # post-shock grid dimension [m] (based on velocity)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/10), l_box/100)      # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/100, to avoid grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/10), l_box/100)   # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/100, to avoid grid too big)
+        n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
+        n_x = l_box / ((grid_f + grid_ps)/2)                            # spacing of grid along x
+        n_y = w_box / ((grid_f + grid_ps)/2)                            # number of grid segments along y
+        n_z = h_box / ((grid_f + grid_ps)/2)                            # number of grid segments along z
+        n_cells = n_x * n_y * n_z                                       # number of cells
+        n_sim = 10 * n_cells                                            # number of simulated particles
+        f_num = n_real / n_sim                                          # f_num for SPARTA
+
+        # Compute the accomodation coefficient based on the adsorption of atomic oxygen
+        # https://doi.org/10.2514/1.49330
+        K = 7.5E-17                     # model fitting parameter
+        n_0 = nrho * species_frac[-2]   # number density of the atomic oxygen
+        P = n_0 * T                     # atomic oxygen partial pressure
+        alpha = K*P/(1+K*P)             # accomodation coefficient
+
+        test_accomodation = False
+        if test_accomodation and s_name == sat_names[0] and h == hs[0]:
+            P_s = np.linspace(1.5e17, 9e18, 200)
+            alpha_s = [K*_P/(1+K*_P) for _P in P_s]
+            PU.plot_single(P_s, alpha_s, "$n_O \cdot T [k m^3]$", "accomodation $\\alpha$", "test_accomodation")
 
         # Print the results
         print("Minimum grid size of x=%.3e, y=%.3e, z=%.3e" % (n_x, n_y, n_z))
@@ -82,27 +109,26 @@ for j, s_name in enumerate(sat_names):
             if h == hs[0]:
                 print("Converting binary STL to SPARTA surface...")
                 # Convert STL from binary to asci
-                os.system("python2 \"%s/tools/stl_B2A.py\" \"%s/setup/STL/%s.stl\" -rs" % (sys.path[0], sys.path[0], s_name))
+                os.system("python2 \"%s/SPARTA/tools/stl_B2A.py\" \"%s/SPARTA/setup/STL/%s.stl\" -rs" % (sys.path[0], sys.path[0], s_name))
                 # Convert STL to data surface for SPARTA
-                os.system("python2 \"%s/tools/stl2surf.py\" \"%s/setup/STL/%s_ASCII.stl\" \"%s/setup/data/data.%s\"" % (sys.path[0], sys.path[0], s_name, sys.path[0], s_name))
+                os.system("python2 \"%s/SPARTA/tools/stl2surf.py\" \"%s/SPARTA/setup/STL/%s_ASCII.stl\" \"%s/SPARTA/setup/data/data.%s\"" % (sys.path[0], sys.path[0], s_name, sys.path[0], s_name))
             print("Saving input to file...")
             # Setup the SPARTA inputs
             input_s = "# SPARTA input file for satellite %s, for an altitude of %.1fkm\n" % (s_name, h)
-            input_s += "print \"***** Running SPARTA simulation for %s, at h=%ikm *****\"\n" % (s_name, h)
-            input_s += "seed               12345\n"
-            input_s += "dimension          3\n"
+            input_s += "print \"\"\nprint \"***** Running SPARTA simulation for %s, at h=%ikm *****\"\nprint \"\"\n" % (s_name, h)
+            input_s += "seed                12345\n"
+            input_s += "dimension           3\n"
             input_s += "\n"
-            input_s += "global             gridcut 1e-4 comm/sort yes surfmax 10000 splitmax 100\n"
+            input_s += "global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100\n"
             input_s += "\n"
-            input_s += "boundary           o r r\n"
-            input_s += "create_box         -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
+            input_s += "boundary            o r r\n"
+            input_s += "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
             input_s += "\n"
-            # Prevent grid too big compared to geometry by using min() 
-            input_s += "create_grid         %.4e %.4e %.4e\n" % (min(n_x, 10), min(n_y, 10), min(n_z, 10))
+            input_s += "create_grid         %i %i %i\n" % (np.ceil(n_x), np.ceil(n_y), np.ceil(n_z))
             input_s += "\n"
             input_s += "balance_grid        rcb cell\n"
             input_s += "\n"
-            f = 1e4 if h == 115 else 1e8 if h == 150 else 1 # increase number of simulated particles to avoid having 0
+            f = 1                           # increase number of simulated particles by increasing f
             input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num/f)
             input_s += "\n"
             input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
@@ -110,7 +136,7 @@ for j, s_name in enumerate(sat_names):
                 input_s += "mixture             atmo %s vstream -%.4f 0.0 0.0 frac %.4f\n" % (sp_n, u_s, species_frac[n])
             input_s += "\n"
             input_s += "read_surf           ../data/data.%s\n" % (s_name)
-            input_s += "surf_collide        1 diffuse 293.15 0.2\n"
+            input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
             input_s += "surf_modify         all collide 1\n"
             input_s += "\n"
             input_s += "collide             vss atmo ../atmo.vss\n"
@@ -119,25 +145,25 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "timestep            %.4e\n" % (dt)
             input_s += "\n"
-            #input_s += "compute             2 surf all all press fx fy fz px py pz etot\n"
-            input_s += "compute             2 surf all all press fx fy fz\n"
-            input_s += "fix                 save ave/surf all 1 5 5 c_2[*] ave running\n"
-            input_s += "dump                1 surf all 5 ../results_sparta/%s_%skm.*.dat f_save[*]\n" % (s_name, h)
+            input_s += "compute             2 surf all all fx fy fz\n"
+            input_s += "fix                 avg ave/surf all 1 5 5 c_2[*] ave running\n"
+            input_s += "dump                1 surf all 5 ../results_sparta/%s/force_%skm.*.dat f_avg[*]\n" % (s_name, h)
             input_s += "\n"
+            if check_part_cells:
+                input_s += "compute             npart grid all all n\n"
+                input_s += "dump                2 grid all 5 ../results_sparta/%s/npart_%skm.*.dat c_npart[*]\n" % (s_name, h)
+                input_s += "\n"
             input_s += "stats               25\n"
             input_s += "stats_style         step cpu np nscoll nscheck nexit\n"
-            if h in [115, 150]:
-                input_s += "run                 750\n"
-            else:
-                input_s += "run                 1500\n"
-
+            input_s += "run                 1500\n"
+            
             run_all_cmd += "mpirun -np 12 spa_ < in.%s_%skm \n" % (s_name, h)
-
+            
             # Write SPARTA inputs to input
-            with open(sys.path[0] + "/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
+            with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
                 input_f.write(input_s)
 
 if save_to_input:
     # Write command to run all SPARTA input files
-    with open(sys.path[0] + "/setup/inputs/run_all.sh", "w") as run_f:
+    with open(sys.path[0] + "/SPARTA/setup/inputs/run_all.sh", "w") as run_f:
         run_f.write(run_all_cmd)
