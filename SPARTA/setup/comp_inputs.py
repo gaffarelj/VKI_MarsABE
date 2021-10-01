@@ -29,8 +29,9 @@ for j, s_name in enumerate(sat_names):
     try:
         os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
     except FileExistsError:
-        shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
-        os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+        pass # Uncomment the two following lines to always remove the previous results when new input files are made
+        # shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+        # os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
     # Loop trough conditions
     for i, h in enumerate(hs):
         print("\nWith conditions at altitude of %i km:" % h)
@@ -155,7 +156,7 @@ for j, s_name in enumerate(sat_names):
                 input_s += "\n"
             input_s += "stats               25\n"
             input_s += "stats_style         step cpu np nscoll nscheck nexit\n"
-            input_s += "run                 1500\n"
+            input_s += "run                 %i\n" % (500*(3-i))
             
             run_all_cmd += "mpirun -np 12 spa_ < in.%s_%skm \n" % (s_name, h)
             
