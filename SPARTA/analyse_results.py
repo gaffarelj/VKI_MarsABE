@@ -22,10 +22,12 @@ for s_name in sat_names:
             file_list_pc = natsorted(glob.glob("SPARTA/setup/results_sparta/%s/npart_%skm.*.dat" % (s_name, h)))
 
         # Prepare the result lists
-        times, results = [], []
+        times, results, results_np_mean, results_np_std = [], [], [], []
 
         # Go trough each result file
         for i, res_file in enumerate(file_list):
+            if i%5 == 0:
+                print("Reading force file %i/%i..." % (i+1, len(file_list)), end="\r")
             times.append(i*dt)
             # Read the file
             data = np.loadtxt(res_file, skiprows=9)
@@ -33,7 +35,7 @@ for s_name in sat_names:
             forces = np.sum(data, axis=0)
             # Save forces
             results.append(forces)
-
+        print()
         # Convert the results to a dict
         results = np.array(results)
 
@@ -44,3 +46,21 @@ for s_name in sat_names:
 
         # Print the drag by averaging the force in the x-direction for the last 10% of the simulation
         print("Drag = %.5e N for %s at %.1fkm" % (-np.mean(results[-len(times)//10:,0]), s_name, h))
+
+        if check_part_cells:
+            for i, res_file in enumerate(file_list_pc):
+                print("Reading grid file %i/%i..." % (i+1, len(file_list_pc)), end="\r")
+                # Read the file
+                data = np.loadtxt(res_file, skiprows=9)
+                # Get the average number of particles per cell
+                mean_npart = np.mean(data)
+                # Get the std of the number of particles per cell
+                std_npart = np.std(data)
+                # Save number of particles data
+                results_np_mean.append(mean_npart), results_np_std.append(std_npart)
+            # Convert the results to a dict
+            results_np_mean, results_np_std = np.array(results_np_mean), np.array(results_np_std)
+
+            # Plot the number of particles over time
+            PU.plot_multiple([times]*3, [results_np_mean, results_np_mean+3*results_np_std, results_np_mean-3*results_np_std], \
+                "Time [s]", "Number of particles per cell", "SPARTA/npart_%s_%skm" % (s_name, h), legends=["$\mu$", "$\mu$+3$\sigma$", "$\mu$-3$\sigma$"])
