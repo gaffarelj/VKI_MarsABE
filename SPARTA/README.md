@@ -12,7 +12,7 @@ cd sparta
 mkdir build
 cd build
 module load openmpi
-cmake -LH /path/to/sparta/cmake
+cmake -LH ../cmake
 make
 ```
 The `spa_` combipled file will then be found in `build/src`.
