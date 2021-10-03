@@ -41,9 +41,9 @@ for s_name in sat_names:
         results = np.array(results)
 
         # Plot the force in each direction
-        PU.plot_single(times, -results[:,0], "Time [s]", "$F_x$ [N]", "SPARTA/fx_%s_%skm" % (s_name, h))
-        PU.plot_single(times, -results[:,1], "Time [s]", "$F_y$ [N]", "SPARTA/fy_%s_%skm" % (s_name, h))
-        PU.plot_single(times, -results[:,2], "Time [s]", "$F_y$ [N]", "SPARTA/fz_%s_%skm" % (s_name, h))
+        PU.plot_single(times, -results[:,0], "Timestep number [-]", "$F_x$ [N]", "SPARTA/fx_%s_%skm" % (s_name, h))
+        PU.plot_single(times, -results[:,1], "Timestep number [-]", "$F_y$ [N]", "SPARTA/fy_%s_%skm" % (s_name, h))
+        PU.plot_single(times, -results[:,2], "Timestep number [-]", "$F_y$ [N]", "SPARTA/fz_%s_%skm" % (s_name, h))
 
         # Print the drag by averaging the force in the x-direction for the last 10% of the simulation
         print("Drag = %.5e N for %s at %.1fkm" % (-np.mean(results[-len(times)//10:,0]), s_name, h))
@@ -52,7 +52,7 @@ for s_name in sat_names:
             for i, res_file in enumerate(file_list_pc):
                 print("Reading grid file %i/%i..." % (i+1, len(file_list_pc)), end="\r")
                 # Read the file
-                data = np.array(gzip.open(res_file, "rb").readlines()[9:], dtype=np.float32)
+                data = np.array(gzip.open(res_file, "rb").readlines()[9:], dtype=int)
                 # Get the average number of particles per cell
                 mean_npart = np.mean(data)
                 # Get the std of the number of particles per cell
@@ -64,4 +64,4 @@ for s_name in sat_names:
 
             # Plot the number of particles over time
             PU.plot_multiple([times]*3, [results_np_mean, results_np_mean+3*results_np_std, results_np_mean-3*results_np_std], \
-                "Time [s]", "Number of particles per cell", "SPARTA/npart_%s_%skm" % (s_name, h), legends=["$\mu$", "$\mu$+3$\sigma$", "$\mu$-3$\sigma$"])
+                "Timestep number [-]", "Number of particles per cell [-]", "SPARTA/npart_%s_%skm" % (s_name, h), legends=["$\mu$", "$\mu$+3$\sigma$", "$\mu$-3$\sigma$"])
