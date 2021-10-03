@@ -1,6 +1,7 @@
 import numpy as np
 import glob
 from natsort import natsorted
+import gzip
 import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
 from tools import plot_utilities as PU
@@ -51,7 +52,7 @@ for s_name in sat_names:
             for i, res_file in enumerate(file_list_pc):
                 print("Reading grid file %i/%i..." % (i+1, len(file_list_pc)), end="\r")
                 # Read the file
-                data = np.loadtxt(res_file, skiprows=9)
+                data = np.array(gzip.open(res_file, "rb").readlines()[9:], dtype=np.float32)
                 # Get the average number of particles per cell
                 mean_npart = np.mean(data)
                 # Get the std of the number of particles per cell
