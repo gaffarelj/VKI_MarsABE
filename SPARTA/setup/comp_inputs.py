@@ -29,7 +29,7 @@ for j, s_name in enumerate(sat_names):
     # Create folder for results of this satellite
     try:
         os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
-    except FileExistsError:
+    except (FileExistsError, OSError):
         pass # Un/comment the two following lines to always remove the previous results when new input files are made
         shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
