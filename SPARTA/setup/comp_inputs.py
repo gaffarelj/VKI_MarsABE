@@ -6,7 +6,7 @@ import shutil
 from tools import plot_utilities as PU
 
 check_part_cells = True             # Set to True to check the number of particles in each cells
-tot_epochs = [10000, 1000, 100]     # Number of simulation epochs for each altitude
+tot_epochs = [10000, 1000, 50]     # Number of simulation epochs for each altitude
 meas_dt = [50, 5, 1]                # When to save data
 
 # Define conditions at different orbital altitudes
@@ -31,7 +31,7 @@ for j, s_name in enumerate(sat_names):
     try:
         os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
     except (FileExistsError, OSError):
-        pass # Un/comment the two following lines to always remove the previous results when new input files are made
+        # Un/comment the two following lines to always remove the previous results when new input files are made
         shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
     # Loop trough conditions
