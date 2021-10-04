@@ -6,8 +6,8 @@ import shutil
 from tools import plot_utilities as PU
 
 check_part_cells = True             # Set to True to check the number of particles in each cells
-tot_epochs = [10000, 1000, 50]     # Number of simulation epochs for each altitude
-meas_dt = [50, 5, 1]                # When to save data
+tot_epochs = [10000, 1000, 75]     # Number of simulation epochs for each altitude
+meas_dt = [50, 5, 5]                # When to save data
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -149,7 +149,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "timestep            %.4e\n" % (dt)
             input_s += "\n"
             input_s += "compute             2 surf all all fx fy fz\n"
-            input_s += "fix                 avg ave/surf all 1 5 1 c_2[*] ave running\n"
+            input_s += "fix                 avg ave/surf all 1 5 5 c_2[*] ave running\n"
             input_s += "dump                1 surf all %i ../results_sparta/%s/force_%skm.*.gz f_avg[*]\n" % (meas_dt[i], s_name, h)
             input_s += "compute             sum reduce sum f_avg[*]\n"
             input_s += "\n"
