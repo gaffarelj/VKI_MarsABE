@@ -5,7 +5,8 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-check_part_cells = True     # Set to True to check the number of particles in each cells
+check_part_cells = True         # Set to True to check the number of particles in each cells
+tot_epochs = [2500, 500, 150]   # Number of simulation epochs for each altitude
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -153,14 +154,14 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             if check_part_cells:
                 input_s += "compute             npart grid all all n\n"
-                input_s += "dump                2 grid all 5 ../results_sparta/%s/npart_%skm.*.gz c_npart[*]\n" % (s_name, h)
+                input_s += "dump                2 grid all 25 ../results_sparta/%s/npart_%skm.*.gz c_npart[*]\n" % (s_name, h)
                 #input_s += "\n"
                 #input_s += "dump                img image all 50 res.*.ppm type vx\n"
                 # change color to be compute or fix equal to sum of particules in cell (c_npart[*])
                 input_s += "\n"
             input_s += "stats               25\n"
             input_s += "stats_style         step cpu np nscoll nexit c_sum[1]\n"
-            input_s += "run                 %i\n" % (500*(3-i))
+            input_s += "run                 %i\n" % (tot_epochs[i])
             
             run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm \n" % (s_name, h)
             
