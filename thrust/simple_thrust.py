@@ -25,6 +25,8 @@ sat_areas = {
     "CS_2120": [0, 0.282426, 0.042426],
     "CS_3021": [0.031058, 0.263343, 0.083343]
 }
+# Solar panel area fraction (fraction of actual solar array to solar panel size)
+AS_frac = 0.7042
 
 class thrust_model:
 
@@ -86,7 +88,7 @@ class thrust_model:
         sat_state = self.vehicle.state
         sun_state = self.sun.state
         # Compute the power available from the solar panels
-        self.power = MG.sat_power(sat_state, sun_state, self.irradiance, self.sat_area)
+        self.power = MG.sat_power(sat_state, sun_state, self.irradiance, self.sat_area*AS_frac)
         # If specified, save the power
         if self.save_power:
             power_dict[time] = self.power
