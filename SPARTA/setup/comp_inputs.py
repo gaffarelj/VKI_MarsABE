@@ -150,17 +150,17 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "compute             2 surf all all fx fy fz\n"
             input_s += "fix                 avg ave/surf all 1 5 5 c_2[*] ave running\n"
-            input_s += "dump                1 surf all %i ../results_sparta/%s/force_%skm.*.gz c_2[*]\n" % (meas_dt, s_name, h)
+            input_s += "dump                1 surf all %i ../results_sparta/%s/force_%skm.*.gz c_2[*]\n" % (meas_dt[i], s_name, h)
             input_s += "compute             sum reduce sum f_avg[*]\n"
             input_s += "\n"
             if check_part_cells:
                 input_s += "compute             npart grid all all n\n"
-                input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz c_npart[*]\n" % (meas_dt, s_name, h)
+                input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz c_npart[*]\n" % (meas_dt[i], s_name, h)
                 #input_s += "\n"
                 #input_s += "dump                img image all 50 res.*.ppm type vx\n"
                 # change color to be compute or fix equal to sum of particules in cell (c_npart[*])
                 input_s += "\n"
-            input_s += "stats               %i\n" % (meas_dt)
+            input_s += "stats               %i\n" % (meas_dt[i])
             input_s += "stats_style         step cpu np nscoll nexit c_sum[1]\n"
             input_s += "run                 %i\n" % (tot_epochs[i])
             
