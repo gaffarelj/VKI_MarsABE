@@ -5,8 +5,8 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-check_part_cells = False         # Set to True to check the number of particles in each cells
-tot_epochs = [5000, 500, 150]   # Number of simulation epochs for each altitude
+check_part_cells = True         # Set to True to check the number of particles in each cells
+tot_epochs = [7500, 750, 150]   # Number of simulation epochs for each altitude
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -77,8 +77,8 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt                                             # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt                                          # post-shock grid dimension [m] (based on velocity)
-        grid_f = max(min(grid_f_mfp, grid_f_vel, L/10), l_box/100)      # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/100, to avoid grid too big)
-        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/10), l_box/100)   # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/100, to avoid grid too big)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/10), l_box/20)      # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/20, to avoid grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/10), l_box/20)   # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/20, to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
         n_x = l_box / ((grid_f + grid_ps)/2)                            # spacing of grid along x
         n_y = w_box / ((grid_f + grid_ps)/2)                            # number of grid segments along y
