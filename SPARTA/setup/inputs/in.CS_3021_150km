@@ -35,13 +35,13 @@ fix                 in emit/face atmo xhi twopass
 timestep            1.0257e-02
 
 compute             2 surf all all fx fy fz
-fix                 avg ave/surf all 1 1 1 c_2[*] ave running
-dump                1 surf all 1 ../results_sparta/CS_3021/force_150km.*.gz c_2[*]
+fix                 avg ave/surf all 1 5 5 c_2[*] ave running
+dump                1 surf all 5 ../results_sparta/CS_3021/force_150km.*.gz f_avg[*]
 compute             sum reduce sum f_avg[*]
 
 compute             npart grid all all n
-dump                2 grid all 1 ../results_sparta/CS_3021/npart_150km.*.gz c_npart[*]
+dump                2 grid all 5 ../results_sparta/CS_3021/npart_150km.*.gz c_npart[*]
 
-stats               1
+stats               5
 stats_style         step cpu np nscoll nexit c_sum[1]
-run                 100
+run                 75
