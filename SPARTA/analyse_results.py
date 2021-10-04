@@ -8,7 +8,7 @@ from tools import plot_utilities as PU
 
 check_part_cells = True     # Set to True to check the number of particles in each cells
 
-dt = 5                      # Epoch between measurements
+dt, dt_np = 5, 25           # Epoch between measurements
 
 # Define the altitudes and satellite names for which there is results to analyse
 hs = [85, 115, 150]
@@ -23,7 +23,7 @@ for s_name in sat_names:
             file_list_pc = natsorted(glob.glob("SPARTA/setup/results_sparta/%s/npart_%skm.*.gz" % (s_name, h)))
 
         # Prepare the result lists
-        times, results, results_np_mean, results_np_std = [], [], [], []
+        times, results, times_np, results_np_mean, results_np_std = [], [], [], [], []
 
         # Go trough each result file
         for i, res_file in enumerate(file_list):
@@ -51,6 +51,7 @@ for s_name in sat_names:
         if check_part_cells:
             for i, res_file in enumerate(file_list_pc):
                 print("Reading grid file %i/%i..." % (i+1, len(file_list_pc)), end="\r")
+                times_np.append(i*dt_np)
                 # Read the file
                 data = np.array(gzip.open(res_file, "rb").readlines()[9:], dtype=int)
                 # Get the average number of particles per cell
@@ -59,9 +60,10 @@ for s_name in sat_names:
                 std_npart = np.std(data)
                 # Save number of particles data
                 results_np_mean.append(mean_npart), results_np_std.append(std_npart)
+            print()
             # Convert the results to a dict
             results_np_mean, results_np_std = np.array(results_np_mean), np.array(results_np_std)
 
             # Plot the number of particles over time
-            PU.plot_multiple([times]*3, [results_np_mean, results_np_mean+3*results_np_std, results_np_mean-3*results_np_std], \
+            PU.plot_multiple([times_np]*3, [results_np_mean, results_np_mean+3*results_np_std, results_np_mean-3*results_np_std], \
                 "Timestep number [-]", "Number of particles per cell [-]", "SPARTA/npart_%s_%skm" % (s_name, h), legends=["$\mu$", "$\mu$+3$\sigma$", "$\mu$-3$\sigma$"])
