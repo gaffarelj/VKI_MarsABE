@@ -8,14 +8,15 @@ from tools import plot_utilities as PU
 
 check_part_cells = True     # Set to True to check the number of particles in each cells
 
-dt, dt_np = 5, 25           # Epoch between measurements
+meas_dt = [50, 5, 1]        # Epoch between measurements
 
 # Define the altitudes and satellite names for which there is results to analyse
 hs = [85, 115, 150]
 sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
 # Loop trough the satellite names and the altitudes
 for s_name in sat_names:
-    for h in hs:
+    for i_h, h in enumerate(hs):
+        dt = meas_dt[i_h]
         # Get the sorted file list corresponding to the satellite name and altitude
         file_list = natsorted(glob.glob("SPARTA/setup/results_sparta/%s/force_%skm.*.gz" % (s_name, h)))
         
@@ -51,7 +52,7 @@ for s_name in sat_names:
         if check_part_cells:
             for i, res_file in enumerate(file_list_pc):
                 print("Reading grid file %i/%i..." % (i+1, len(file_list_pc)), end="\r")
-                times_np.append(i*dt_np)
+                times_np.append(i*dt)
                 # Read the file
                 data = np.array(gzip.open(res_file, "rb").readlines()[9:], dtype=int)
                 # Get the average number of particles per cell
