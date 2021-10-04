@@ -28,8 +28,7 @@ for s_name in sat_names:
 
         # Go trough each result file
         for i, res_file in enumerate(file_list):
-            if i%5 == 0:
-                print("Reading force file %i/%i..." % (i+1, len(file_list)), end="\r")
+            print("Reading force file %i/%i..." % (i+1, len(file_list)), end="\r")
             times.append(i*dt)
             # Read the file
             data = np.loadtxt(res_file, skiprows=9)
