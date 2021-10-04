@@ -30,10 +30,11 @@ class thrust_model:
 
     def __init__(self, bodies, vehicle_name, init_time=0, Isp=800, dens_treshold=1e-13, \
         save_power=False, solar_constant=1366, sat_name="CS_0020", \
-            thrust_mod=0, power_eff=0.29*0.93):
+            thrust_mod=0, power_eff=0.29*0.93, dry_mass=None):
         self.bodies = bodies
         self.vehicle = bodies.get_body(vehicle_name)
         self.init_time = init_time
+        self.dry_mass = dry_mass
         self.Isp = Isp
         self.dens_treshold = dens_treshold
         self.central_body = self.bodies.get_body("Mars")
@@ -49,6 +50,9 @@ class thrust_model:
             self.power_treshold = [107, 158]
     
     def magnitude(self, time):
+        # If there is no more propellant, return 0
+        if self.dry_mass is not None and self.vehicle.get_body_mass() <= self.dry_mass:
+            return 0
         # Return a constant thrust magnitude
         if self.thrust_mod == 0:
             return 0.001
@@ -109,9 +113,9 @@ class thrust_model:
             solar_irradiances[time] = self.irradiance
         return self.irradiance
 
-def thrust_settings(bodies, init_time=0, save_power=False, sat_name="CS_0020", thrust_mod=0):
+def thrust_settings(bodies, init_time=0, save_power=False, sat_name="CS_0020", thrust_mod=0, dry_mass=None):
     # Define the thrust guidance function
-    thrust_guidance = thrust_model(bodies, "Satellite", init_time, save_power=save_power, sat_name=sat_name, thrust_mod=thrust_mod)
+    thrust_guidance = thrust_model(bodies, "Satellite", init_time, save_power=save_power, sat_name=sat_name, thrust_mod=thrust_mod, dry_mass=dry_mass)
     # Define the thrust settings (direction and magnitude)
     thrust_direction_s = propagation_setup.acceleration.thrust_direction_from_state_guidance(
         central_body="Mars", is_colinear_with_velocity=True, direction_is_opposite_to_vector=False)
