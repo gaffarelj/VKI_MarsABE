@@ -149,7 +149,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "timestep            %.4e\n" % (dt)
             input_s += "\n"
             input_s += "compute             2 surf all all fx fy fz\n"
-            input_s += "fix                 avg ave/surf all 1 5 5 c_2[*] ave running\n"
+            input_s += "fix                 avg ave/surf all 1 %i %i c_2[*] ave running\n" % (meas_dt[i], meas_dt[i])
             input_s += "dump                1 surf all %i ../results_sparta/%s/force_%skm.*.gz c_2[*]\n" % (meas_dt[i], s_name, h)
             input_s += "compute             sum reduce sum f_avg[*]\n"
             input_s += "\n"
