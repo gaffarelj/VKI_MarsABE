@@ -3,20 +3,22 @@ sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 from tudatpy.kernel import constants
 from tudatpy.kernel.simulation import propagation_setup
 from tudatpy.kernel.interface import spice_interface
-from setup_selection import setup_utils as SU
+from utils import old_setup_utils as SU
 from tools import plot_utilities as PU
 from tools import time_conversions as TC
 import thrust.simple_thrust as T
 import numpy as np
+from utils import sat_models as SM
 
 simulation_days = 2
 simulation_start_epoch = TC.MCD_to_Tudat(2459942)
 simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN_DAY
+satellite = SM.satellites["CS_1021"]
 
 # Define the environment and bodies
-bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=True, sat_name="CS_1021")
+bodies, bodies_to_propagate, central_bodies = SU.create_bodies(use_MCD_atmo=False, sat=satellite)
 # Define the initial state of the satellite
-initial_state = SU.get_initial_state(bodies, altitude=140e3, eccentricity=0)
+initial_state = SU.get_initial_state(bodies, altitude=135e3, eccentricity=0)
 # Define the termination settings
 termination_settings = SU.simulation_settings(simulation_end_epoch)
 # Define the dependent variables to save
@@ -35,7 +37,7 @@ acceleration_settings = {"Satellite":
             propagation_setup.acceleration.aerodynamic()
         ],
         Sun = [ propagation_setup.acceleration.cannonball_radiation_pressure() ],
-        Satellite = [  T.thrust_settings(bodies, simulation_start_epoch, save_power=True) ]
+        Satellite = [  T.thrust_settings(bodies, satellite, simulation_start_epoch, save_power=True) ]
     )}
 accelerations = propagation_setup.create_acceleration_models(bodies, acceleration_settings, bodies_to_propagate, central_bodies)
 
@@ -55,15 +57,10 @@ propagator_settings = propagation_setup.propagator.translational(
 # Run the simulation
 time, states, dep_vars = SU.run_simulation(bodies, integrator_settings, propagator_settings, return_raw=True)
 
-# Print the minimum and maximum time step
-# dt = time[1:] - time[:-1]
-# print(max(dt), min(dt))
-
 # Extract values for plotting
 positions = np.linalg.norm(states[:,:3], axis=1)
 thrust_acc = dep_vars[:,:3]
 densities = dep_vars[:,3]
-aoa = dep_vars[:,4]
 time_power = np.array(list(T.solar_irradiances.keys()))
 time_power = time_power - time_power[0]
 
