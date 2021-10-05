@@ -2,7 +2,6 @@ import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 from tudatpy.kernel import constants
 from tudatpy.kernel.simulation import propagation_setup
-from tudatpy.kernel.interface import spice_interface
 from utils import old_setup_utils as SU
 from tools import plot_utilities as PU
 from tools import time_conversions as TC

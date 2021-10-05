@@ -1,7 +1,6 @@
 import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 import numpy as np
-import tools.plot_utilities as PU
 
 # Lists containing the characteristics of the BHT 100 Hall thruster (Power [W], mass flow [mg/s], Thrust [mN], Isp [s])
 BHT_100_P = [109, 109, 107, 115, 113, 114, 116, 117, 111, 113, 114, 113, 113, 133, 136, 133, 156, 157, 158, 158]
