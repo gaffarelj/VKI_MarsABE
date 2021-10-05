@@ -4,8 +4,6 @@ if sys.path[0].split("/")[-1] != "VKI_MarsABE":
 import matplotlib
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import ticker
 import numpy as np
 from scipy.interpolate import griddata
 plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})

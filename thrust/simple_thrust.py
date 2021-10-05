@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.lib.npyio import save
 from tudatpy.kernel.simulation import propagation_setup
 from tudatpy.kernel.interface import spice_interface
 import sys
@@ -13,38 +12,21 @@ AU = 149597890e3
 solar_irradiances = dict()
 # Power dict
 power_dict = dict()
-# Satellite areas in x, y, z planes (see SPARTA README)
-sat_areas = {
-    "CS_0020": [0, 0.042426, 0.042426],
-    "CS_1020": [0, 0.102426, 0.042426],
-    "CS_0021": [0.031058, 0.083343, 0.083343],
-    "CS_2020": [0, 0.162426, 0.042426],
-    "CS_1021": [0.031058, 0.143343, 0.083343],
-    "CS_3020": [0, 0.222426, 0.042426],
-    "CS_2021": [0.031058, 0.203343, 0.083343],
-    "CS_2120": [0, 0.282426, 0.042426],
-    "CS_3021": [0.031058, 0.263343, 0.083343]
-}
-# Solar panel area fraction (fraction of actual solar array to solar panel size)
-AS_frac = 0.7042
 
 class thrust_model:
 
-    def __init__(self, bodies, vehicle_name, init_time=0, Isp=800, dens_treshold=1e-13, \
-        save_power=False, solar_constant=1366, sat_name="CS_0020", \
-            thrust_mod=0, power_eff=0.29*0.93, dry_mass=None):
+    def __init__(self, bodies, vehicle_name, sat, init_time=0, Isp=800, dens_treshold=0, \
+        save_power=False, solar_constant=1366, thrust_mod=0):
         self.bodies = bodies
         self.vehicle = bodies.get_body(vehicle_name)
         self.init_time = init_time
-        self.dry_mass = dry_mass
+        self.sat = sat
         self.Isp = Isp
         self.dens_treshold = dens_treshold
         self.central_body = self.bodies.get_body("Mars")
         self.sun = self.bodies.get_body("Sun")
         self.save_power = save_power
         self.solar_constant = solar_constant
-        self.sat_area = sat_areas[sat_name]
-        self.power_eff = power_eff
         self.thrust_mod = thrust_mod
         if thrust_mod == 0:
             self.power_treshold = [10, 100]
@@ -53,7 +35,7 @@ class thrust_model:
     
     def magnitude(self, time):
         # If there is no more propellant, return 0
-        if self.dry_mass is not None and self.vehicle.get_body_mass() <= self.dry_mass:
+        if self.sat.dry_mass is not None and self.vehicle.get_body_mass() <= self.sat.dry_mass:
             return 0
         # Return a constant thrust magnitude
         if self.thrust_mod == 0:
@@ -88,7 +70,7 @@ class thrust_model:
         sat_state = self.vehicle.state
         sun_state = self.sun.state
         # Compute the power available from the solar panels
-        self.power = MG.sat_power(sat_state, sun_state, self.irradiance, self.sat_area*AS_frac)
+        self.power = MG.sat_power(sat_state, sun_state, self.irradiance, [self.sat.area_x, self.sat.area_y, self.sat.area_z]) * self.sat.SA_eff * self.sat.EPS_eff
         # If specified, save the power
         if self.save_power:
             power_dict[time] = self.power
@@ -115,9 +97,9 @@ class thrust_model:
             solar_irradiances[time] = self.irradiance
         return self.irradiance
 
-def thrust_settings(bodies, init_time=0, save_power=False, sat_name="CS_0020", thrust_mod=0, dry_mass=None):
+def thrust_settings(bodies, sat, init_time=0, save_power=False, thrust_mod=0):
     # Define the thrust guidance function
-    thrust_guidance = thrust_model(bodies, "Satellite", init_time, save_power=save_power, sat_name=sat_name, thrust_mod=thrust_mod, dry_mass=dry_mass)
+    thrust_guidance = thrust_model(bodies, "Satellite", sat, init_time, save_power=save_power, thrust_mod=thrust_mod)
     # Define the thrust settings (direction and magnitude)
     thrust_direction_s = propagation_setup.acceleration.thrust_direction_from_state_guidance(
         central_body="Mars", is_colinear_with_velocity=True, direction_is_opposite_to_vector=False)
