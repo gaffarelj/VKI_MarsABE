@@ -95,7 +95,9 @@ power_vals = T.power_dict.values()
 time_power = list(T.power_dict.keys())
 time_power = (np.array(time_power) - time_power[0])/3600
 
-print(sat_mass_hist[0], sat_mass_hist[-1])
+print("Maximum power available:", max(power_vals))
+
+print("Start/end mass of satellite:", sat_mass_hist[0], sat_mass_hist[-1])
 
 PU.plot_single(time_power, power_vals, "Time [hr]", "Power [W]", "thrust/power_ht", scatter=True)
 PU.plot_single(time/3600, altitude/1e3, "Time [hr]", "Altitude [m]", "thrust/alt_ht")

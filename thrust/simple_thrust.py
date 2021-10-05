@@ -76,6 +76,8 @@ class thrust_model:
         density_ok = self.vehicle.get_flight_conditions().current_density > self.dens_treshold
         # Engine is on if the solar irradiance is above a given treshold
         power_ok = self.power_available(time) > self.power_treshold[0]
+        if power_ok:
+            print(self.power_available), input()
         return density_ok and power_ok
 
     def power_available(self, time):
@@ -88,7 +90,7 @@ class thrust_model:
         sat_state = self.vehicle.state
         sun_state = self.sun.state
         # Compute the power available from the solar panels
-        self.power = MG.sat_power(sat_state, sun_state, self.irradiance, self.sat_area*AS_frac)
+        self.power = MG.sat_power(sat_state, sun_state, self.irradiance, np.array(self.sat_area)*AS_frac)
         # If specified, save the power
         if self.save_power:
             power_dict[time] = self.power
