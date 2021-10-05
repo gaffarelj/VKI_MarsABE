@@ -25,13 +25,13 @@ for s_name in sat_names:
 
         # Prepare the result lists
         times, results, times_np, results_np_mean, results_np_std = [], [], [], [], []
-
+        
         # Go trough each result file
         for i, res_file in enumerate(file_list):
             print("Reading force file %i/%i..." % (i+1, len(file_list)), end="\r")
             times.append(i*dt)
             # Read the file
-            data = np.loadtxt(res_file, skiprows=9)
+            data = np.array([l.decode().strip().split(" ") for l in gzip.open(res_file, "rb").readlines()[9:]], dtype=float)
             # Sum data from all surface
             forces = np.sum(data, axis=0)
             # Save forces
