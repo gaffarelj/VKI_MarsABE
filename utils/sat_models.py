@@ -28,6 +28,7 @@ class satellite:
         self.S_ref = S_ref
         self.SA_eff = SA_eff
         self.EPS_eff = EPS_eff
+        self.h_warning = [True, True]
         
         # Create a cubic spline interpolator, capped at the boundaries
         interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.use_boundary_value)
@@ -42,8 +43,13 @@ class satellite:
 
     def get_cd(self, h):
         # Return the interpolated drag coefficient at the given altitude h [m]
-        if h > max(self.Cd_h) or h < min(self.Cd_h):
+        if (h > max(self.Cd_h) and self.h_warning[0]) or (h < min(self.Cd_h) and self.h_warning[1]):
             print("Warning: the specified altitude of %i km is outside the measured range of (%i; %i) km." % (h/1e3, min(self.Cd_h)/1e3, max(self.Cd_h)/1e3))
+            # Supress further warnings
+            if h > max(self.Cd_h):
+                self.h_warning[0] = False
+            else:
+                self.h_warning[1] = False
         return self.drag_interpolator.interpolate(h)
 
 satellites = {
