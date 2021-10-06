@@ -14,6 +14,15 @@ power_dict = dict()
 class thrust_model:
 
     def __init__(self, propagation, thrust_mod=0, save_power=False, solar_constant=1366):
+        """
+        Satellite thrust model
+        Inputs:
+         * propagation (utils.propagation): propagation class of the satellite orbit
+         * thrust_mod (int): thrust model to use
+           * 0: constant thrust of 1 mN when power above 10 N and at any density
+           * 1: thrust based on the BHT-100 hall thrusters, interpolated from power, on when power above 107 W, at any density
+        """
+        # Save the relevant variables in the class
         self.prop = propagation
         self.vehicle = self.prop.bodies.get_body(self.prop.sat.name)
         self.init_time = self.prop.init_time
@@ -23,6 +32,7 @@ class thrust_model:
         self.save_power = save_power
         self.solar_constant = solar_constant
         self.thrust_mod = thrust_mod
+        # Select the thrust model (and associated operating conditions)
         if thrust_mod == 0:
             self.power_treshold = [10, 100]
             self.dens_treshold = [0, np.inf]
