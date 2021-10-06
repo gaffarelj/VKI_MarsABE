@@ -59,10 +59,10 @@ def sat_power(sat_state, sun_state, sun_irradiance, sat_area, test=False):
     # Compute the heading of the Sun w.r.t. Mars from its position
     sun_heading = 0 if sun_state[1] == 0 else np.arctan(-sun_state[0]/sun_state[1])
     heading = sat_heading - sun_heading
-    # Compute the angle of attack of the satellite
-    AoA = np.arctan(sat_vel[2]/np.sqrt(sat_vel[0]**2 + sat_vel[1]**2))
+    # Compute the angle from x-y plane of the satellite
+    dive_angle = np.arctan(sat_vel[2]/np.sqrt(sat_vel[0]**2 + sat_vel[1]**2))
     # Compute scaling factor in each plane
-    power_scale = [np.fabs(np.sin(heading)), np.fabs(np.cos(heading) * np.cos(AoA)), np.fabs(np.sin(AoA))]
+    power_scale = [np.fabs(np.sin(heading) * np.cos(dive_angle)), np.fabs(np.cos(heading) * np.cos(dive_angle)), np.fabs(np.sin(dive_angle))]
     # Compute the effective solar panel surfaces
     eff_surf = np.array(sat_area) * np.array(power_scale)
     # Compute the satellite power
@@ -71,7 +71,7 @@ def sat_power(sat_state, sun_state, sun_irradiance, sat_area, test=False):
     if test:
         # Test the Solar power computation
         print("Sat heading of %.2f deg, sun heading of %.2f deg"% (np.rad2deg(sat_heading), np.rad2deg(sun_heading)))
-        print("Heading of %.2f deg, angle of attack of %.2f deg" % (np.rad2deg(heading), np.rad2deg(AoA)))
+        print("Heading of %.2f deg, angle from x-y plane of %.2f deg" % (np.rad2deg(heading), np.rad2deg(dive_angle)))
         print("Power scaled by %.4f x / %.4f y / %.4f z" % tuple(power_scale))
         
         do_plot = (input("Do plot? y/[n]: ") == "y")
