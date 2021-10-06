@@ -1,6 +1,3 @@
-import sys
-if sys.path[0].split("/")[-1] != "VKI_MarsABE":
-    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 import matplotlib
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt

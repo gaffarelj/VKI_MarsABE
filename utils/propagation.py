@@ -1,13 +1,15 @@
 import numpy as np
-import sys
-sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
-from tools import time_conversions as TC
-import thrust as T
+import time
 from tudatpy.kernel.interface import spice_interface
 from tudatpy.kernel import constants
 from tudatpy.kernel.simulation import environment_setup
 from tudatpy.kernel.simulation import propagation_setup
 from tudatpy.kernel.astro import conversion
+import sys
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
+from tools import time_conversions as TC
+from utils import thrust as T
 # Load the SPICE kernel
 spice_interface.load_standard_kernels()
 
@@ -44,7 +46,7 @@ class env_acceleration:
 
 class orbit_simulation:
     
-    def __init__(self, sat, central_body, sim_time, init_time=TC.MCD_to_Tudat(2459942)):
+    def __init__(self, sat, central_body, sim_time, init_time=TC.MCD_to_Tudat(2459942), verbose=False, save_power=False):
         """
         Orbital simulation class, containing all the code required for setup, and simulation run.
         Inputs:
@@ -56,6 +58,12 @@ class orbit_simulation:
         self.central_body = central_body
         self.init_time = init_time
         self.end_time = init_time + sim_time
+        self.verbose = verbose
+        self.save_power = save_power
+        # Solar irradiance dict
+        self.solar_irradiances = dict()
+        # Power dict
+        self.power_dict = dict()
 
     def create_bodies(self, additional_bodies=["Sun", "Jupiter"], use_MCD=[False, False]):
         """
@@ -66,12 +74,11 @@ class orbit_simulation:
         """
         bodies_to_create = [self.central_body] + additional_bodies      # Bodies that will be created and used in the simulation
         global_frame_origin = self.central_body                         # Body at the centre of the simulation
-        global_frame_orientation = "ECLIPJ2000"                         # Orientation of the reference frame
         # Setup TUDAT body settings
         body_settings = environment_setup.get_default_body_settings(
             bodies_to_create,
             global_frame_origin,
-            base_frame_orientation=global_frame_orientation
+            base_frame_orientation="ECLIPJ2000"
         )
 
         if use_MCD[0]:
@@ -86,7 +93,7 @@ class orbit_simulation:
                 # Add winds from the MCD. Only possible if the MCD atmospheric model is used
                 body_settings.get("Mars").atmosphere_settings.wind_settings = environment_setup.atmosphere.custom_wind_model(mcd.wind)
         else:
-            if use_MCD[1]:
+            if use_MCD[1] and self.verbose:
                 print("Warning: the MCD winds can only be added if the MCD atmosphere is used as well")
             # Use an exponential atmosphere model
             # Exponential parameters taken from http://link.springer.com/content/pdf/10.1007%2F978-3-540-73647-9_3.pdf
@@ -154,15 +161,18 @@ class orbit_simulation:
         """
         # Load a default environmental acceleration setup
         if default_config is not None:
-            if len(env_accelerations) != 0:
+            if len(env_accelerations) != 0 and self.verbose:
                 # If accelerations were also provided, inform that they will be overwritten
                 print("Warning: the provided environmental accelerations have been overwritten")
             if default_config == 0:
                 # Central body point mass and aerodynamics
                 env_accelerations = [env_acceleration(self.central_body, PM=True, aero=True)]
             elif default_config == 1:
-                # Central body spherical harmonics of degree/order 4 and aerodynamics
-                env_accelerations = [env_acceleration(self.central_body, SH=True, SH_do=[4,4], aero=True)]
+                # Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
+                env_accelerations = [
+                    env_acceleration(self.central_body, SH=True, SH_do=[4,4], aero=True),
+                    env_acceleration("Sun", rad=True)
+                    ]
             elif default_config == 2:
                 # Central body spherical harmonics of degree/order 8, aerodynamics, Solar PM and radiation, Jupiter PM
                 env_accelerations = [
@@ -195,10 +205,10 @@ class orbit_simulation:
         """
         # Setup the optimal integrator settings
         initial_time = self.init_time           # seconds since J2000
-        initial_time_step = dt[1]                 # seconds
+        initial_time_step = dt[1]               # seconds
         coefficient_set = propagation_setup.integrator.RKCoefficientSets.rkdp_87 
-        minimum_step_size = dt[0]                # seconds
-        maximum_step_size = dt[2]                 # seconds
+        minimum_step_size = dt[0]               # seconds
+        maximum_step_size = dt[2]               # seconds
         relative_error_tolerance = tolerance    # -
         absolute_error_tolerance = tolerance    # -
         self.integrator_settings = propagation_setup.integrator.runge_kutta_variable_step_size(
@@ -212,8 +222,8 @@ class orbit_simulation:
             save_frequency= 1,
             assess_termination_on_minor_steps = False,
             safety_factor = sf[0],
-            maximum_factor_increase = sf[1],
-            minimum_factor_increase = sf[2] )
+            maximum_factor_increase = sf[2],
+            minimum_factor_increase = sf[1] )
 
     def create_termination_settings(self, min_altitude=50e3, max_altitude=500e3, cpu_time=60*60):
         """
@@ -270,7 +280,7 @@ class orbit_simulation:
                 size = 1
             elif dep_key == "V":
                 # Airspeed of the Satellite
-                propagation_setup.dependent_variable.body_fixed_airspeed_velocity(self.sat.name, self.central_body)
+                d_v = propagation_setup.dependent_variable.body_fixed_airspeed_velocity(self.sat.name, self.central_body)
                 size = 3
             elif dep_key == "m":
                 # Mass of the satellite
@@ -278,7 +288,7 @@ class orbit_simulation:
                 size = 1
             elif dep_key == "F_T":
                 # Acceleration due to the Thrust
-                d_v = propagation_setup.dependent_variable.single_acceleration_norm(
+                d_v = propagation_setup.dependent_variable.single_acceleration(
                     propagation_setup.acceleration.thrust_acceleration_type, self.sat.name, self.sat.name)
                 size = 3
             elif dep_key == "D":
@@ -288,20 +298,21 @@ class orbit_simulation:
                 size = 3
             elif dep_key == "C_D":
                 # Aerodynamic coefficients
-                propagation_setup.dependent_variable.aerodynamic_force_coefficients(self.sat.name)
+                d_v = propagation_setup.dependent_variable.aerodynamic_force_coefficients(self.sat.name)
                 size = 3
             elif dep_key == "r_cb":
                 # Relative position of the central body w.r.t. the sun
-                propagation_setup.dependent_variable.relative_position(self.sat.name, self.central_body)
+                d_v = propagation_setup.dependent_variable.relative_position(self.sat.name, self.central_body)
                 size = 3
             elif dep_key == "Kep":
                 # Keplerian state of the satellite
-                propagation_setup.dependent_variable.keplerian_state(self.sat.name, self.central_body)
+                d_v = propagation_setup.dependent_variable.keplerian_state(self.sat.name, self.central_body)
                 size = 6
             else:
                 # Show a warning message if the dependent variable is not known
                 list_d_v = ["h", "rho", "V", "m", "F_T", "D", "C_D", "r_cb", "Kep"]
-                print("Warning: The dependent variable '%s' is not in known list:" % dep_key, list_d_v)
+                if self.verbose:
+                    print("Warning: The dependent variable '%s' is not in known list:" % dep_key, list_d_v)
                 size = 0
             if size != 0:
                 # Add the dependent variable to the list
@@ -349,17 +360,48 @@ class orbit_simulation:
             self.propagator_settings = translation_propagator
 
     def simulate(self):
-        pass
+        # If the verbose is set to True, time the simulation run
+        if self.verbose:
+            print("Starting simulation...")
+            t0 = time.time()
+
+        # Run the simulation
+        dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
+            self.bodies, self.integrator_settings, self.propagator_settings, print_dependent_variable_data=self.verbose
+        )
+
+        # Extract the states and time
+        self.states = np.vstack(list(dynamics_simulator.state_history.values()))
+        self.sim_times = np.array(list(dynamics_simulator.state_history.keys()))
+        self.sim_times -= self.sim_times[0]
+        # Extract the dependent variables
+        self.dep_vars = np.vstack(list(dynamics_simulator.dependent_variable_history.values()))
+
+        # If the verbose is set to True, show simulation run time
+        if self.verbose:
+            cpu_time = time.time() - t0
+            print("Simulation took %.2f seconds." % cpu_time)
+
+    def get_dep_var(self, key):
+        # Get the dependent variable with the given key
+        dep_var_idx, dep_var_size = self.dep_var_loc[key]
+        return self.dep_vars[:,dep_var_idx:dep_var_idx+dep_var_size]
 
 test = True
 if test:
     from utils import sat_models as SM
-    OS = orbit_simulation(SM.satellites["CS_1021"], "Mars", 2*constants.JULIAN_DAY)
+    OS = orbit_simulation(SM.satellites["CS_3021"], "Mars", 2*constants.JULIAN_DAY)
     OS.create_bodies()
-    OS.create_initial_state()
+    OS.create_initial_state(h=140e3, Omega=np.deg2rad(45))
     OS.create_accelerations(default_config=1, thrust=1)
     OS.create_integrator()
     OS.create_termination_settings()
     OS.create_dependent_variables(to_save=["m", "V", "h", "rho", "Kep", "F_T"])
-    OS.create_propagator(prop_mass=True)
-
+    OS.create_propagator(prop_mass=False)
+    OS.simulate()
+    print(OS.sim_times[-1])
+    print(OS.states[-1])
+    altitudes = OS.get_dep_var("h")
+    airspeed = OS.get_dep_var("V")
+    print(altitudes[-1])
+    print(airspeed[-1])

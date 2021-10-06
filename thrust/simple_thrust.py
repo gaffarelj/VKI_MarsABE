@@ -1,8 +1,6 @@
 import numpy as np
 from tudatpy.kernel.simulation import propagation_setup
 from tudatpy.kernel.interface import spice_interface
-import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 from tools import mission_geometry as MG
 from thrust.hall_thrusters import BHT_100
 
