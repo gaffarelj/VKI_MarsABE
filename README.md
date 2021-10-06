@@ -67,6 +67,8 @@ Also, before compiling Tudat on your machine, [this line](https://github.com/tud
 m.def("custom_constant_temperature_detailed",
 ```
 
+The warnings on [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/include/tudat/astro/propulsion/thrustGuidance.h#L185-L187) and [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/src/astro/reference_frames/aerodynamicAngleCalculator.cpp#L383-L416) have also been commented out, to prevent them from polluting the console.
+
 ### SPARTA
 The SPARTA library is required to run the simulations to obtain the drag coefficient of the different satellites.
 
