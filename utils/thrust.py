@@ -13,22 +13,22 @@ power_dict = dict()
 
 class thrust_model:
 
-    def __init__(self, propagation, thrust_mod=0, save_power=False, solar_constant=1366):
+    def __init__(self, orbit_sim, thrust_mod=0, save_power=False, solar_constant=1366):
         """
         Satellite thrust model
         Inputs:
-         * propagation (utils.propagation): propagation class of the satellite orbit
+         * orbit_sim (utils.propagation.orbit_simulation): orbit_sim class of the satellite orbit
          * thrust_mod (int): thrust model to use
            * 0: constant thrust of 1 mN when power above 10 N and at any density
            * 1: thrust based on the BHT-100 hall thrusters, interpolated from power, on when power above 107 W, at any density
         """
         # Save the relevant variables in the class
-        self.prop = propagation
-        self.vehicle = self.prop.bodies.get_body(self.prop.sat.name)
-        self.init_time = self.prop.init_time
-        self.sat = self.prop.sat
-        self.central_body = self.prop.bodies.get_body(self.prop.central_body)
-        self.sun = self.prop.bodies.get_body("Sun")
+        self.os_sim = orbit_sim
+        self.vehicle = self.os_sim.bodies.get_body(self.os_sim.sat.name)
+        self.init_time = self.os_sim.init_time
+        self.sat = self.os_sim.sat
+        self.central_body = self.os_sim.bodies.get_body(self.os_sim.central_body)
+        self.sun = self.os_sim.bodies.get_body("Sun")
         self.save_power = save_power
         self.solar_constant = solar_constant
         self.thrust_mod = thrust_mod
@@ -92,7 +92,7 @@ class thrust_model:
         sun_pos = self.sun.state[:3]
         cb_pos = self.central_body.state[:3]
         sat_pos = self.vehicle.state[:3]
-        cb_R = spice_interface.get_average_radius(self.prop.central_body)
+        cb_R = spice_interface.get_average_radius(self.os_sim.central_body)
         Sun_R = spice_interface.get_average_radius("Sun")
         # Compute the shadow due to Mars between the sat and the Sun
         shadow = MG.shadow_function(sun_pos, Sun_R, cb_pos, cb_R, sat_pos)
