@@ -1,10 +1,12 @@
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-1]))
+sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tools import time_conversions as TC
+import thrust as T
 from tudatpy.kernel.interface import spice_interface
 from tudatpy.kernel import constants
 from tudatpy.kernel.simulation import environment_setup
 from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.astro import conversion
 # Load the SPICE kernel
 spice_interface.load_standard_kernels()
 
@@ -109,29 +111,65 @@ class orbit_simulation:
         # Add the solar radiation settings to the satellite
         environment_setup.add_radiation_pressure_interface(self.bodies, self.sat.name, radiation_pressure_settings)
 
+    def create_initial_state(self, h=150e3, e=0, i=0, omega=0, Omega=0, theta=0):
+        """
+        Define the initial state of the Satellite.
+        Inputs:
+         * h (float): altitude of the satellite above the central body, in meters
+         * e (float): eccentricity of the orbit
+         * i (float): inclination of the orbit in radians
+         * omega (float): argument of periapsis of the orbit in radians
+         * Omega (float): longitude of the ascending noce in radians
+         * theta (float): true anomaly in radians (note: this defines where the satellite starts in its orbit, and can most of the time be ignored)
+        """
+        # Get the gravitational parameter and radius of the central body
+        mu = self.bodies.get_body(self.central_body).gravitational_parameter
+        R = spice_interface.get_average_radius(self.central_body)
+        # Convert the Keplerian orbit to an initial cartesian state
+        self.initial_state = conversion.keplerian_to_cartesian(
+            gravitational_parameter = mu,
+            semi_major_axis = R + h,
+            eccentricity = e,
+            inclination = i,
+            argument_of_periapsis = omega,
+            longitude_of_ascending_node = Omega,
+            true_anomaly = theta
+        )
+
     def create_accelerations(self, env_accelerations=[], default_config=None, thrust=None):
         """
         Create the accelerations for the simulated orbit.
         Inputs:
-         * XXX
+         * env_accelerations ([env_acceleration]*N): list of environmental accelerations to use (class env_acceleration)
+         * default_congif (None or int): index of a default configuration to use
+         * thrust (None or int): index of the thrust model to use from the thrust class
         """
+        # Load a default environmental acceleration setup
         if default_config is not None:
             if len(env_accelerations) != 0:
+                # If accelerations were also provided, inform that they will be overwritten
                 print("Warning: the provided environmental accelerations have been overwritten")
             if default_config == 0:
-                env_accelerations = [env_acceleration("Mars", PM=True, aero=True)]
+                # Central body point mass and aerodynamics
+                env_accelerations = [env_acceleration(self.central_body, PM=True, aero=True)]
             elif default_config == 1:
-                env_accelerations = [env_acceleration("Mars", SH=True, SH_do=[4,4], aero=True)]
+                # Central body spherical harmonics of degree/order 4 and aerodynamics
+                env_accelerations = [env_acceleration(self.central_body, SH=True, SH_do=[4,4], aero=True)]
             elif default_config == 2:
+                # Central body spherical harmonics of degree/order 8, aerodynamics, Solar PM and radiation, Jupiter PM
                 env_accelerations = [
-                    env_acceleration("Mars", SH=True, SH_do=[8,8], aero=True),
+                    env_acceleration(self.central_body, SH=True, SH_do=[8,8], aero=True),
                     env_acceleration("Sun", PM=True, rad=True),
                     env_acceleration("Jupiter", PM=True),
                 ]
+        # Convert the provided accelerations to a dict (format for TUDAT)
         accelerations = dict()
         for env_a in env_accelerations:
             accelerations[env_a.body_name] = env_a.a
-        
+        # Add the thrust as an acceleration
+        if thrust is not None:
+            accelerations[self.sat.name] =  T.thrust_settings(self.bodies, self.sat, self.init_time)
+        # Create the acceleration models
         self.acceleration_models = propagation_setup.create_acceleration_models(
             self.bodies,
             {self.sat.name: accelerations},
@@ -139,11 +177,11 @@ class orbit_simulation:
             [self.central_body]
         )
 
-    
-
 
 
 from utils import sat_models as SM
+
 OS = orbit_simulation(SM.satellites["CS_1021"], "Mars", 2*constants.JULIAN_DAY)
 OS.create_bodies()
-OS.create_accelerations(default_config=0)
+OS.create_initial_state()
+OS.create_accelerations(default_config=1, thrust=1)
