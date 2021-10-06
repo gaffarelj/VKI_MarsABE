@@ -13,7 +13,7 @@ power_dict = dict()
 
 class thrust_model:
 
-    def __init__(self, orbit_sim, thrust_mod=0, save_power=False, solar_constant=1366):
+    def __init__(self, orbit_sim, thrust_mod=0, save_power=False, solar_constant=1366, I_sp=800):
         """
         Satellite thrust model
         Inputs:
@@ -30,6 +30,7 @@ class thrust_model:
         self.central_body = self.os_sim.bodies.get_body(self.os_sim.central_body)
         self.sun = self.os_sim.bodies.get_body("Sun")
         self.save_power = save_power
+        self.I_sp = I_sp
         self.solar_constant = solar_constant
         self.thrust_mod = thrust_mod
         # Select the thrust model (and associated operating conditions)
@@ -55,7 +56,7 @@ class thrust_model:
 
     def specific_impulse(self, time):
         # Return the specific impulse
-        return self.Isp
+        return self.I_sp
 
     def is_thrust_on(self, time):
         """
@@ -66,6 +67,7 @@ class thrust_model:
         density_ok = curr_dens > self.dens_treshold[0] and curr_dens < self.dens_treshold[1]
         # Engine is on if the solar irradiance is above a given treshold
         power_ok = self.power_available(time) > self.power_treshold[0]
+        print(time)
         return density_ok and power_ok
 
     def power_available(self, time):
