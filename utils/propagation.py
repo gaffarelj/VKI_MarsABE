@@ -81,25 +81,30 @@ class orbit_simulation:
             base_frame_orientation="ECLIPJ2000"
         )
 
-        if use_MCD[0]:
+        if use_MCD[0] and self.central_body == "Mars":
             # Use the atmospheric model from the Mars Climate Database
             from MCD.parallel_mcd import parallel_mcd as PMCD
             mcd = PMCD()
-            body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
+            body_settings.get(self.central_body).atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
                 mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
             # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
 
             if use_MCD[1]:
                 # Add winds from the MCD. Only possible if the MCD atmospheric model is used
-                body_settings.get("Mars").atmosphere_settings.wind_settings = environment_setup.atmosphere.custom_wind_model(mcd.wind)
+                body_settings.get(self.central_body).atmosphere_settings.wind_settings = environment_setup.atmosphere.custom_wind_model(mcd.wind)
         else:
+            if use_MCD[0] and self.verbose:
+                print("Warning: the MCD should only be used if the central body is Mars")
             if use_MCD[1] and self.verbose:
                 print("Warning: the MCD winds can only be added if the MCD atmosphere is used as well")
             # Use an exponential atmosphere model
-            # Exponential parameters taken from http://link.springer.com/content/pdf/10.1007%2F978-3-540-73647-9_3.pdf
-            density_scale_height, density_at_zero_altitude = 7.295e3, 0.0525
-            body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.exponential(
-                density_scale_height, density_at_zero_altitude)
+            if self.central_body == "Mars":
+                # Exponential parameters taken from http://link.springer.com/content/pdf/10.1007%2F978-3-540-73647-9_3.pdf
+                density_scale_height, density_at_zero_altitude = 7295, 0.0525
+                body_settings.get(self.central_body).atmosphere_settings = environment_setup.atmosphere.exponential(
+                    density_scale_height, density_at_zero_altitude) 
+            else:
+                print("Warning, no atmosphere model not setup for %s" % self.central_body)
     	
         # Create the system of bodies
         self.bodies = environment_setup.create_system_of_bodies(body_settings)
@@ -366,6 +371,7 @@ class orbit_simulation:
             t0 = time.time()
 
         # Run the simulation
+        #help(numerical_simulation)
         dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
             self.bodies, self.integrator_settings, self.propagator_settings, print_dependent_variable_data=self.verbose
         )
@@ -382,26 +388,36 @@ class orbit_simulation:
             cpu_time = time.time() - t0
             print("Simulation took %.2f seconds." % cpu_time)
 
+        return self.sim_times, self.states, self.dep_vars
+
     def get_dep_var(self, key):
         # Get the dependent variable with the given key
         dep_var_idx, dep_var_size = self.dep_var_loc[key]
         return self.dep_vars[:,dep_var_idx:dep_var_idx+dep_var_size]
 
-test = True
+test = False
 if test:
+    # As a test, simulate a satellite for 2 days around Mars
     from utils import sat_models as SM
-    OS = orbit_simulation(SM.satellites["CS_3021"], "Mars", 2*constants.JULIAN_DAY)
-    OS.create_bodies()
-    OS.create_initial_state(h=140e3, Omega=np.deg2rad(45))
-    OS.create_accelerations(default_config=1, thrust=1)
+    # Create a satellite with a ballistic coefficient of 50kg/m2 (Cd=2.5, m=5kg, S_ref=0.04m2)
+    orbiter = SM.satellite("Orbiter", 5, 2.5, 0.04)
+    OS = orbit_simulation(orbiter, "Mars", 2*constants.JULIAN_DAY)
+    # Do not use the MCD for atmospheric properties, nor winds
+    OS.create_bodies(use_MCD=[False, False])
+    # Start from an altitude of 180km
+    OS.create_initial_state(h=140e3)
+    # Load the accelerations from default config 1: Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
+    OS.create_accelerations(default_config=1, thrust=0)
     OS.create_integrator()
     OS.create_termination_settings()
-    OS.create_dependent_variables(to_save=["m", "V", "h", "rho", "Kep", "F_T"])
+    OS.create_dependent_variables(to_save=["V", "h", "rho"])
     OS.create_propagator(prop_mass=False)
     OS.simulate()
-    print(OS.sim_times[-1])
-    print(OS.states[-1])
+    print("Simulation ended at %.2f hrs" % (OS.sim_times[-1]/3600))
+    print("Final state:", OS.states[-1])
     altitudes = OS.get_dep_var("h")
     airspeed = OS.get_dep_var("V")
-    print(altitudes[-1])
-    print(airspeed[-1])
+    density = OS.get_dep_var("rho")
+    print(density[0])
+    print("Final altitude of %.2f km" % (altitudes[-1]/1e3))
+    print("Final airspeed of %.2f m/s" % np.linalg.norm(airspeed[-1]))

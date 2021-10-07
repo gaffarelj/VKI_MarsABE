@@ -42,11 +42,14 @@ class satellite:
     def __str__(self):
         # Return the satellite represented as a string
         if type(self.Cd_list) == list:
-            cd_str = "Cd ranging in (%.2f; %.2f)" % (min(self.Cd_list), max(self.Cd_list))
+            cd_l = (min(self.Cd_list), max(self.Cd_list))
+            cd_str = "Cd ranging in (%.2f; %.2f)" % cd_l
         else:
+            cd_l = (self.Cd_list, self.Cd_list)
             cd_str = "constant Cd of %.2f" % self.Cd_list
-        return "Satellite '%s' with wet mass of %.2f kg (dry of %.2f kg), reference area of %.4f m2, %s" % \
-            (self.name, self.wet_mass, self.dry_mass, self.S_ref, cd_str)
+        b_c = [self.dry_mass/(cd_l[1]*self.S_ref), self.wet_mass/(cd_l[0]*self.S_ref)]
+        return "Satellite '%s' with wet mass of %.2f kg (dry of %.2f kg), reference area of %.4f m2, %s, ballistic coefficient ranging in (%.2f; %.2f)" % \
+            (self.name, self.wet_mass, self.dry_mass, self.S_ref, cd_str, *b_c)
 
     def get_cd(self, h):
         if type(self.Cd_list) != list:
