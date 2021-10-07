@@ -2,23 +2,19 @@ import sys
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tudatpy.kernel import constants
-from utils import old_setup_utils as SU
 from tools import plot_utilities as PU
-from tools import time_conversions as TC
 import numpy as np
 from utils import sat_models as SM
 
 from utils import propagation as P
 
-simulation_days = 2
-simulation_start_epoch = TC.MCD_to_Tudat(2459942)
-simulation_end_epoch = simulation_start_epoch + simulation_days*constants.JULIAN_DAY
 satellite = SM.satellites["CS_3021"]
+sim_time = 2*constants.JULIAN_DAY
 
 OS = P.orbit_simulation(satellite, "Mars", 2*constants.JULIAN_DAY, verbose=False, save_power=True)
 
 OS.create_bodies()
-OS.create_initial_state(h=140e3, Omega=np.deg2rad(45))
+OS.create_initial_state(h=140e3)
 OS.create_termination_settings()
 OS.create_dependent_variables(to_save=["F_T", "rho", "h", "m"])
 OS.create_accelerations(default_config=1, thrust=1)
@@ -38,16 +34,17 @@ integrator_settings = OS.integrator_settings
 
 
 # Run the simulation
-time, states, dep_vars = SU.run_simulation(bodies, integrator_settings, propagator_settings, return_raw=True)
+time, states, dep_vars = OS.simulate()
 print([states[0], states[100], states[-1]])
 print([time[0], time[100], time[-1]])
 print(dep_vars.shape)
+
 # Extract values for plotting
 positions = np.linalg.norm(states[:,:3], axis=1)
-thrust_acc = dep_vars[:,:3]
-density = dep_vars[:,3]
-altitude = dep_vars[:,4]
-sat_mass_hist = dep_vars[:,5]
+thrust_acc = OS.get_dep_var("F_T")
+density = OS.get_dep_var("rho")
+altitude = OS.get_dep_var("h")
+sat_mass_hist = OS.get_dep_var("m")
 
 power_vals = OS.power_dict.values()
 time_power = list(OS.power_dict.keys())
