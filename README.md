@@ -49,25 +49,57 @@ This section lists the required Python packages and libraries that shall be inst
 First of, the MCD data files are required. By default, the code wants them to be in `/mnt/c/MCD/data/`.
 This can however be changed in the Python files of the [MCD](MCD) folder.
 
-### Python libraries
-The following Python libraries are required:
-```
-numpy
-matplotlib
-scipy
-```
-
 ### TU Delft Astrodynamics Toolbox
 In addition, it is required to install `TudatPy`. This is the TU Delft Astrodynamics Toolbox used to run the astrodynamic simulations.
-Installing this environment can be done by following the steps described [on this page](https://github.com/tudat-team/tudat-bundle#readme).
 Please note that, in my case, the Windows Subsystem for Linux (v2) has been used.
 
-Also, before compiling Tudat on your machine, [this line](https://github.com/tudat-team/tudatpy/blob/4169c827eaa16bf4b6cc9b8626d29f54c6724a76/tudatpy/kernel/expose_simulation/expose_environment_setup/expose_atmosphere_setup.cpp#L86) shall be changed to:
+First, tudat can be cloned into the folder you are in by doing the following:
+```
+git clone https://github.com/tudat-team/tudat-bundle
+cd tudat-bundle
+git submodule update --init --recursive
+```
+
+The conda environment can then be setup by using:
+```
+conda env create -f environment.yaml
+conda activate tudat-bundle
+```
+
+Before compiling Tudat on your machine, [this line](https://github.com/tudat-team/tudatpy/blob/4169c827eaa16bf4b6cc9b8626d29f54c6724a76/tudatpy/kernel/expose_simulation/expose_environment_setup/expose_atmosphere_setup.cpp#L86) shall be changed to:
 ```
 m.def("custom_constant_temperature_detailed",
 ```
 
 The warnings on [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/include/tudat/astro/propulsion/thrustGuidance.h#L185-L187) and [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/src/astro/reference_frames/aerodynamicAngleCalculator.cpp#L383-L416) have also been commented out, to prevent them from polluting the console.
+
+In `build.sh`, the vonfiguration and build steps should be replaced by the followings:
+```
+# configuration step
+cmake -DCMAKE_PREFIX_PATH="$CONDA_PREFIX" \
+  -DCMAKE_CXX_STANDARD=14 \
+  -DBoost_NO_BOOST_CMAKE=ON \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DTUDAT_BUILD_TESTS="${BUILD_TESTS}" \
+  -DTUDAT_BUILD_WITH_NRLMSISE00=OFF \
+  ..
+
+# build step
+cmake --build . -j8
+```
+
+Then, the library can be compiled using:
+```
+bash build.sh
+```
+
+Finally, the correct tudat installation folder can be added to the conda environment path by using the following:
+```
+echo "<tudat-bundle installation dir>/build/tudatpy" > ~/miniconda3/envs/tudat-bundle/lib/python3.8/site-packages/include_path.pth
+```
+
+### Pygmo
+*To be written*
 
 ### SPARTA
 The SPARTA library is required to run the simulations to obtain the drag coefficient of the different satellites.
