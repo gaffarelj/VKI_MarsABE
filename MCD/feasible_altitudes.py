@@ -7,12 +7,12 @@ from utils import sat_models as SM
 from tudatpy.kernel import constants
 from tools import plot_utilities as PU
 
-run_alt_study = True                    # Run the study of the altitude vs orbital time
-run_atmo_study = False                   # Run the study of the atmospheric properties at given altitudes
-
-sat = SM.satellite("Orbiter", 5, 3, S_ref=0.015)     # Create satellite of 5kg, with Cd of 3, and reference surface area of 0.015 m2
+run_alt_study = False       # Run the study of the altitude vs orbital time
+run_atmo_study = True       # Run the study of the atmospheric properties at given altitudes
 
 if run_alt_study:
+    # Create satellite of 5kg, with Cd of 3, and reference surface area of 0.015 m2
+    sat = SM.satellite("Orbiter", 5, 3, S_ref=0.015)
     altitudes = np.arange(50, 160.1, 2.5)
     orbit_time = []
     # Run for each altitude
@@ -38,4 +38,38 @@ if run_alt_study:
     PU.plot_single(orbit_time, altitudes, "Time in orbit [days]", "Starting altitude [km]", "MCD/feasible_altitudes", xlog=True)
 
 if run_atmo_study:
+    from MCD import parallel_mcd as pmcd
     altitudes = [85, 115, 150]
+    # Create satellite of 5kg, with Cd of 0, and reference surface area of 0.015 m2 (no drag, but still measure the density)
+    sat = SM.satellite("Orbiter", 5, 0, S_ref=0)
+    # Setup the constant parts of the simulation
+    OS = P.orbit_simulation(sat, "Mars", 2*650*constants.JULIAN_DAY)
+    OS.create_bodies(use_MCD=[True, False], preload_MCD=False)
+    OS.create_termination_settings(min_altitude=25e3)
+    OS.create_dependent_variables(["h", "V"])
+    OS.create_integrator(tolerance=1e-6, dt=[0.1, 250, 1e5])
+    # Only use Mars as a point mass as the acceleration (stay in the same orbit this way)
+    accelerations = [P.env_acceleration("Mars", PM=True, aero=True)]
+    OS.create_accelerations(env_accelerations=accelerations)
+    for h in altitudes:
+        # Setup the simulation with the given altitude
+        OS.create_initial_state(h=h*1e3, i=np.deg2rad(45))
+        OS.create_propagator()
+        # Run the simulation
+        time, states, dep_vars = OS.simulate()
+        print("* Altitude of %i km" % h)
+        MCD_vals = np.array(pmcd.ALL_VALUES)
+        density, temperature, pressure, mixture = MCD_vals[:,0], MCD_vals[:,1], MCD_vals[:,2], MCD_vals[:,3:]
+        # Make sure sum of mixtures is 1
+        mixture = mixture[:,:5] / sum(np.mean(mixture[:,:5], axis=0))
+        velocity = np.linalg.norm(states[:,3:], axis=1)
+        titles = ["Velocity", "Density", "Temperature", "Pressure"]
+        units = ["m/s", "kg/m3", "K", "Pa"]
+        vals = [velocity, density, temperature, pressure]
+        # Print average results (with their standard deviations)
+        for i in range(len(titles)):
+            print("%s: mean of %.5e %s (std of %.5e %s)" % (titles[i], np.mean(vals[i]), units[i], np.std(vals[i]), units[i]))
+        print("Mixture (average): CO2, N2, Ar, CO, O, O2:", np.array2string(np.mean(mixture, axis=0)*100, \
+            separator="%, ", formatter={"float_kind": lambda x: "%.3f" % x}))
+        print("Mixture (std):     CO2, N2, Ar, CO, O, O2:", np.array2string(np.std(mixture, axis=0)*100, \
+            separator="%, ", formatter={"float_kind": lambda x: "%.3f" % x}))

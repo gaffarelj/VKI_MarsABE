@@ -7,6 +7,9 @@ import time as T
 MODULE_LIST = []    # list that will contain the loaded MCD interface modules
 LAST_RESULTS = None # list that will contain the results from the last MCD call
 
+ALL_VALUES = []      # list that will contain all density, temperature, and pressure
+save_all_vals = False
+
 class parallel_mcd:
     """
     This class is used as an interface to the Mars Climate Database.
@@ -122,6 +125,8 @@ class parallel_mcd:
         self.species_dict_dens = dict(zip(self.species_name, self.species_dens))
 
         LAST_RESULTS = self
+        if save_all_vals:
+            ALL_VALUES.append([self.dens, self.temp, self.pres, *self.species_frac])
 
         # Print the results
         if print_results:
