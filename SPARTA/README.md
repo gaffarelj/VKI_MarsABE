@@ -113,8 +113,8 @@ This leads to the following parameters:
 | 115           | 3493.29        | 1.8E-08         | 1.0983E-01            | 115             | 3.7E-04       | 81% CO2, 4.5% N2, 3.5% Ar, 5% CO, 5.5% O, 0.5% O2     |
 | 150           | 3483.82        | 1.6E-10         | 9.7096E-04            | 175             | 7.1E-06       | 42% CO2, 12.5% N2, 4.5% Ar, 15% CO, 25% O, 1% O2      |
 
-The velocities have been taken from the orbital simulations made in [MCD/feasible_altitudes.py](../MCD/feasible_altitudes.py).
-The mixture, temperatures, pressures, and densities have been obtained from the [online interface](http://www-mars.lmd.jussieu.fr/mcd_python) of the Mars Climate Database, taking time and position averaged values.
+These values have been gathered by running the `run_atmo_study` in [feasible_altitudes.py](../MCD/feasible_altitudes.py).
+As can be seen in the code, they are atmospheric values that are averaged for a satellite that flies in a circular orbit inclined at 45deg for 2 Martian years.
 
 ## Input files
 The script [comp_inputs.py](setup/comp_inputs.py) has then been used to generate the relevant input files for the SPARTA simulations.
