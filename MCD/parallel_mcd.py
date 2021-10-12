@@ -8,14 +8,13 @@ MODULE_LIST = []    # list that will contain the loaded MCD interface modules
 LAST_RESULTS = None # list that will contain the results from the last MCD call
 
 ALL_VALUES = []      # list that will contain all density, temperature, and pressure
-save_all_vals = False
 
 class parallel_mcd:
     """
     This class is used as an interface to the Mars Climate Database.
     It also allows to keep the MCD files in cache instead of re-opening them each time different Martian months are requested.
     """
-    def __init__(self, default_inputs=True, load_on_init=False, load_parallel=True):
+    def __init__(self, default_inputs=True, load_on_init=False, load_parallel=True, save_all_vals=False):
         global MODULE_LIST
         # The following two arrays contain the times in solar longitude (Ls) at which different files will be loaded
         self.limiting_Ls = np.arange(0, 330.01, 30)
@@ -23,6 +22,7 @@ class parallel_mcd:
         self.n_wind = 25            # index of the vertical wind
         self.Mars_R = 3389.5e3      # Mars radius in [m]
         self.load_parallel = load_parallel
+        self.save_all_vals = save_all_vals
         self.species_name = ["CO2", "N2", "Ar", "CO", "O", "O2", "O3", "H", "H2"] # note: He is also accessible if required, at index 77
         self.species_weight = [44.01, 28.0134, 39.948, 28.01, 15.999, 31.999, 48, 1.00784, 1.00784] # [g/mol], molecular weights
         # Load a set of default inputs to the MCD
@@ -110,7 +110,7 @@ class parallel_mcd:
         dt = T.time() - t0
         # Print the call time if the file was loaded (call time above 2 sec)
         if dt > 2:
-            print("Loading the MCD file took %.3f seconds." % dt)
+            print("Loading the MCD module %i took %.3f seconds." % (i_module, dt))
         # Extract the vertical wind
         self.vertwind = self.extvars[self.n_wind]
         # Extract the volumetric ratio of each species in the atmosphere
@@ -125,7 +125,7 @@ class parallel_mcd:
         self.species_dict_dens = dict(zip(self.species_name, self.species_dens))
 
         LAST_RESULTS = self
-        if save_all_vals:
+        if self.save_all_vals:
             ALL_VALUES.append([self.dens, self.temp, self.pres, *self.species_frac])
 
         # Print the results

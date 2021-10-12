@@ -44,7 +44,7 @@ if run_atmo_study:
     sat = SM.satellite("Orbiter", 5, 0, S_ref=0)
     # Setup the constant parts of the simulation
     OS = P.orbit_simulation(sat, "Mars", 2*650*constants.JULIAN_DAY)
-    OS.create_bodies(use_MCD=[True, False], preload_MCD=False)
+    OS.create_bodies(use_MCD=[True, False], preload_MCD=False, save_MCD_vals=True)
     OS.create_termination_settings(min_altitude=25e3)
     OS.create_dependent_variables(["h", "V"])
     OS.create_integrator(tolerance=1e-6, dt=[0.1, 250, 1e5])

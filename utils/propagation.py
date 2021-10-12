@@ -65,7 +65,7 @@ class orbit_simulation:
         # Power dict
         self.power_dict = dict()
 
-    def create_bodies(self, additional_bodies=["Sun", "Jupiter"], use_MCD=[False, False], preload_MCD=False):
+    def create_bodies(self, additional_bodies=["Sun", "Jupiter"], use_MCD=[False, False], preload_MCD=False, save_MCD_vals=False):
         """
         Create the simulation bodies.
         Inputs:
@@ -85,7 +85,7 @@ class orbit_simulation:
         if use_MCD[0] and self.central_body == "Mars":
             # Use the atmospheric model from the Mars Climate Database
             from MCD.parallel_mcd import parallel_mcd as PMCD
-            mcd = PMCD(load_on_init=preload_MCD)
+            mcd = PMCD(load_on_init=preload_MCD, save_all_vals=save_MCD_vals)
             body_settings.get(self.central_body).atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
                 mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
             # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
