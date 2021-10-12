@@ -99,7 +99,14 @@ echo "<tudat-bundle installation dir>/build/tudatpy" > ~/miniconda3/envs/tudat-b
 ```
 
 ### Pygmo
-*To be written*
+The Pygmo optimisation toolbox from ESA shall be installed following the instructions [here](https://esa.github.io/pygmo2/install.html).
+
+In essence, the following commands can be used when the `tudat-bundle` environment is active, to install the required Pygmo packages:
+```
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda install pygmo
+```
 
 ### SPARTA
 The SPARTA library is required to run the simulations to obtain the drag coefficient of the different satellites.
