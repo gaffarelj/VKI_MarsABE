@@ -68,7 +68,7 @@ if run_atmo_study:
         MCD_vals = np.array(pmcd.ALL_VALUES)
         density, temperature, pressure, mixture = MCD_vals[:,0], MCD_vals[:,1], MCD_vals[:,2], MCD_vals[:,3:]
         # Make sure sum of mixtures is 1
-        mixture = mixture[:,:5] / sum(np.mean(mixture[:,:5], axis=0))
+        mixture = mixture[:,:6] / sum(np.mean(mixture[:,:6], axis=0))
         velocity = np.linalg.norm(states[:,3:], axis=1)
         titles = ["Velocity", "Density", "Temperature", "Pressure"]
         units = ["m/s", "kg/m3", "K", "Pa"]
