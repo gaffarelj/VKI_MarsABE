@@ -78,8 +78,8 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt                                             # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt                                          # post-shock grid dimension [m] (based on velocity)
-        grid_f = max(min(grid_f_mfp, grid_f_vel, L/10), l_box/50)       # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/20, to avoid grid too big)
-        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/10), l_box/50)    # Take minimum grid dimension (or L_ref/10, to avoid grid of 1, or l_box/20, to avoid grid too big)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), l_box/50)       # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), l_box/50)    # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
         n_x = l_box / ((grid_f + grid_ps)/2)                            # spacing of grid along x
         n_y = w_box / ((grid_f + grid_ps)/2)                            # number of grid segments along y
@@ -88,7 +88,7 @@ for j, s_name in enumerate(sat_names):
         n_sim = 40 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
         # Check that dt is small enough given dx and v
-        dx = min(grid_f_mfp, grid_ps_mfp, grid_f_vel, grid_ps_vel)
+        dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
         dt = min(dt, dx/u_s*0.75, dx/cr_ps*0.75)                        # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
         # Compute the accomodation coefficient based on the adsorption of atomic oxygen
         # https://doi.org/10.2514/1.49330
