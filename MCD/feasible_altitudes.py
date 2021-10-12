@@ -5,6 +5,7 @@ while sys.path[0].split("/")[-1] != "VKI_MarsABE":
 from utils import propagation as P
 from utils import sat_models as SM
 from tudatpy.kernel import constants
+from tudatpy.kernel.simulation import propagation_setup
 from tools import plot_utilities as PU
 
 run_alt_study = False       # Run the study of the altitude vs orbital time
@@ -48,6 +49,12 @@ if run_atmo_study:
     OS.create_termination_settings(min_altitude=25e3)
     OS.create_dependent_variables(["h", "V"])
     OS.create_integrator(tolerance=1e-6, dt=[0.1, 250, 1e5])
+    # Use a fixed step integrator with dt = 250s
+    OS.integrator_settings = propagation_setup.integrator.runge_kutta_4(
+        OS.init_time,
+        250,
+        save_frequency = 1
+    )
     # Only use Mars as a point mass as the acceleration (stay in the same orbit this way)
     accelerations = [P.env_acceleration("Mars", PM=True, aero=True)]
     OS.create_accelerations(env_accelerations=accelerations)
