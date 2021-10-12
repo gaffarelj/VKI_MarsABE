@@ -107,11 +107,11 @@ The conditions in which the simulation has been made have been varied, as to gat
 First, the orbital altitudes have been varied between 85 km and 150 km.
 This leads to the following parameters:
 
-| Altitude [km] | Velocity [m/s] | Density [kg/m3] | Dynamic pressure [Pa] | Temperature [K] | Pressure [Pa] | Mixture [mol/mol]                                     |
-|---------------|----------------|-----------------|-----------------------|-----------------|---------------|-------------------------------------------------------|
-| 85            | 3494.17        | 7.1E-07         | 4.3343                | 135             | 2.3E-02       | 90.5% CO2, 3.5% N2, 2.5% Ar, 1.5% CO, 1.5% O, 0.5% O2 |
-| 115           | 3493.29        | 1.8E-08         | 1.0983E-01            | 115             | 3.7E-04       | 81% CO2, 4.5% N2, 3.5% Ar, 5% CO, 5.5% O, 0.5% O2     |
-| 150           | 3483.82        | 1.6E-10         | 9.7096E-04            | 175             | 7.1E-06       | 42% CO2, 12.5% N2, 4.5% Ar, 15% CO, 25% O, 1% O2      |
+| Altitude [km] | Velocity [m/s] | Density [kg/m3]             | Dynamic pressure [Pa] | Temperature [K]     | Pressure [Pa]               | Mixture [mol/mol]                                     |
+|---------------|----------------|-----------------------------|-----------------------|---------------------|-----------------------------|-------------------------------------------------------|
+| 85            | 3510.90        | 2.69329E-06 (σ=1.06855E-06) | 1.65993E+01           | 143.093 (σ=11.0552) | 7.36261E-02 (σ=3.10177E-02) | 95.874% CO2, 1.781% N2, 1.822% Ar, 0.249% CO, 0.126% O, 0.148% O2 <br> (σ=0.506% CO2, 0.143% N2, 0.146% Ar, 0.171% CO, 0.116% O, 0.017% O2) |
+| 115           | 3495.84        | 1.37030E-06 (σ=1.52366E-06) | 8.37315E+00           | 128.038 (σ=17.9251) | 3.73367E-02 (σ=4.24047E-02) | 90.556% CO2, 3.295% N2, 3.292% Ar, 1.605% CO, 0.971% O, 0.281% O2 <br> (σ=4.658% CO2, 1.343% N2, 1.142% Ar, 1.409% CO, 0.729% O, 0.129% O2) |
+| 150           | 3475.51        | 3.04190E-10 (σ=1.16300E-10) | 1.83718E-03           | 166.587 (σ=24.3534) | 1.06037E-05 (σ=4.07234E-06) | 69.792% CO2, 10.613% N2, 5.061% Ar, 6.932% CO, 6.655% O, 0.947% O2  <br> (σ=11.377% CO2, 3.850% N2, 0.652% Ar, 3.584% CO, 3.775% O, 0.201% O2) |
 
 These values have been gathered by running the `run_atmo_study` in [feasible_altitudes.py](../MCD/feasible_altitudes.py).
 As can be seen in the code, they are atmospheric values that are averaged for a satellite that flies in a circular orbit inclined at 45deg for 2 Martian years.
