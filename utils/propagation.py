@@ -11,7 +11,8 @@ while sys.path[0].split("/")[-1] != "VKI_MarsABE":
 from tools import time_conversions as TC
 from utils import thrust as T
 # Load the SPICE kernel
-spice_interface.load_standard_kernels()
+if spice_interface.get_total_count_of_kernels_loaded() == 0:
+    spice_interface.load_standard_kernels()
 
 
 class env_acceleration:
