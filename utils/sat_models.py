@@ -2,7 +2,8 @@ from tudatpy.kernel.math import interpolators
 
 
 class satellite:
-    def __init__(self, name, mass, Cd, S_ref=0.01, Cd_h=[85e3, 115e3, 150e3], SA_areas=[0, 0, 0], SA_frac=0.7042, SA_eff=0.29, EPS_eff=0.93):
+    def __init__(self, name, mass, Cd, S_ref=0.01, Cd_h=[85e3, 115e3, 150e3], \
+        SA_areas=[0, 0, 0], SA_frac=0.7042, SA_eff=0.29, EPS_eff=0.93, verbose=False):
         """
         Satellite class, containing all relevant information for all analysed satellites configurations
         Inputs:
@@ -30,7 +31,7 @@ class satellite:
         self.S_ref = S_ref
         self.SA_eff = SA_eff
         self.EPS_eff = EPS_eff
-        self.h_warning = [True, True]
+        self.h_warning = [verbose, verbose]
         
         if type(self.Cd_list) == list:
             # Create a cubic spline interpolator, capped at the boundaries
