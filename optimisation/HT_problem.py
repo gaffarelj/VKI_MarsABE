@@ -53,15 +53,25 @@ class HT_problem:
         OS.create_propagator(prop_mass=False)
         
         # Simulate the satellite in orbit
-        OS.simulate()
+        times, states, dep_vars = OS.simulate()
 
         # Extract the results from the simulation
         power_hist = list(OS.power_dict.values())
-        print("Start from h=%3d, power: mean=%.2f, max=%.2f, total=%6d W" % (h_0/1e3, np.mean(power_hist), max(power_hist), sum(power_hist)))
+        altitudes = dep_vars[:,0]
+        decay = altitudes[0] - altitudes[-1]
 
-        # Compute the fitness (=cost); scaling is used because, ideally, all cost values would be in the same range (0-1 for instance)
-        power_f = 25e3/sum(power_hist)      # Lot of power = smaller value = better (use maximum observed value of 25kW to scale)
-        cost = np.array([power_f, test]) * np.array(self.fitness_weights)
+        print("Start from h=%3d, sum of power=%6d W, total decay=%3d km" % (h_0/1e3, sum(power_hist), decay/1e3))
+
+        ## Compute the fitness (=cost); scaling is used because, ideally, all cost values would be in the same range (0-1 for instance)
+        # Total power; lots of power = smaller value = better (use maximum observed value of 25kW to scale)
+        power_f = 25e3/sum(power_hist)
+        # Total decay; if final altitude < 50km, fitness=1 (re-entered atmosphere); else: scale with maximum 100km
+        if altitudes[-1] <= 50e3:
+            decay_f = 1
+        else:
+            decay_f = decay/100e3
+
+        cost = np.array([power_f, decay_f]) * np.array(self.fitness_weights)
         return cost
 
 
@@ -83,14 +93,14 @@ if test:
 
     # Setup Pygmo
     seed = 12345
-    pop = pygmo.population(problem, size=12, seed=seed)
+    pop = pygmo.population(problem, size=8, seed=seed)
     algo = pygmo.algorithm(pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.001, eta_m=2))
 
     # Prepare variables to save optimum
     optimum_f, optimum_p, optimum_sum_f = None, None, np.inf
 
     # Run the optimisation
-    n_generations = 5
+    n_generations = 1
     for i in range(1,n_generations+1):
         print("Running generation %2d/%2d" % (i, n_generations))
         # Evolve the population
@@ -107,5 +117,5 @@ if test:
             optimum_f, optimum_p = f[idx_best], p[idx_best]
 
     
-    print("Optimum design variables:", optimum_p)
+    print("Optimum design variables: h_0=%3d km" % (optimum_p[0]/1e3))
     print("Resulting optimum fitness:", optimum_f)
