@@ -132,10 +132,11 @@ class orbit_simulation:
         # Add the solar radiation settings to the satellite
         environment_setup.add_radiation_pressure_interface(self.bodies, self.sat.name, radiation_pressure_settings)
 
-    def create_initial_state(self, h=150e3, e=0, i=0, omega=0, Omega=0, theta=0):
+    def create_initial_state(self, a=None, h_p=150e3, e=0, i=0, omega=0, Omega=0, theta=0):
         """
         Define the initial state of the Satellite.
         Inputs:
+         * a (float): semi-major axis of the orbit in meters
          * h (float): altitude of the satellite periapsis above the central body, in meters
          * e (float): eccentricity of the orbit [0-1]
          * i (float): inclination of the orbit in radians [0-pi/2]
@@ -146,10 +147,12 @@ class orbit_simulation:
         # Get the gravitational parameter and radius of the central body
         mu = self.bodies.get_body(self.central_body).gravitational_parameter
         self.R_cb = spice_interface.get_average_radius(self.central_body)
+        if a is None:
+            a = (self.R_cb + h_p) / (1 - e)
         # Convert the Keplerian orbit to an initial cartesian state
         self.initial_state = conversion.keplerian_to_cartesian(
             gravitational_parameter = mu,
-            semi_major_axis = (self.R_cb + h) / (1 - e),
+            semi_major_axis = a,
             eccentricity = e,
             inclination = i,
             argument_of_periapsis = omega,
