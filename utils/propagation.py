@@ -145,11 +145,11 @@ class orbit_simulation:
         """
         # Get the gravitational parameter and radius of the central body
         mu = self.bodies.get_body(self.central_body).gravitational_parameter
-        R = spice_interface.get_average_radius(self.central_body)
+        self.R_cb = spice_interface.get_average_radius(self.central_body)
         # Convert the Keplerian orbit to an initial cartesian state
         self.initial_state = conversion.keplerian_to_cartesian(
             gravitational_parameter = mu,
-            semi_major_axis = (R + h) / (1 - e),
+            semi_major_axis = (self.R_cb + h) / (1 - e),
             eccentricity = e,
             inclination = i,
             argument_of_periapsis = omega,
@@ -236,16 +236,17 @@ class orbit_simulation:
         Create the termination settings; conditions for when the simulation must stop.
         Inputs:
          * min_altitude (float): altitude below which propagation stops, in meters (set to 0 to remove)
-         * max_altitude (float): altitude above which propagation stops, in meters (set to Inf to remove)
+         * max_altitude (float): periapsis altitude above which propagation stops, in meters (set to Inf to remove)
          * cpu_time (float): CPU time after which the propagation is stopped, in seconds (set to Inf to remove)
         """
         # Create a lower altitude termination setting (when sat is too deep in the atmosphere or crashed)
         termination_altitude = propagation_setup.dependent_variable.altitude(self.sat.name, self.central_body)
         termination_setting_min_altitude = propagation_setup.propagator.dependent_variable_termination(
                 dependent_variable_settings = termination_altitude, limit_value = min_altitude, use_as_lower_limit = True)
-        # Create an upper altitude termination setting (when sat is too high above the planet)
+        termination_periapsis = propagation_setup.dependent_variable.periapsis_altitude(self.sat.name, self.central_body)
+        # Create an upper altitude termination setting (when sat periapsis is too high above the planet)
         termination_setting_max_altitude = propagation_setup.propagator.dependent_variable_termination(
-                dependent_variable_settings = termination_altitude, limit_value = max_altitude, use_as_lower_limit = False)
+                dependent_variable_settings = termination_periapsis, limit_value = max_altitude, use_as_lower_limit = False)
         # Create a time termination setting (stop after x days in orbit)
         termination_setting_time = propagation_setup.propagator.time_termination(self.end_time)
         # Create a CPU time termination setting (stop after x minutes of CPU time)
@@ -268,7 +269,8 @@ class orbit_simulation:
            * D:     acceleration due to the atmosphere
            * C_D:   aerodynamic coefficients
            * r_cb:  relative position of the central body w.r.t. the sun
-           * Kep:   Keplerian state of the satellite
+           * Kep:   Keplerian state of the satellite (a, e, i, omega, Omega, theta)
+           * h_p:   altitude of the periapsis of the satellite
         """
         # Start with no dependent variables to save
         self.dependent_variables_to_save = []
@@ -314,6 +316,10 @@ class orbit_simulation:
                 # Keplerian state of the satellite
                 d_v = propagation_setup.dependent_variable.keplerian_state(self.sat.name, self.central_body)
                 size = 6
+            elif dep_key == "h_p":
+                # Altitude of the periapsis of the satellite
+                d_v = propagation_setup.dependent_variable.periapsis_altitude(self.sat.name, self.central_body)
+                size = 1
             else:
                 # Show a warning message if the dependent variable is not known
                 list_d_v = ["h", "rho", "V", "m", "F_T", "D", "C_D", "r_cb", "Kep"]
@@ -372,7 +378,6 @@ class orbit_simulation:
             t0 = time.time()
 
         # Run the simulation
-        #help(numerical_simulation)
         dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
             self.bodies, self.integrator_settings, self.propagator_settings, print_dependent_variable_data=self.verbose
         )
@@ -394,7 +399,10 @@ class orbit_simulation:
     def get_dep_var(self, key):
         # Get the dependent variable with the given key
         dep_var_idx, dep_var_size = self.dep_var_loc[key]
-        return self.dep_vars[:,dep_var_idx:dep_var_idx+dep_var_size]
+        dv = self.dep_vars[:,dep_var_idx:dep_var_idx+dep_var_size]
+        if dv.shape[1] == 1:
+            return dv[:,0]
+        return dv
 
 test = False
 if test:
