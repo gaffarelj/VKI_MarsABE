@@ -1,4 +1,5 @@
 from tudatpy.kernel.math import interpolators
+import numpy as np
 
 
 class satellite:
@@ -35,7 +36,7 @@ class satellite:
         
         if type(self.Cd_list) == list:
             # Create a cubic spline interpolator, capped at the boundaries
-            interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.use_boundary_value)
+            interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.use_default_value)
             drag_dict = dict(zip(self.Cd_h, self.Cd_list))
             # Setup the drag interpolator
             self.drag_interpolator = interpolators.create_one_dimensional_interpolator(drag_dict, interpolator_settings)
@@ -63,7 +64,11 @@ class satellite:
                 self.h_warning[0] = False
             else:
                 self.h_warning[1] = False
-        return self.drag_interpolator.interpolate(h)
+        Cd = self.drag_interpolator.interpolate(h)
+        # If the interpolated Cd is out of the boundaries, take the average
+        if Cd == 0:
+            Cd = np.mean(self.Cd_list)
+        return Cd
 
 satellites = {
     "CS_0020": satellite("CS_0020", [4.29425, 3.64425], [2.83794, 2.74090, 2.80022], SA_areas=[0, 0.042426, 0.042426]),
