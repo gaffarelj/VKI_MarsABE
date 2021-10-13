@@ -10,9 +10,10 @@ from tudatpy.kernel.interface import spice_interface
 
 class HT_problem:
 
-    def __init__(self, design_var_range, fitness_weights):
+    def __init__(self, design_var_range, fitness_weights, verbose=False):
         self.design_var_range = design_var_range
         self.fitness_weights = fitness_weights
+        self.verbose = verbose
 
     def get_bounds(self):
         """
@@ -65,8 +66,9 @@ class HT_problem:
         decay = h_p_s[0] - h_p_s[-1]
         altitudes = OS.get_dep_var("h")
 
-        print("Start from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d -> mean of power=%.2f W, total decay=%4d km, mean altitude=%3d km" % \
-            (h_p_0/1e3, h_a_0/1e3, np.rad2deg(i_0), np.rad2deg(omega_0), np.rad2deg(Omega_0), np.mean(power_hist), decay/1e3, np.mean(altitudes)/1e3))
+        if self.verbose:
+            print("Start from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d -> mean of power=%.2f W, total decay=%4d km, mean altitude=%3d km" % \
+                (h_p_0/1e3, h_a_0/1e3, np.rad2deg(i_0), np.rad2deg(omega_0), np.rad2deg(Omega_0), np.mean(power_hist), decay/1e3, np.mean(altitudes)/1e3))
 
         ## Compute the fitness (=cost); scaling is used because, ideally, all cost values would be in the same range (0-1 for instance)
         # Max mean power; lots of power = smaller value = better (use maximum observed value as scale)
@@ -84,7 +86,8 @@ class HT_problem:
             h_f = 0.75 + 0.25 * (np.mean(altitudes) - h_scale[1]) / (h_scale[2] - h_scale[1])
         # Assemble and return the cost
         cost = np.array(self.fitness_weights) * np.array([power_f, decay_f, h_f]) # Mean power, periapsis decay, mean altitude
-        print("Cost =", cost)
+        if self.verbose:
+            print("Cost =", cost)
         return cost
 
 
@@ -106,20 +109,19 @@ if test:
 
     # Setup the optimisation problem
     fitness_weights = [3, 3, 1]
-    current_HT_problem = HT_problem(design_var_range, fitness_weights)
+    current_HT_problem = HT_problem(design_var_range, fitness_weights, verbose=False)
     problem = pygmo.problem(current_HT_problem)
 
     # Setup Pygmo
     seed = 12345
-    pop = pygmo.population(problem, size=8, seed=seed)
+    pop = pygmo.population(problem, size=12, seed=seed)
     algo = pygmo.algorithm(pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.001, eta_m=2))
 
-    # Prepare variables to save optimum
-    optimum_f, optimum_p, optimum_sum_f = None, None, np.inf
-    all_f, all_p = [], []
+    # Prepare variables to save fitnesses and populations
+    all_f, all_p = [list(f) for f in pop.get_f()], [list(p) for p in pop.get_x()]
 
     # Run the optimisation
-    n_generations = 1
+    n_generations = 10
     for i in range(1,n_generations+1):
         print("Running generation %2d/%2d" % (i, n_generations))
         # Evolve the population
@@ -128,21 +130,20 @@ if test:
         # Get the new fitnesses and population
         f = pop.get_f()
         p = pop.get_x()
-        
-        # If a new optimum is reached, save it
-        fit_sum = np.min(np.sum(f, axis=0))
-        if fit_sum < optimum_sum_f:
-            idx_best = np.where(np.sum(f, axis=0) == fit_sum)[0][0]
-            optimum_f, optimum_p = f[idx_best], p[idx_best]
 
         # Save everything
-        if p not in all_p:
-            all_p.append(p)
-            all_f.append(f)
+        for i_f, _f in enumerate(f):
+            if list(_f) not in all_f:
+                all_p.append(list(p[i_f]))
+                all_f.append(list(_f))
 
-    print()
+    all_f, all_p = np.array(all_f), np.array(all_p)
+
+    # Find the optimum if the sum of fitnesses is used
+    idx_best = np.where(np.sum(all_f, axis=1) == np.min(np.sum(all_f, axis=1)))[0][0]
+    optimum_f, optimum_p = all_f[idx_best], all_p[idx_best]
+
     print("Optimum initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
         (min(optimum_p[0:1])/1e3, max(optimum_p[0:1])/1e3, np.rad2deg(optimum_p[2]), np.rad2deg(optimum_p[3]), np.rad2deg(optimum_p[4])))
     print("Resulting optimum fitness:", optimum_f)
-
-    print(all_p)
+    print("Explored %i different possibilities." % len(all_f))
