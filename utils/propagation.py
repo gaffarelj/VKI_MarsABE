@@ -136,12 +136,12 @@ class orbit_simulation:
         """
         Define the initial state of the Satellite.
         Inputs:
-         * h (float): altitude of the satellite above the central body, in meters
-         * e (float): eccentricity of the orbit
-         * i (float): inclination of the orbit in radians
-         * omega (float): argument of periapsis of the orbit in radians
-         * Omega (float): longitude of the ascending noce in radians
-         * theta (float): true anomaly in radians (note: this defines where the satellite starts in its orbit, and can most of the time be ignored)
+         * h (float): altitude of the satellite periapsis above the central body, in meters
+         * e (float): eccentricity of the orbit [0-1]
+         * i (float): inclination of the orbit in radians [0-pi/2]
+         * omega (float): argument of periapsis of the orbit in radians [0-pi]
+         * Omega (float): longitude of the ascending noce in radians [0-2pi]
+         * theta (float): true anomaly in radians (note: this defines where the satellite starts in its orbit, and can most of the time be ignored) [0-2pi]
         """
         # Get the gravitational parameter and radius of the central body
         mu = self.bodies.get_body(self.central_body).gravitational_parameter
@@ -149,7 +149,7 @@ class orbit_simulation:
         # Convert the Keplerian orbit to an initial cartesian state
         self.initial_state = conversion.keplerian_to_cartesian(
             gravitational_parameter = mu,
-            semi_major_axis = R + h,
+            semi_major_axis = (R + h) / (1 - e),
             eccentricity = e,
             inclination = i,
             argument_of_periapsis = omega,
