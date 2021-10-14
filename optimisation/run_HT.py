@@ -1,5 +1,6 @@
 import numpy as np
 import pygmo
+import time
 import sys
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
@@ -27,14 +28,15 @@ problem = pygmo.problem(current_HT_problem)
 
 # Setup Pygmo
 seed = 12345
-pop = pygmo.population(problem, size=8, seed=seed)
+pop = pygmo.population(problem, size=12, seed=seed)
 algo = pygmo.algorithm(pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.001, eta_m=2))
 
 # Prepare variables to save fitnesses and populations
 all_f, all_p = [list(f) for f in pop.get_f()], [list(p) for p in pop.get_x()]
 
 # Run the optimisation
-n_generations = 2
+n_generations = 5
+t0 = time.time()
 for i in range(1,n_generations+1):
     print("Running generation %2d/%2d" % (i, n_generations))
     # Evolve the population
@@ -49,6 +51,10 @@ for i in range(1,n_generations+1):
         if list(_f) not in all_f:
             all_p.append(list(p[i_f]))
             all_f.append(list(_f))
+    
+    # Show time it took
+    dt, t0 = time.time() - t0, time.time()
+    print(" -> took %.1f seconds" % dt)
 
 all_f, all_p = np.array(all_f), np.array(all_p)
 
