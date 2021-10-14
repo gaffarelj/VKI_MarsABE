@@ -29,17 +29,21 @@ class HT_problem:
         """
         return len(fitness_weights)
 
+    def get_nix(self):
+        return 1
+
     def fitness(self, design_variables):
         """
         *** Pygmo-related function ***
         Return the fitness of the given problem. This is the cost function, that Pygmo will minimise.
         """
         # Extract the individual design variables
-        h_a_0, h_p_0, i_0, omega_0, Omega_0 = design_variables
+        h_a_0, h_p_0, i_0, omega_0, Omega_0, sat_index = design_variables
 
         ## Setup the simulation
         # Select the satellite
-        satellite = SM.satellites["CS_0020"]
+        sat_name = list(SM.satellites.keys())[int(sat_index)]
+        satellite = SM.satellites[sat_name]
         # Create the orbital simulation instance, setup to simulate 5 days
         OS = P.orbit_simulation(satellite, "Mars", 5*constants.JULIAN_DAY, save_power=True)
         # Create the simulation bodies, and use the MCD
@@ -69,12 +73,14 @@ class HT_problem:
         thrusts = OS.get_dep_var("F_T")
 
         if self.verbose:
-            print("Start from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d -> mean of power=%.2f W, total decay=%4d km, mean altitude=%3d km" % \
-                (h_p_0/1e3, h_a_0/1e3, np.rad2deg(i_0), np.rad2deg(omega_0), np.rad2deg(Omega_0), np.mean(power_hist), decay/1e3, np.mean(altitudes)/1e3))
+            print("Satellite %s starts from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d" % \
+                (sat_name, min(h_p_0, h_a_0)/1e3, max(h_p_0, h_a_0)/1e3, np.rad2deg(i_0), np.rad2deg(omega_0), np.rad2deg(Omega_0)))
+            print(" -> mean of power=%.2f W, total decay=%4d km, mean altitude=%3d km" % \
+                (np.mean(power_hist), decay/1e3, np.mean(altitudes)/1e3))
 
         ## Compute the fitness (=cost); scaling is used because, ideally, all cost values would be in the same range (0-1 for instance)
         # Max mean power; lots of power = smaller value = better (use maximum observed value as scale)
-        power_scale = 10
+        power_scale = 25
         power_f = ( (power_scale-np.mean(power_hist)) / power_scale )
         if np.mean(power_hist) > power_scale:
             print("Warning, mean power of %.3f W was above scaling value of %.3f W" % (np.mean(power_hist), power_scale))
@@ -87,12 +93,16 @@ class HT_problem:
         else:
             h_f = 0.75 + 0.25 * (np.mean(altitudes) - h_scale[1]) / (h_scale[2] - h_scale[1])
         # Min Drag/Thrust ratio
-        D_T_f = np.mean(drags) / np.mean(thrusts)
-        D_T_f = 1 - (1/(D_T_f + 1)) # scale from [0,inf) to [0, 1]
+        if np.mean(thrusts) == 0:
+            D_T_f = 1
+        else:
+            D_T_f = np.mean(drags) / np.mean(thrusts)
+            D_T_f = 1 - (1/(D_T_f + 1)) # scale from [0,inf) to [0, 1]
+        print(np.max(power_hist), np.mean(power_hist))
         # Assemble and return the cost
         cost = np.array(self.fitness_weights) * np.array([power_f, decay_f, h_f]) # Mean power, periapsis decay, mean altitude
         if self.verbose:
-            print("Cost =", cost)
+            print(" -> cost is", cost)
         return cost
 
 
@@ -106,15 +116,15 @@ if test:
     min_i, max_i = 0, np.pi/2
     min_omega, max_omega = 0, np.pi
     min_Omega, max_Omega = 0, 2*np.pi
-    test_a, test_b = 0, 1
+    min_sat_i, max_sat_i = 0, len(SM.satellites) - 1
     design_var_range = (
-        [min_h_p, min_h_a, min_i, min_omega, min_Omega],
-        [max_h_p, max_h_a, max_i, max_omega, max_Omega]
+        [min_h_p, min_h_a, min_i, min_omega, min_Omega, min_sat_i],
+        [max_h_p, max_h_a, max_i, max_omega, max_Omega, max_sat_i]
     )
 
     # Setup the optimisation problem
-    fitness_weights = [3, 3, 1]
-    current_HT_problem = HT_problem(design_var_range, fitness_weights, verbose=True)
+    fitness_weights = [5, 10, 1]
+    current_HT_problem = HT_problem(design_var_range, fitness_weights, verbose=False)
     problem = pygmo.problem(current_HT_problem)
 
     # Setup Pygmo
@@ -148,7 +158,8 @@ if test:
     idx_best = np.where(np.sum(all_f, axis=1) == np.min(np.sum(all_f, axis=1)))[0][0]
     optimum_f, optimum_p = all_f[idx_best], all_p[idx_best]
 
-    print("Optimum initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
-        (min(optimum_p[0:1])/1e3, max(optimum_p[0:1])/1e3, np.rad2deg(optimum_p[2]), np.rad2deg(optimum_p[3]), np.rad2deg(optimum_p[4])))
+    print("Optimum: %s \n  with initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
+        (SM.satellites[list(SM.satellites.keys())[int(optimum_p[5])]], min(optimum_p[0:1])/1e3, max(optimum_p[0:1])/1e3, \
+            np.rad2deg(optimum_p[2]), np.rad2deg(optimum_p[3]), np.rad2deg(optimum_p[4])))
     print("Resulting optimum fitness:", optimum_f)
     print("Explored %i different possibilities." % len(all_f))
