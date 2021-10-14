@@ -8,12 +8,28 @@ from tudatpy.kernel import constants
 from tudatpy.kernel.interface import spice_interface
 
 
-def comp_fitness(sat, a, e, i, omega, Omega):
+FIT_INPUTS, FIT_HASHS, FIT_RESULTS = [], [], []
+
+def comp_fitness(sat, h_p, h_a, i, omega, Omega):
+    # Save the inputs in a list, and compute their hash
+    fit_input = [sat, h_p, h_a, i, omega, Omega]
+    fit_hash = hash(frozenset(fit_input))
+    # Search if the fitness was already computed for these inputs
+    if fit_hash in FIT_HASHS:
+        idx = FIT_HASHS.index(fit_hash)
+        # Double check that the inputs were the same, not just the hash
+        if FIT_INPUTS[idx] == fit_input:
+            # Return the cached fitness
+            return FIT_RESULTS[idx]
+
     ## Setup the simulation
     # Create the orbital simulation instance, setup to simulate 5 days
     OS = P.orbit_simulation(sat, "Mars", 5*constants.JULIAN_DAY, save_power=True)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False])
+    # Create the initial state of the satellite
+    a = OS.R_cb + (h_a+h_p)/2
+    e = 1 - (OS.R_cb + min(h_p, h_a)) / a       # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
     OS.create_initial_state(a=a, e=e, i=i, omega=omega, Omega=Omega)
     # Load the accelerations from default config 1: Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
     OS.create_accelerations(default_config=1, thrust=1)
@@ -58,7 +74,14 @@ def comp_fitness(sat, a, e, i, omega, Omega):
         D_T_f = 1 / mean_T_D
         D_T_f = 1 - (1/(D_T_f + 1)) # scale from [0,inf) to [0, 1]
 
-    return power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D
+    fit_result = power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D
+
+    # Save the inputs and results to the cache list
+    FIT_INPUTS.append(fit_input)
+    FIT_RESULTS.append(list(fit_result))
+    FIT_HASHS.append(fit_hash)
+
+    return fit_result
 
 class HT_problem:
 
@@ -90,22 +113,19 @@ class HT_problem:
         Return the fitness of the given problem. This is the cost function, that Pygmo will minimise.
         """
         # Extract the individual design variables
-        h_a_0, h_p_0, i_0, omega_0, Omega_0, sat_index = design_variables
+        h_p_0, h_a_0, i_0, omega_0, Omega_0, sat_index = design_variables
+
         # Select the satellite
         sat_name = list(SM.satellites.keys())[int(sat_index)]
         satellite = SM.satellites[sat_name]
-        # Create the initial state of the satellite
-        R_Mars = spice_interface.get_average_radius("Mars")
-        a_0 = R_Mars + (h_a_0+h_p_0)/2
-        e_0 = 1 - (R_Mars + min(h_p_0, h_a_0)) / a_0    # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
 
         # Compute the fitnesses, and the simulation performance parameters
-        power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = comp_fitness(satellite, a_0, e_0, i_0, omega_0, Omega_0)
+        power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0)
         
         if self.verbose:
             print("Satellite %s starts from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d" % \
                 (sat_name, min(h_p_0, h_a_0)/1e3, max(h_p_0, h_a_0)/1e3, np.rad2deg(i_0), np.rad2deg(omega_0), np.rad2deg(Omega_0)))
-            print(" -> mean of power=%.2f W, total decay=%4d km, mean altitude=%3d km, mean T/D=%.2f" % \
+            print(" -> mean power=%.2f W, total decay=%4d km, mean altitude=%3d km, mean T/D=%.2f" % \
                 (mean_P, decay/1e3, mean_h/1e3), mean_T_D)
 
         # Assemble and return the cost
