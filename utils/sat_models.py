@@ -53,6 +53,9 @@ class satellite:
         return "Satellite '%s' with wet mass of %.2f kg (dry of %.2f kg), reference area of %.4f m2, %s, ballistic coefficient ranging in (%.2f; %.2f)" % \
             (self.name, self.wet_mass, self.dry_mass, self.S_ref, cd_str, *b_c)
 
+    def __repr__(self):
+        return self.name
+
     def get_cd(self, h):
         if type(self.Cd_list) != list:
             return self.Cd_list
