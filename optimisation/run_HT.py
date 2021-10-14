@@ -6,6 +6,7 @@ while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from optimisation import HT_problem as HTp
 from utils import sat_models as SM
+from tools import plot_utilities as PU
 
 
 # Setup the design variables range
@@ -22,28 +23,35 @@ design_var_range = (
 )
 
 # Setup the optimisation problem
-fitness_weights = [1, 1, 1]    # Mean power, periapsis decay, mean altitude
+fitness_weights = [1, 1, 1]
+fitness_names = ["Mean power", "Periapsis decay", "Mean altitude"]
 current_HT_problem = HTp.HT_problem(design_var_range, fitness_weights, verbose=False)
 problem = pygmo.problem(current_HT_problem)
+
+# Select whether to run the optimisation or load the latest result file
+## TODO ************************************************************************************************************************************
 
 # Setup Pygmo
 seed = 12345
 algo_list = [
-    pygmo.algorithm(pygmo.nsga2(seed=seed)), # seems good
+    pygmo.algorithm(pygmo.nsga2(seed=seed)), # seems best
     pygmo.algorithm(pygmo.moead(seed=seed, neighbours=5)),
     pygmo.algorithm(pygmo.nspso(seed=seed)),
-    pygmo.algorithm(pygmo.ihs(seed=seed)) # seens good
+    pygmo.algorithm(pygmo.ihs(seed=seed)) # maybe, but only 1 pop improved by generation (-> increase gen number)
 ]
-sizes = [12, 10, 10, 10]
-algo_idx = 3
+sizes = [60, 10, 10, 10]1
+
+algo_idx = 0
 pop = pygmo.population(problem, size=sizes[algo_idx], seed=seed)
 algo = algo_list[algo_idx]
 
+opti_hist = []
+
 # Run the optimisation
-n_generations = 5
+n_generations = 1
 t0 = time.time()
 for i in range(1,n_generations+1):
-    print("Running generation %2d/%2d" % (i, n_generations))
+    print("Running generation %2d / %2d" % (i, n_generations))
     # Evolve the population
     pop = algo.evolve(pop)
     
@@ -51,14 +59,20 @@ for i in range(1,n_generations+1):
     dt, t0 = time.time() - t0, time.time()
     print(" -> took %.1f seconds" % dt)
 
-fit_results, fit_inputs = np.array(HTp.FIT_RESULTS), HTp.FIT_INPUTS
+    # Add best results to historic
+    f = np.array(pop.get_f())
+    best_f = [min(f[:,i]) for i in range(len(fitness_weights))]
+    best_f.append(min(np.mean(np.fabs(f), axis=1)))
+    opti_hist.append(best_f)
+
+fit_results, fit_inputs, opti_hist = np.array(HTp.FIT_RESULTS), HTp.FIT_INPUTS, np.array(opti_hist)
+
+# Save the results
+np.savez("optimisation/results/%s_%s" % (time.strftime("%d%m%y_%H%M%S"), seed), inputs=fit_inputs, results=fit_results, opti_hist=opti_hist)
 
 # Find the optimum if the sum of fitnesses is used
 idx_best = np.where(np.sum(fit_results[:,:len(fitness_weights)], axis=1) == np.min(np.sum(fit_results[:,:len(fitness_weights)], axis=1)))[0][0]
 optimum_input, optimum_result = fit_inputs[idx_best], fit_results[idx_best]
-
-# Save the results
-np.savez("optimisation/results/%s_%s" % (time.strftime("%d%m%y_%H%M%S"), seed), inputs=fit_inputs, results=fit_results)
 
 # Print the results
 print("Optimum (when summing the fitness): %s \n  with initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
@@ -68,3 +82,8 @@ print("Resulting optimum fitness:", optimum_result[:3]*np.array(fitness_weights)
 print("Resulting characteristics: mean power=%.2f W, total decay=%.2f km, mean altitude=%3d km, mean T/D=%.2f" % \
     (optimum_result[-4], optimum_result[-3]/1e3, optimum_result[-2]/1e3, optimum_result[-1]))
 print("Explored %i different possibilities." % len(fit_inputs))
+
+# Plot the fitness progress over time
+PU.plot_multiple([list(range(1, n_generations+1))]*(len(fitness_weights)+1), opti_hist.T, "Generation number", "Best fitness", \
+    "optimisation/HT/history", legends=fitness_names+["|\mu|"], colors=["darkorange", "seagreen", "royalblue", "#202020"], \
+    lstyle=["solid"]*len(fitness_weights)+["dashed"])
