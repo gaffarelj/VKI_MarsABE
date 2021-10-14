@@ -22,7 +22,7 @@ design_var_range = (
 )
 
 # Setup the optimisation problem
-fitness_weights = [5, 10, 1]    # Mean power, periapsis decay, mean altitude
+fitness_weights = [1, 1, 1]    # Mean power, periapsis decay, mean altitude
 current_HT_problem = HTp.HT_problem(design_var_range, fitness_weights, verbose=False)
 problem = pygmo.problem(current_HT_problem)
 
@@ -50,11 +50,10 @@ idx_best = np.where(np.sum(fit_results[:,:len(fitness_weights)], axis=1) == np.m
 optimum_input, optimum_result = fit_inputs[idx_best], fit_results[idx_best]
 
 # Print the results
-print(optimum_input)
 print("Optimum: %s \n  with initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
     (optimum_input[0], min(optimum_input[1:3])/1e3, max(optimum_input[1:3])/1e3, \
         np.rad2deg(optimum_input[3]), np.rad2deg(optimum_input[4]), np.rad2deg(optimum_input[5])))
-print("Resulting optimum fitness:", optimum_result[:3])
+print("Resulting optimum fitness:", optimum_result[:3]*np.array(fitness_weights))
 print("Resulting characteristics: mean power=%.2f W, total decay=%.2f km, mean altitude=%3d km, mean T/D=%.2f" % \
     (optimum_result[-4], optimum_result[-3]/1e3, optimum_result[-2]/1e3, optimum_result[-1]))
 print("Explored %i different possibilities." % len(fit_inputs))
