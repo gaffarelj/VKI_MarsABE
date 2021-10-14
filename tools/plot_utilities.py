@@ -37,13 +37,15 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     Plot multiple lines
     """
     fig, ax = plt.subplots()
+    if type(lstyle) != list:
+        lstyle = [lstyle] * len(x_datas)
     # Plot
     for i in range(len(x_datas)):
         # If specified, use the appropriate color
         if colors is not None and len(colors) > i:
-            ax.plot(x_datas[i], y_datas[i], color=colors[i])
+            ax.plot(x_datas[i], y_datas[i], color=colors[i], linestyle=lstyle[i])
         else:
-            ax.plot(x_datas[i], y_datas[i], linestyle=lstyle)
+            ax.plot(x_datas[i], y_datas[i], linestyle=lstyle[i])
     # Set labels
     ax.set_xlabel(x_label), ax.set_ylabel(y_label)
     # Set legend
@@ -117,3 +119,6 @@ def plot_4d(x, y, z, h, labels, fname):
     plt.tight_layout()
     plt.savefig("figures/%s.pdf" % fname)
     plt.close()
+
+def pareto_front():
+    pass
