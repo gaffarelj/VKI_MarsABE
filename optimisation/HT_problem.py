@@ -98,7 +98,6 @@ class HT_problem:
         else:
             D_T_f = np.mean(drags) / np.mean(thrusts)
             D_T_f = 1 - (1/(D_T_f + 1)) # scale from [0,inf) to [0, 1]
-        print(np.max(power_hist), np.mean(power_hist))
         # Assemble and return the cost
         cost = np.array(self.fitness_weights) * np.array([power_f, decay_f, h_f]) # Mean power, periapsis decay, mean altitude
         if self.verbose:
