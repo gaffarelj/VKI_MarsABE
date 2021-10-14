@@ -353,3 +353,4 @@ SPARTA/setup/tmp_result/*
 log.sparta
 SPARTA/setup/results_sparta/*
 Fluent
+optimisation/results/*.npz
