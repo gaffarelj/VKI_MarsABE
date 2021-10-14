@@ -28,8 +28,16 @@ problem = pygmo.problem(current_HT_problem)
 
 # Setup Pygmo
 seed = 12345
-pop = pygmo.population(problem, size=12, seed=seed)
-algo = pygmo.algorithm(pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.001, eta_m=2))
+algo_list = [
+    pygmo.algorithm(pygmo.nsga2(seed=seed)), # seems good
+    pygmo.algorithm(pygmo.moead(seed=seed, neighbours=5)),
+    pygmo.algorithm(pygmo.nspso(seed=seed)),
+    pygmo.algorithm(pygmo.ihs(seed=seed)) # seens good
+]
+sizes = [12, 10, 10, 10]
+algo_idx = 3
+pop = pygmo.population(problem, size=sizes[algo_idx], seed=seed)
+algo = algo_list[algo_idx]
 
 # Run the optimisation
 n_generations = 5
@@ -50,7 +58,7 @@ idx_best = np.where(np.sum(fit_results[:,:len(fitness_weights)], axis=1) == np.m
 optimum_input, optimum_result = fit_inputs[idx_best], fit_results[idx_best]
 
 # Save the results
-np.savez("optimisation/results/%s" % time.strftime("%y%m%d_%H%M%S"), inputs=fit_inputs, results=fit_results)
+np.savez("optimisation/results/%s_%s" % (time.strftime("%d%m%y_%H%M%S"), seed), inputs=fit_inputs, results=fit_results)
 
 # Print the results
 print("Optimum (when summing the fitness): %s \n  with initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
