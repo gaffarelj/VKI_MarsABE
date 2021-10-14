@@ -54,7 +54,7 @@ class HT_problem:
         # Create the integrator, termination settings, dependent variables, and propagator
         OS.create_integrator()
         OS.create_termination_settings()
-        OS.create_dependent_variables(to_save=["h_p", "h"])
+        OS.create_dependent_variables(to_save=["h_p", "h", "D", "F_T"])
         OS.create_propagator(prop_mass=False)
         
         # Simulate the satellite in orbit
@@ -65,6 +65,8 @@ class HT_problem:
         h_p_s = OS.get_dep_var("h_p")
         decay = h_p_s[0] - h_p_s[-1]
         altitudes = OS.get_dep_var("h")
+        drags = OS.get_dep_var("D")
+        thrusts = OS.get_dep_var("F_T")
 
         if self.verbose:
             print("Start from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d -> mean of power=%.2f W, total decay=%4d km, mean altitude=%3d km" % \
@@ -84,6 +86,9 @@ class HT_problem:
             h_f = (np.mean(altitudes) - h_scale[0]) / (h_scale[1] - h_scale[0]) * 0.75
         else:
             h_f = 0.75 + 0.25 * (np.mean(altitudes) - h_scale[1]) / (h_scale[2] - h_scale[1])
+        # Min Drag/Thrust ratio
+        D_T_f = np.mean(drags) / np.mean(thrusts)
+        D_T_f = 1 - (1/(D_T_f + 1)) # scale from [0,inf) to [0, 1]
         # Assemble and return the cost
         cost = np.array(self.fitness_weights) * np.array([power_f, decay_f, h_f]) # Mean power, periapsis decay, mean altitude
         if self.verbose:
@@ -109,19 +114,19 @@ if test:
 
     # Setup the optimisation problem
     fitness_weights = [3, 3, 1]
-    current_HT_problem = HT_problem(design_var_range, fitness_weights, verbose=False)
+    current_HT_problem = HT_problem(design_var_range, fitness_weights, verbose=True)
     problem = pygmo.problem(current_HT_problem)
 
     # Setup Pygmo
     seed = 12345
-    pop = pygmo.population(problem, size=12, seed=seed)
+    pop = pygmo.population(problem, size=8, seed=seed)
     algo = pygmo.algorithm(pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.001, eta_m=2))
 
     # Prepare variables to save fitnesses and populations
     all_f, all_p = [list(f) for f in pop.get_f()], [list(p) for p in pop.get_x()]
 
     # Run the optimisation
-    n_generations = 10
+    n_generations = 2
     for i in range(1,n_generations+1):
         print("Running generation %2d/%2d" % (i, n_generations))
         # Evolve the population
