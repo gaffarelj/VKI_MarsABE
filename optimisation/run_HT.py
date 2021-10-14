@@ -43,15 +43,18 @@ for i in range(1,n_generations+1):
     dt, t0 = time.time() - t0, time.time()
     print(" -> took %.1f seconds" % dt)
 
-fit_results, fit_inputs = np.array(HTp.FIT_RESULTS), np.array(HTp.FIT_INPUTS)
+fit_results, fit_inputs = np.array(HTp.FIT_RESULTS), HTp.FIT_INPUTS
 
 # Find the optimum if the sum of fitnesses is used
 idx_best = np.where(np.sum(fit_results[:,:len(fitness_weights)], axis=1) == np.min(np.sum(fit_results[:,:len(fitness_weights)], axis=1)))[0][0]
 optimum_input, optimum_result = fit_inputs[idx_best], fit_results[idx_best]
 
+# Save the results
+np.savez("optimisation/results/%s" % time.strftime("%y%m%d_%H%M%S"), inputs=fit_inputs, results=fit_results)
+
 # Print the results
-print("Optimum: %s \n  with initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
-    (optimum_input[0], min(optimum_input[1:3])/1e3, max(optimum_input[1:3])/1e3, \
+print("Optimum (when summing the fitness): %s \n  with initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
+    (SM.satellites[optimum_input[0]], min(optimum_input[1:3])/1e3, max(optimum_input[1:3])/1e3, \
         np.rad2deg(optimum_input[3]), np.rad2deg(optimum_input[4]), np.rad2deg(optimum_input[5])))
 print("Resulting optimum fitness:", optimum_result[:3]*np.array(fitness_weights))
 print("Resulting characteristics: mean power=%.2f W, total decay=%.2f km, mean altitude=%3d km, mean T/D=%.2f" % \

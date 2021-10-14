@@ -12,7 +12,7 @@ FIT_INPUTS, FIT_HASHS, FIT_RESULTS = [], [], []
 
 def comp_fitness(sat, h_p, h_a, i, omega, Omega):
     # Save the inputs in a list, and compute their hash
-    fit_input = [sat, h_p, h_a, i, omega, Omega]
+    fit_input = [sat.name, h_p, h_a, i, omega, Omega]
     fit_hash = hash(frozenset(fit_input))
     # Search if the fitness was already computed for these inputs
     if fit_hash in FIT_HASHS:
