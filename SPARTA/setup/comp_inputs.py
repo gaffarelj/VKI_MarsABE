@@ -171,7 +171,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "run                 %i\n" % (tot_epochs[i])
             
             run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm \n" % (s_name, h)
-            paraview_grid += "pvpython ../../tools/grid2paraview.py grid.%s_%skm %s_%skm -r ../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
+            paraview_grid += "pvpython ../../tools/grid2paraview.py grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
             
             # Write SPARTA inputs to input
             with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:

@@ -70,7 +70,7 @@ pvpython ../../tools/surf2paraview.py ../../setup/data/data.CS_XXXX CS_XXXX
 
 Similarly, the number of particles in the grid can be converted to ParaView by using the command below (from the [paraview/grid](paraview/grid) folder):
 ```
-pvpython ../../tools/grid2paraview.py grid.CS_XXXX_YYkm CS_XXXX_YYkm -r ../setup/results_sparta/CS_XXXX/npart_YYkm.*.gz
+pvpython ../../tools/grid2paraview.py grid.CS_XXXX_YYkm CS_XXXX_YYkm -r ../../setup/results_sparta/CS_XXXX/npart_YYkm.*.gz
 ```
 In the command above, grid.CS_XXXX_._YYkm is a file describing the grid geometry for satellite CS_XXXX at an altitude of YY km.
 
