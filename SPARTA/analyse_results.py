@@ -56,11 +56,11 @@ for s_name in sat_names:
                 # Read the file
                 data = np.array([l.decode().strip().split(" ") for l in gzip.open(res_file, "rb").readlines()[9:]], dtype=float)
                 # Get the average number of particles per cell
-                mean_npart = np.mean(data[:,0])
+                mean_npart = np.mean(data[:,1])
                 # Get the std of the number of particles per cell
-                std_npart = np.std(data[:,0])
+                std_npart = np.std(data[:,1])
                 # Get the maximum temperature
-                max_T = max(max_T, max(data[:,1]))
+                max_T = max(max_T, max(data[:,2]))
                 # Save number of particles data
                 results_np_mean.append(mean_npart), results_np_std.append(std_npart)
             print()
