@@ -63,6 +63,11 @@ When all of the input files have been created, they can all be run by using the 
 bash run_all.sh
 ```
 
+The SPARTA data files decribing the geometry can be converted to ParaView by using the following command (from the `paraview/surf` folder):
+```
+pvpython ../../tools/surf2paraview.py ../../setup/data/data.CS_XXXX CS_XXXX
+```
+
 ## Satellite configurations
 
 Different CubeSat configurations have been modeled, each with different solar panels configurations.
