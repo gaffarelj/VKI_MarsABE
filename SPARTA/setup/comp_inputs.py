@@ -23,6 +23,8 @@ fracs = [
 
 save_to_input = True
 run_all_cmd = "#!/bin/sh\n"
+paraview_surf = ""
+paraview_grid = ""
 sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
 L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
@@ -112,6 +114,8 @@ for j, s_name in enumerate(sat_names):
         if save_to_input:
             # Convert STL only for the first altitude
             if h == hs[0]:
+                # Write command to convert surface to ParaView
+                paraview_surf += "pvpython ../../tools/surf2paraview.py ../../setup/data/data.%s %s \n" % (s_name, s_name)
                 print("Converting binary STL to SPARTA surface...")
                 # Convert STL from binary to asci
                 os.system("python2 \"%s/SPARTA/tools/stl_B2A.py\" \"%s/SPARTA/setup/STL/%s.stl\" -rs" % (sys.path[0], sys.path[0], s_name))
@@ -119,17 +123,20 @@ for j, s_name in enumerate(sat_names):
                 os.system("python2 \"%s/SPARTA/tools/stl2surf.py\" \"%s/SPARTA/setup/STL/%s_ASCII.stl\" \"%s/SPARTA/setup/data/data.%s\"" % (sys.path[0], sys.path[0], s_name, sys.path[0], s_name))
             print("Saving input to file...")
             # Setup the SPARTA inputs
-            input_s = "# SPARTA input file for satellite %s, for an altitude of %.1fkm\n" % (s_name, h)
+            input_s =  "# SPARTA input file for satellite %s, for an altitude of %.1fkm\n" % (s_name, h)
             input_s += "print \"\"\nprint \"***** Running SPARTA simulation for %s, at h=%ikm *****\"\nprint \"\"\n" % (s_name, h)
             input_s += "seed                12345\n"
             input_s += "dimension           3\n"
+            grid_def= "dimension           3\n"
             input_s += "\n"
             input_s += "global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100\n"
             input_s += "\n"
             input_s += "boundary            o r r\n"
             input_s += "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
+            grid_def+= "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
             input_s += "\n"
             input_s += "create_grid         %i %i %i\n" % (np.ceil(n_x), np.ceil(n_y), np.ceil(n_z))
+            grid_def+= "create_grid         %i %i %i\n" % (np.ceil(n_x), np.ceil(n_y), np.ceil(n_z))
             input_s += "\n"
             input_s += "balance_grid        rcb cell\n"
             input_s += "\n"
@@ -164,12 +171,26 @@ for j, s_name in enumerate(sat_names):
             input_s += "run                 %i\n" % (tot_epochs[i])
             
             run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm \n" % (s_name, h)
+            paraview_grid += "pvpython ../../tools/grid2paraview.py grid.%s_%skm %s_%skm -r ../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
             
             # Write SPARTA inputs to input
             with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
                 input_f.write(input_s)
 
+            # Write grid definition in ParaView folder
+            with open(sys.path[0] + "/SPARTA/paraview/grid/grid.%s_%skm" % (s_name, h), "w") as input_f:
+                input_f.write(grid_def)
+
+
 if save_to_input:
     # Write command to run all SPARTA input files
     with open(sys.path[0] + "/SPARTA/setup/inputs/run_all.sh", "w") as run_f:
         run_f.write(run_all_cmd)
+    # Write command to create ParaView files
+    paraview_cmd = "#!/bin/sh\n"
+    paraview_cmd += "cd surf\n"
+    paraview_cmd += paraview_surf
+    paraview_cmd += "cd ../grid\n"
+    paraview_cmd += paraview_grid
+    with open(sys.path[0] + "/SPARTA/paraview/paraview_convert.sh", "w") as run_f:
+        run_f.write(paraview_cmd)

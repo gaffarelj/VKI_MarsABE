@@ -63,10 +63,18 @@ When all of the input files have been created, they can all be run by using the 
 bash run_all.sh
 ```
 
-The SPARTA data files decribing the geometry can be converted to ParaView by using the following command (from the `paraview/surf` folder):
+The SPARTA data files decribing the geometry can be converted to ParaView by using the following command (from the [paraview/surf](paraview/surf) folder):
 ```
 pvpython ../../tools/surf2paraview.py ../../setup/data/data.CS_XXXX CS_XXXX
 ```
+
+Similarly, the number of particles in the grid can be converted to ParaView by using the command below (from the [paraview/grid](paraview/grid) folder):
+```
+pvpython ../../tools/grid2paraview.py grid.CS_XXXX_YYkm CS_XXXX_YYkm -r ../setup/results_sparta/CS_XXXX/npart_YYkm.*.gz
+```
+In the command above, grid.CS_XXXX_._YYkm is a file describing the grid geometry for satellite CS_XXXX at an altitude of YY km.
+
+These two last commands can be run automatically by running `bash paraview_convert.sh` in the [paraview](paraview) folder.
 
 ## Satellite configurations
 
