@@ -39,7 +39,7 @@ algo_list = [
     pygmo.algorithm(pygmo.nspso(seed=seed)),
     pygmo.algorithm(pygmo.ihs(seed=seed)) # maybe, but only 1 pop improved by generation (-> increase gen number)
 ]
-sizes = [60, 10, 10, 10]
+sizes = [12, 10, 10, 10]
 
 algo_idx = 0
 pop = pygmo.population(problem, size=sizes[algo_idx], seed=seed)
@@ -48,7 +48,7 @@ algo = algo_list[algo_idx]
 opti_hist = []
 
 # Run the optimisation
-n_generations = 25
+n_generations = 10
 t0 = time.time()
 for i in range(1,n_generations+1):
     print("Running generation %2d / %2d" % (i, n_generations))
@@ -85,5 +85,5 @@ print("Explored %i different possibilities." % len(fit_inputs))
 
 # Plot the fitness progress over time
 PU.plot_multiple([list(range(1, n_generations+1))]*(len(fitness_weights)+1), opti_hist.T, "Generation number", "Best fitness", \
-    "optimisation/HT/history", legends=fitness_names+["|\mu|"], colors=["darkorange", "seagreen", "royalblue", "#202020"], \
+    "optimisation/HT/history", legends=fitness_names+["Average fitness"], colors=["darkorange", "seagreen", "royalblue", "#202020"], \
     lstyle=["solid"]*len(fitness_weights)+["dashed"])
