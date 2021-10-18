@@ -10,9 +10,11 @@ global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100
 boundary            o r r
 create_box          -0.7500 0.7500 -0.5000 0.5000 -0.5000 0.5000
 
-create_grid         50 34 34
+create_grid         50 34 34 levels 2 subset 2 15 5 5 5 2 2
 
 balance_grid        rcb cell
+
+write_grid          ../results_sparta/CS_3021/grid_115km.dat
 
 global              nrho 2.6628e+17 fnum 7.7916e+11
 
@@ -40,8 +42,8 @@ dump                1 surf all 25 ../results_sparta/CS_3021/force_115km.*.gz f_a
 compute             sum reduce sum f_avg[*]
 
 compute             npart grid all all n temp
-dump                2 grid all 25 ../results_sparta/CS_3021/npart_115km.*.gz c_npart[*]
+dump                2 grid all 25 ../results_sparta/CS_3021/npart_115km.*.gz id c_npart[*]
 
-stats               25
+stats               125
 stats_style         step cpu np nscoll nexit c_sum[1]
 run                 15000

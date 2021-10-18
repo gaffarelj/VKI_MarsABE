@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<VTKFile type="Collection" version="0.1"
+               byte_order="LittleEndian"
+               compressor="vtkZLibDataCompressor">
+   <Collection>    
+    <DataSet timestep="0" group="" part="0"   
+             file="CS_0020_85km/CS_0020_85km_0.pvtu"/>
+    <DataSet timestep="25" group="" part="0"   
+             file="CS_0020_85km/CS_0020_85km_25.pvtu"/>
+    <DataSet timestep="50" group="" part="0"   
+             file="CS_0020_85km/CS_0020_85km_50.pvtu"/>
+    <DataSet timestep="75" group="" part="0"   
+             file="CS_0020_85km/CS_0020_85km_75.pvtu"/>
+    <DataSet timestep="100" group="" part="0"   
+             file="CS_0020_85km/CS_0020_85km_100.pvtu"/>
+    <DataSet timestep="125" group="" part="0"   
+             file="CS_0020_85km/CS_0020_85km_125.pvtu"/>
+   </Collection>    
+</VTKFile>    

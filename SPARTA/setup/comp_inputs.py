@@ -130,7 +130,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "print \"\"\nprint \"***** Running SPARTA simulation for %s, at h=%ikm *****\"\nprint \"\"\n" % (s_name, h)
             input_s += "seed                12345\n"
             input_s += "dimension           3\n"
-            grid_def= "dimension           3\n"
+            grid_def = "dimension           3\n"
             input_s += "\n"
             input_s += "global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100\n"
             input_s += "\n"
@@ -138,13 +138,14 @@ for j, s_name in enumerate(sat_names):
             input_s += "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
             grid_def+= "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
             input_s += "\n"
-            input_s += "create_grid         %i %i %i\n" % (np.ceil(n_x), np.ceil(n_y), np.ceil(n_z))
-            grid_def+= "create_grid         %i %i %i\n" % (np.ceil(n_x), np.ceil(n_y), np.ceil(n_z))
+            input_s += "create_grid         %i %i %i levels 2 subset 2 15 5 5 5 2 2\n" % (np.ceil(n_x), np.ceil(n_y), np.ceil(n_z))
             input_s += "\n"
             input_s += "balance_grid        rcb cell\n"
             input_s += "\n"
-            f = 1                           # increase number of simulated particles by increasing f
-            input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num/f)
+            input_s += "write_grid          ../results_sparta/%s/grid_%skm.dat\n" % (s_name, h)
+            grid_def+= "read_grid           ../../setup/results_sparta/%s/grid_%skm.dat\n" % (s_name, h)
+            input_s += "\n"
+            input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num)
             input_s += "\n"
             input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
             for n, sp_n in enumerate(species_names):
@@ -176,14 +177,14 @@ for j, s_name in enumerate(sat_names):
             run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm \n" % (s_name, h)
             paraview_grid += "rm -rf %s_%skm \n" % (s_name, h)
             paraview_grid += "rm -rf %s_%skm.pvd \n" % (s_name, h)
-            paraview_grid += "pvpython ../../tools/grid2paraview.py grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
+            paraview_grid += "pvpython ../../tools/grid2paraview.py def/grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
             
             # Write SPARTA inputs to input
             with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
                 input_f.write(input_s)
 
             # Write grid definition in ParaView folder
-            with open(sys.path[0] + "/SPARTA/paraview/grid/grid.%s_%skm" % (s_name, h), "w") as input_f:
+            with open(sys.path[0] + "/SPARTA/paraview/grid/def/grid.%s_%skm" % (s_name, h), "w") as input_f:
                 input_f.write(grid_def)
 
 

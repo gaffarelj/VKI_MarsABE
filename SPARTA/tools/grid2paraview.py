@@ -314,9 +314,7 @@ def write_grid_chunk(ug, chunk_id, num_chunks, grid_desc, time_steps_dict, \
   writer = vtk.vtkXMLUnstructuredGridWriter()
   writer.SetInputData(ug)
   list_dt = sorted(time_steps_dict.keys())
-  print(0, list_dt)
   for idx, time in enumerate(list_dt):
-    print(1, time)
     read_time_step_data(time_steps_dict[time], ug, id_map)
     filepath = os.path.join(output_file, output_file + '_' + str(chunk_id) +
       '_' + str(time) + '.vtu')
@@ -930,7 +928,7 @@ def read_grid_levels(gl_array, grid_desc, level):
     print("Error reading SPARTA grid description file")
     print("create_grid specification is invalid: ", ' '.join(gl_array))
     sys.exit(1)
-
+    
   grid_desc["create_grid"][level] = {}
   Px = grid_desc["create_grid"][level - 1]["Cx"]
   Py = grid_desc["create_grid"][level - 1]["Cy"]
@@ -1078,28 +1076,16 @@ def read_time_step_data(time_step_file_list, ug, id_hash):
       print("Expected data columns:  ", ug.GetCellData().GetNumberOfArrays())
       print("Found data columns:  ", len(array_names))
       return
+
+    fh = gzip.open(f, "r")
+    lines = np.array([l.decode().strip().split(" ") for l in fh.readlines()[9:]], dtype=float)
+    fh.close()
    
-    arrays = []
-    for val in array_names:
-      arrays.append(ug.GetCellData().GetArray(val))
-
-    lines = np.array(fh.readlines(), dtype=str)
-    fh.close()
     for line in lines:
-      s = clean_line(line)
-      sl = s.split()
-      if len(sl) == len(array_names):
-        index = int(sl[id_index])
-        if index not in id_hash:
-          continue
-        for idx, val in enumerate(array_names):
-          arrays[idx].SetValue(id_hash[index], float(sl[idx]))
-      else:
-        print("Error reading SPARTA result file: ", f)
-        print("Flow data line cannot be processed:  ", line)
-        return
-
-    fh.close()
+      index = int(line[0])
+      for i_n, val in enumerate(line):
+        name = array_names[i_n]
+        ug.GetCellData().GetArray(name).SetValue(id_hash[index], val)
 
 def write_pvd_file(time_steps_dict, file_name, num_chunks):
   fh = open(file_name + ".pvd", "w")
