@@ -33,9 +33,12 @@ for j, s_name in enumerate(sat_names):
     try:
         os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
     except (FileExistsError, OSError):
-        # Un/comment the two following lines to always remove the previous results when new input files are made
-        shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
-        os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+        try:
+            # Un/comment the two following lines to always remove the previous results when new input files are made
+            shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+            os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+        except (PermissionError):
+            print("Warning: could not delete folder", s_name)
     # Loop trough conditions
     for i, h in enumerate(hs):
         print("\nWith conditions at altitude of %i km:" % h)
@@ -164,13 +167,15 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             if check_part_cells:
                 input_s += "compute             npart grid all all n temp\n"
-                input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz c_npart[*]\n" % (meas_dt[i], s_name, h)
+                input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz id c_npart[*]\n" % (meas_dt[i], s_name, h)
                 input_s += "\n"
-            input_s += "stats               %i\n" % (meas_dt[i])
+            input_s += "stats               %i\n" % (meas_dt[i]*5)
             input_s += "stats_style         step cpu np nscoll nexit c_sum[1]\n"
             input_s += "run                 %i\n" % (tot_epochs[i])
             
             run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm \n" % (s_name, h)
+            paraview_grid += "rm -rf %s_%skm \n" % (s_name, h)
+            paraview_grid += "rm -rf %s_%skm.pvd \n" % (s_name, h)
             paraview_grid += "pvpython ../../tools/grid2paraview.py grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
             
             # Write SPARTA inputs to input
@@ -189,6 +194,7 @@ if save_to_input:
     # Write command to create ParaView files
     paraview_cmd = "#!/bin/sh\n"
     paraview_cmd += "cd surf\n"
+    paraview_cmd += "rm -rf *\n"
     paraview_cmd += paraview_surf
     paraview_cmd += "cd ../grid\n"
     paraview_cmd += paraview_grid
