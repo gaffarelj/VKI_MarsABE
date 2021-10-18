@@ -14,6 +14,7 @@ from __future__ import division
 #   See the README file in the top-level SPARTA directory.
 
 import math
+import gzip
 import argparse
 import sys
 import os
@@ -1015,7 +1016,7 @@ def read_grid_description_file(sif, grid_desc):
 def read_time_steps(result_file_list, time_steps_dict):
   for f in result_file_list:
     try:
-      fh = open(f, "r")
+      fh = gzip.open(f, "r")
     except IOError:
       print("Unable to open SPARTA result file: ", f)
       sys.exit(1)
@@ -1045,7 +1046,7 @@ def read_array_names(fh, array_names):
 def read_time_step_data(time_step_file_list, ug, id_hash):
   for f in time_step_file_list:
     try:
-      fh = open(f, "r")
+      fh = gzip.open(f, "r")
     except IOError:
       print("Unable to open SPARTA result file: ", f)
       return
@@ -1111,7 +1112,7 @@ def write_pvd_file(time_steps_dict, file_name, num_chunks):
       file_list = time_steps_dict[time]
       if file_list:
         try:
-          afh = open(file_list[0], "r")
+          afh = gzip.open(file_list[0], "r")
           read_array_names(afh, array_names)
           afh.close()
         except IOError:
@@ -1162,7 +1163,7 @@ def write_slice_pvd_file(time_steps_dict, output_file):
       file_list = time_steps_dict[time]
       if file_list:
         try:
-          afh = open(file_list[0], "r")
+          afh = gzip.open(file_list[0], "r")
         except IOError:
           print("Unable to open SPARTA result file: ", f)
           return
