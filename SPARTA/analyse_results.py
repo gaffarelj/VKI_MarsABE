@@ -33,7 +33,7 @@ for s_name in sat_names:
             # Read the file
             data = np.array([l.decode().strip().split(" ") for l in gzip.open(res_file, "rb").readlines()[9:]], dtype=float)
             # Sum data from all surface
-            forces = np.sum(data, axis=0)
+            forces = np.sum(data[:,:3], axis=0)
             # Save forces
             results.append(forces)
         print()
@@ -49,20 +49,25 @@ for s_name in sat_names:
         print("Drag = %.5e N for %s at %.1fkm" % (-np.mean(results[-len(times)//10:,0]), s_name, h))
 
         if check_part_cells:
+            max_T = 0
             for i, res_file in enumerate(file_list_pc):
                 print("Reading grid file %i/%i..." % (i+1, len(file_list_pc)), end="\r")
                 times_np.append(i*dt)
                 # Read the file
-                data = np.array(gzip.open(res_file, "rb").readlines()[9:], dtype=int)
+                data = np.array([l.decode().strip().split(" ") for l in gzip.open(res_file, "rb").readlines()[9:]], dtype=float)
                 # Get the average number of particles per cell
-                mean_npart = np.mean(data)
+                mean_npart = np.mean(data[:,0])
                 # Get the std of the number of particles per cell
-                std_npart = np.std(data)
+                std_npart = np.std(data[:,0])
+                # Get the maximum temperature
+                max_T = max(max_T, max(data[:,1]))
                 # Save number of particles data
                 results_np_mean.append(mean_npart), results_np_std.append(std_npart)
             print()
             # Convert the results to a dict
             results_np_mean, results_np_std = np.array(results_np_mean), np.array(results_np_std)
+
+            #print("Maximum temperature of %.5e K" % max_T)
 
             # Plot the number of particles over time
             PU.plot_multiple([times_np]*3, [results_np_mean, results_np_mean+3*results_np_std, results_np_mean-3*results_np_std], \

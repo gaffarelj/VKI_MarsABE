@@ -6,7 +6,7 @@ import shutil
 from tools import plot_utilities as PU
 
 check_part_cells = True             # Set to True to check the number of particles in each cells
-tot_epochs = [10000, 10000, 10000]  # Number of simulation epochs for each altitude
+tot_epochs = [20000, 15000, 10000]  # Number of simulation epochs for each altitude
 meas_dt = [25, 25, 25]              # When to save data
 
 # Define conditions at different orbital altitudes
@@ -156,11 +156,8 @@ for j, s_name in enumerate(sat_names):
             input_s += "compute             sum reduce sum f_avg[*]\n"
             input_s += "\n"
             if check_part_cells:
-                input_s += "compute             npart grid all all n\n"
+                input_s += "compute             npart grid all all n temp\n"
                 input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz c_npart[*]\n" % (meas_dt[i], s_name, h)
-                #input_s += "\n"
-                #input_s += "dump                img image all 50 res.*.ppm type vx\n"
-                # change color to be compute or fix equal to sum of particules in cell (c_npart[*])
                 input_s += "\n"
             input_s += "stats               %i\n" % (meas_dt[i])
             input_s += "stats_style         step cpu np nscoll nexit c_sum[1]\n"
