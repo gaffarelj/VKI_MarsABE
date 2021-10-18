@@ -4,7 +4,7 @@ import numpy as np
 
 class satellite:
     def __init__(self, name, mass, Cd, S_ref=0.01, Cd_h=[85e3, 115e3, 150e3], \
-        SA_areas=[0, 0, 0], SA_frac=0.7042, SA_eff=0.29, EPS_eff=0.93, verbose=False):
+        SA_areas=[0, 0, 0], SA_frac=0.7042, SA_eff=0.29, EPS_eff=0.89, verbose=False):
         """
         Satellite class, containing all relevant information for all analysed satellites configurations
         Inputs:
