@@ -44,4 +44,4 @@ dump                2 grid all 5 ../results_sparta/CS_2020/npart_150km.*.gz c_np
 
 stats               5
 stats_style         step cpu np nscoll nexit c_sum[1]
-run                 75
+run                 1000

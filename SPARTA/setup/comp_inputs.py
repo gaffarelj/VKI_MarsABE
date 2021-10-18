@@ -6,8 +6,8 @@ import shutil
 from tools import plot_utilities as PU
 
 check_part_cells = True             # Set to True to check the number of particles in each cells
-tot_epochs = [20000, 1000, 75]     # Number of simulation epochs for each altitude
-meas_dt = [50, 5, 5]                # When to save data
+tot_epochs = [1000, 1000, 1000]     # Number of simulation epochs for each altitude
+meas_dt = [5, 5, 5]                 # When to save data
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
