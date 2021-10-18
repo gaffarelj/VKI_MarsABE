@@ -15,11 +15,11 @@ from __future__ import division
 
 import math
 import gzip
+import numpy as np
 import argparse
 import sys
 import os
 import vtk
-import platform
 import time
 import glob
 from datetime import timedelta
@@ -313,15 +313,15 @@ def write_grid_chunk(ug, chunk_id, num_chunks, grid_desc, time_steps_dict, \
 
   writer = vtk.vtkXMLUnstructuredGridWriter()
   writer.SetInputData(ug)
-  for idx, time in enumerate(sorted(time_steps_dict.keys())):
-    pt = ParallelTimer()
+  list_dt = sorted(time_steps_dict.keys())
+  print(0, list_dt)
+  for idx, time in enumerate(list_dt):
+    print(1, time)
     read_time_step_data(time_steps_dict[time], ug, id_map)
     filepath = os.path.join(output_file, output_file + '_' + str(chunk_id) +
       '_' + str(time) + '.vtu')
     writer.SetFileName(filepath)
     writer.Write()
-    pt.report_collective_time("grid file write time %s (wall clock time) for step "\
-      + str(idx))
 
   cr = ChunkReport()
   cr.reportChunkComplete(chunk_id)
@@ -903,6 +903,8 @@ def create_2d_amr_grids(grid_desc, level, parent_bit_mask, parent_id, \
     return build_2d_grid(parent_bit_mask, parent_id, origin, spacing, ndims, chunk_info, grid_desc)
   
 def clean_line(line):
+  if type(line) != str:
+    line = str(line)
   line = line.partition('#')[0]
   return line.strip()
 
@@ -1020,23 +1022,23 @@ def read_time_steps(result_file_list, time_steps_dict):
     except IOError:
       print("Unable to open SPARTA result file: ", f)
       sys.exit(1)
-
-    for line in fh:
-      s = clean_line(line)
-      if s.lower().replace(" ", "") == "item:timestep":
-        for line in fh:
-          time = int(line)
-          if time in time_steps_dict.keys():
-            time_steps_dict[time].append(f)
-          else:
-            time_steps_dict[time] = [f]
-          break
-        break
-
+      
+    lines = np.array(fh.readlines(), dtype=str)
     fh.close()
 
+    for i, line in enumerate(lines):
+      s = clean_line(line)
+      if s.lower().replace(" ", "") == "item:timestep":
+        time = int(lines[i+1])
+        if time in time_steps_dict.keys():
+          time_steps_dict[time].append(f)
+        else:
+          time_steps_dict[time] = [f]
+      break
+
 def read_array_names(fh, array_names):
-  for line in fh:
+  lines = np.array(fh.readlines(), dtype=str)
+  for line in lines:
     s = clean_line(line)
     if s.lower().replace(" ", "")[:10] == "item:cells":
       for name in s.split()[2:]:
@@ -1081,7 +1083,9 @@ def read_time_step_data(time_step_file_list, ug, id_hash):
     for val in array_names:
       arrays.append(ug.GetCellData().GetArray(val))
 
-    for line in fh:
+    lines = np.array(fh.readlines(), dtype=str)
+    fh.close()
+    for line in lines:
       s = clean_line(line)
       sl = s.split()
       if len(sl) == len(array_names):
@@ -1140,7 +1144,7 @@ def write_pvtu_file(array_names, output_file, num_chunks, time):
   fh.write('<PPoints>\n')
   fh.write('<PDataArray type="Float32" Name="Points" NumberOfComponents="3"/>\n')
   fh.write('</PPoints>\n')
-
+  
   for chunk_id in range(num_chunks):
     fh.write('<Piece Source="' + output_file + '_' + str(chunk_id) + '_' + \
       str(time) + '.vtu"/>\n')
@@ -1215,78 +1219,16 @@ class ChunkReport:
 
 class ParallelTimer:
   def __init__(self):
-    #from mpi4py import MPI
-    #if MPI.Is_initialized():
-      #self.comm = MPI.COMM_WORLD
-      #self.rank = self.comm.Get_rank()
-      #self.size = self.comm.Get_size()
-      #self.start_time = time.time()
-    if True:#else:
-      self.size = 1
-      self.rank = 0
+    self.size = 1
+    self.rank = 0
+    self.start_time = time.time()
 
   def report_rank_zero_time(self, message):
     if self.rank == 0:
-      time_secs = 999#time.time() - self.start_time
+      time_secs = time.time() - self.start_time
       print("")
       print(message % timedelta(seconds=round(time_secs)))
       print("")
-
-  def report_collective_time(self, message):
-    if self.size == 1:
-      return
-    from mpi4py import MPI
-    time_secs = time.time() - self.start_time
-    total_time = self.comm.reduce(time_secs, op=MPI.SUM)
-    max_time = self.comm.reduce(time_secs, op=MPI.MAX)
-    min_time = self.comm.reduce(time_secs, op=MPI.MIN)
-    if self.rank == 0:
-      print("")
-      print("Average " + message % timedelta(seconds=total_time/float(self.size)))
-      print("Maxiumum " + message % timedelta(seconds=max_time))
-      print("Minimum " + message % timedelta(seconds=min_time))
-      print("")
-
-def report_collective_grid_sizes(ug):
-  from mpi4py import MPI
-  num_cells = ug.GetNumberOfCells()
-  mem_size = ug.GetActualMemorySize()
-  if MPI.Is_initialized():
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-    total_cell_count = comm.reduce(num_cells, op=MPI.SUM)
-    max_cell_count = comm.reduce(num_cells, op=MPI.MAX)
-    min_cell_count = comm.reduce(num_cells, op=MPI.MIN)
-    total_mem_used = comm.reduce(mem_size, op=MPI.SUM)
-    min_mem_used = comm.reduce(mem_size, op=MPI.MIN)
-    max_mem_used = comm.reduce(mem_size, op=MPI.MAX)
-    if rank == 0:
-      print("Average grid cell count over MPI ranks: {:.1e}"\
-        .format(total_cell_count/float(size)))
-      print("Minimum grid cell count over MPI ranks: {:.1e}"\
-        .format(min_cell_count))
-      print("Maximum grid cell count over MPI ranks: {:.1e}"\
-        .format(max_cell_count))
-      print("Average grid memory used over MPI ranks: {} MB"\
-        .format((total_mem_used/float(size))/1000.0))
-      print("Minimum grid memory used over MPI ranks: {} MB"\
-        .format(min_mem_used/1000.0))
-      print("Maximum grid memory used over MPI ranks: {} MB"\
-        .format(max_mem_used/1000.0))
-
-def setup_for_MPI(params_dict):
-  from mpi4py import MPI
-  pd = params_dict
-  comm = MPI.COMM_WORLD
-  pd["size"] = comm.Get_size()
-  pd["rank"] = comm.Get_rank()
-
-  pd["chunking"] = comm.bcast(pd["chunking"], root=0)
-  pd["grid_desc"] = comm.bcast(pd["grid_desc"], root=0)
-  pd["time_steps_dict"] = comm.bcast(pd["time_steps_dict"], root=0)
-  pd["paraview_output_file"] = comm.bcast(pd["paraview_output_file"], root=0)
-  pd["catalystscript"] = comm.bcast(pd["catalystscript"], root=0)
 
 def run_pvbatch_output(params_dict):
   rank =  params_dict["rank"]
@@ -1295,7 +1237,6 @@ def run_pvbatch_output(params_dict):
   grid_desc = params_dict["grid_desc"]
   time_steps_dict = params_dict["time_steps_dict"]
   paraview_output_file = params_dict["paraview_output_file"]
-  catalystscript = params_dict["catalystscript"]
 
   if rank == 0:
     print("Processing grid chunk(s) on " + str(size) + " MPI ranks")
@@ -1324,27 +1265,10 @@ def run_pvbatch_output(params_dict):
   if ug is None:
     ug = vtk.vtkUnstructuredGrid()
 
-  report_collective_grid_sizes(ug)
-
-  if catalystscript is not None:
-    if rank == 0:
-      print("Calling Catalyst over " + str(len(time_steps_dict)) + " time step(s) ...")
-    import coprocessor
-    coprocessor.initialize()
-    coprocessor.addscript(catalystscript)
-    id_map = create_cell_global_id_to_local_id_map(ug)
-    for idx, time in enumerate(sorted(time_steps_dict.keys())):
-      pt = ParallelTimer()
-      read_time_step_data(time_steps_dict[time], ug, id_map)
-      coprocessor.coprocess(time, idx, ug, paraview_output_file + '.pvd')
-      pt.report_collective_time("catalyst output time %s (wall clock time) for step "\
-        + str(idx))
-    coprocessor.finalize()
-  else:
-    if rank == 0:
-      print("Writing grid files over " + str(len(time_steps_dict)) + " time step(s) ...")
-    write_grid_chunk(ug, rank, size, grid_desc, time_steps_dict, \
-      paraview_output_file)
+  if rank == 0:
+    print("Writing grid files over " + str(len(time_steps_dict)) + " time step(s) ...")
+  write_grid_chunk(ug, rank, size, grid_desc, time_steps_dict, \
+    paraview_output_file)
 
 if __name__ == "__main__":
   controller = vtk.vtkMultiProcessController.GetGlobalController()
@@ -1476,38 +1400,9 @@ if __name__ == "__main__":
     if not args.catalystscript:
       os.mkdir(args.paraview_output_file)
 
-  import platform
-  if platform.system() == 'Linux' or platform.system() == 'Darwin':
-    if num_procs == 1:
-      import multiprocessing as mp
-      pool = mp.Pool()
-      for idx, chunk in enumerate(chunking):
-        pool.apply_async(create_and_write_grid_chunk, \
-                         args=(idx, chunk, len(chunking), grid_desc, \
-                               time_steps_dict, args.paraview_output_file, ))
-      pool.close()
-      pool.join()
-    else:
-      pd = {}
-      if local_proc_id == 0:
-        pd["catalystscript"] = args.catalystscript
-        pd["paraview_output_file"] = args.paraview_output_file
-        pd["chunking"] = chunking
-        pd["grid_desc"] = grid_desc
-        pd["time_steps_dict"] = time_steps_dict
-      else:
-        pd["catalystscript"] = None
-        pd["paraview_output_file"] = None
-        pd["chunking"] = None
-        pd["grid_desc"] = None
-        pd["time_steps_dict"] = None
-
-      setup_for_MPI(pd)
-      run_pvbatch_output(pd)
-  else:
-    for idx, chunk in enumerate(chunking):
-      create_and_write_grid_chunk(idx, chunk, len(chunking), grid_desc, time_steps_dict,
-                                  args.paraview_output_file)
+  for idx, chunk in enumerate(chunking):
+    create_and_write_grid_chunk(idx, chunk, len(chunking), grid_desc, time_steps_dict,
+                                args.paraview_output_file)
   if local_proc_id == 0:
     if args.catalystscript is None:
       if "slice" not in grid_desc:
