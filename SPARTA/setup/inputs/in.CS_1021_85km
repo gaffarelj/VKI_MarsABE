@@ -41,9 +41,9 @@ fix                 avg ave/surf all 1 5 5 c_2[*] ave running
 dump                1 surf all 25 ../results_sparta/CS_1021/force_85km.*.gz f_avg[*]
 compute             sum reduce sum f_avg[*]
 
-compute             npart grid all all n temp
+compute             npart grid all all n nrho
 dump                2 grid all 25 ../results_sparta/CS_1021/npart_85km.*.gz id c_npart[*]
 
 stats               125
 stats_style         step cpu np nscoll nexit c_sum[1]
-run                 2500
+run                 4000

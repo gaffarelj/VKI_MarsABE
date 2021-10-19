@@ -83,11 +83,7 @@ for vert3 in triverts:
 # print SPARTA surface file
 
 fp = open(sys.argv[2],"w")
-if name:
-  print >>fp,"# SPARTA surface file, from STL file %s with name %s\n" % \
-      (sys.argv[1],name)
-else:
-  print >>fp,"# SPARTA surface file, from STL file\n",sys.argv[1]
+print >>fp,"# SPARTA surface file\n"
 
 print >>fp,len(verts),"points"
 print >>fp,len(tris),"triangles"
