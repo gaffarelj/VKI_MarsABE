@@ -10,13 +10,13 @@ global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100
 boundary            o r r
 create_box          -0.7500 0.7500 -0.5000 0.5000 -0.5000 0.5000
 
-create_grid         50 34 34 levels 2 subset 2 15 5 5 5 2 2
+create_grid         100 67 67 levels 2 subset 2 15 5 5 5 2 2
 
 balance_grid        rcb cell
 
 write_grid          ../results_sparta/CS_2020/grid_85km.dat
 
-global              nrho 1.0028e+19 fnum 2.9343e+13
+global              nrho 1.0028e+19 fnum 3.6679e+12
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3494.1700 0.0 0.0 frac 0.9050
@@ -46,4 +46,4 @@ dump                2 grid all 25 ../results_sparta/CS_2020/npart_85km.*.gz id c
 
 stats               125
 stats_style         step cpu np nscoll nexit c_sum[1]
-run                 20000
+run                 5000

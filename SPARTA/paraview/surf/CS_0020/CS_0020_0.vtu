@@ -10,8 +10,8 @@
         <DataArray type="Float32" Name="Points" NumberOfComponents="3" format="appended" RangeMin="0.00035355340739"     RangeMax="0.30822071199"        offset="0"                   />
       </Points>
       <Cells>
-        <DataArray type="Int64" IdType="1" Name="connectivity" format="appended" RangeMin=""                     RangeMax=""                     offset="24640"               />
-        <DataArray type="Int64" IdType="1" Name="offsets" format="appended" RangeMin=""                     RangeMax=""                     offset="58856"               />
+        <DataArray type="Int64" Name="connectivity" format="appended" RangeMin=""                     RangeMax=""                     offset="24640"               />
+        <DataArray type="Int64" Name="offsets" format="appended" RangeMin=""                     RangeMax=""                     offset="58856"               />
         <DataArray type="UInt8" Name="types" format="appended" RangeMin=""                     RangeMax=""                     offset="73008"               />
       </Cells>
     </Piece>
