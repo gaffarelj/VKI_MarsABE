@@ -6,11 +6,11 @@ import shutil
 from tools import plot_utilities as PU
 
 check_part_cells = True             # Set to True to check the number of particles in each cells
-tot_epochs = [10000, 8750, 7500]    # Number of simulation epochs for each altitude
+tot_epochs = [1000, 8750, 7500]    # Number of simulation epochs for each altitude
 meas_dt = [25, 25, 25]              # When to save data
 
 # Define conditions at different orbital altitudes
-hs = [85, 115, 150]
+hs = [85]#, 115, 150]
 rhos = [7.1E-07, 1.8E-08, 1.6E-10]
 ps = [2.3E-02, 3.7E-04, 7.1E-06]
 Ts = [135, 115, 175]
@@ -25,7 +25,7 @@ save_to_input = True
 run_all_cmd = "#!/bin/sh\n"
 paraview_surf = ""
 paraview_grid = ""
-sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
+sat_names = ["CS_0020"]#, "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
 L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
     print("\n\n* Satellite", s_name)
@@ -86,7 +86,7 @@ for j, s_name in enumerate(sat_names):
         grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), l_box/50)       # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), l_box/50)    # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
-        f = 2  # increase this factor for an extra fine grid
+        f = 4  # increase this factor for an extra fine grid
         n_x = l_box / ((grid_f + grid_ps)/2)*f                          # spacing of grid along x
         n_y = w_box / ((grid_f + grid_ps)/2)*f                          # number of grid segments along y
         n_z = h_box / ((grid_f + grid_ps)/2)*f                          # number of grid segments along z
@@ -178,7 +178,7 @@ for j, s_name in enumerate(sat_names):
             run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm \n" % (s_name, h)
             paraview_grid += "rm -rf %s_%skm \n" % (s_name, h)
             paraview_grid += "rm -rf %s_%skm.pvd \n" % (s_name, h)
-            paraview_grid += "echo 'Converting result grid of %s at %skm to ParaView...'" % (s_name, h)
+            paraview_grid += "echo 'Converting result grid of %s at %skm to ParaView...'\n" % (s_name, h)
             paraview_grid += "pvpython ../../tools/grid2paraview.py def/grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
             
             # Write SPARTA inputs to input
@@ -201,5 +201,8 @@ if save_to_input:
     paraview_cmd += paraview_surf
     paraview_cmd += "cd ../grid\n"
     paraview_cmd += paraview_grid
-    with open(sys.path[0] + "/SPARTA/paraview/paraview_convert.sh", "w") as run_f:
+    with open(sys.path[0] + "/SPARTA/paraview/paraview_convert.sh", "r+") as run_f:
+        run_f.seek(0)
         run_f.write(paraview_cmd)
+        run_f.truncate()
+
