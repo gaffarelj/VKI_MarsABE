@@ -60,7 +60,7 @@ for s_name in sat_names:
                 # Get the std of the number of particles per cell
                 std_npart = np.std(data[:,1])
                 # Get the maximum temperature
-                max_T = max(max_T, max(data[:,2]))
+                #max_T = max(max_T, max(data[:,2]))
                 # Save number of particles data
                 results_np_mean.append(mean_npart), results_np_std.append(std_npart)
             print()
