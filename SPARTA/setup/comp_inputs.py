@@ -50,9 +50,9 @@ for j, s_name in enumerate(sat_names):
         T = Ts[i]       # temperature [K]
         u_s = Vs[i]     # free-stream velocity [m/s]
         L = L_s[j]      # reference length [m] (satellite width)
-        h_box = 1.0     # box height [m]
-        w_box = 1.0     # box width [m]
-        l_box = 1.5     # box length [m]
+        h_box = 0.3     # box height [m]
+        w_box = 0.3     # box width [m]
+        l_box = 0.75     # box length [m]
         # Fraction of each species
         species_frac = fracs[i]
         if round(sum(species_frac), 5) != 1:
