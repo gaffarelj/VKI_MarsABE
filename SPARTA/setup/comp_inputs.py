@@ -168,7 +168,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "compute             sum reduce sum f_avg[*]\n"
             input_s += "\n"
             if check_part_cells:
-                input_s += "compute             npart grid all all n\n"
+                input_s += "compute             npart grid all all n nrho\n"
                 input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz id c_npart[*]\n" % (meas_dt[i], s_name, h)
                 input_s += "\n"
             input_s += "stats               %i\n" % (meas_dt[i]*5)
