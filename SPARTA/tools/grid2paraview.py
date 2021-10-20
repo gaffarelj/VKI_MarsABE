@@ -1085,7 +1085,9 @@ def read_time_step_data(time_step_file_list, ug, id_hash):
       index = int(line[0])
       for i_n, val in enumerate(line):
         name = array_names[i_n]
-        ug.GetCellData().GetArray(name).SetValue(id_hash[index], val)
+        if index in id_hash:
+          ug.GetCellData().GetArray(name).SetValue(id_hash[index], val)
+
 
 def write_pvd_file(time_steps_dict, file_name, num_chunks):
   fh = open(file_name + ".pvd", "w")
