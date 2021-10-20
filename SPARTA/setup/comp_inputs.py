@@ -180,9 +180,7 @@ for j, s_name in enumerate(sat_names):
             paraview_grid += "rm -rf %s_%skm.pvd \n" % (s_name, h)
             paraview_grid += "echo 'Converting result grid of %s at %skm to ParaView...'\n" % (s_name, h)
             paraview_grid += "pvpython ../../tools/grid2paraview.py def/grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
-            paraview_grid += "zip -r %s_%skm.zip %s_%skm.pvd %s_%skm/*\n" % (s_name, h, s_name, h, s_name, h)
-            paraview_grid += "zipsplit -n 125000000 -b %s_%skm %s_%skm.zip\n" % (s_name, h, s_name, h)
-            paraview_grid += "rm %s_%skm.zip\n" % (s_name, h)
+            paraview_grid += "zip -r -s 95m %s_%skm.zip %s_%skm.pvd %s_%skm/*\n" % (s_name, h, s_name, h, s_name, h)
             
             # Write SPARTA inputs to input
             with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
