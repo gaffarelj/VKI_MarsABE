@@ -86,7 +86,7 @@ for j, s_name in enumerate(sat_names):
         grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), l_box/50)       # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), l_box/50)    # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
-        f = 4  # increase this factor for an extra fine grid
+        f = 5  # increase this factor for an extra fine grid
         n_x = l_box / ((grid_f + grid_ps)/2)*f                          # spacing of grid along x
         n_y = w_box / ((grid_f + grid_ps)/2)*f                          # number of grid segments along y
         n_z = h_box / ((grid_f + grid_ps)/2)*f                          # number of grid segments along z
@@ -192,8 +192,10 @@ for j, s_name in enumerate(sat_names):
 
 if save_to_input:
     # Write command to run all SPARTA input files
-    with open(sys.path[0] + "/SPARTA/setup/inputs/run_all.sh", "w") as run_f:
+    with open(sys.path[0] + "/SPARTA/setup/inputs/run_all.sh", "r+") as run_f:
+        run_f.seek(0)
         run_f.write(run_all_cmd)
+        run_f.truncate()
     # Write command to create ParaView files
     paraview_cmd = "#!/bin/sh\n"
     paraview_cmd += "cd surf\n"
