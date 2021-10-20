@@ -354,6 +354,9 @@ log.sparta
 SPARTA/setup/results_sparta/*
 Fluent
 optimisation/results/*.npz
-SPARTA/paraview/*
-!SPARTA/paraview/*.zip
-!SPARTA/paraview/*.gif
+SPARTA/paraview/*.sh
+SPARTA/paraview/surf/*
+SPARTA/paraview/grid/*
+!SPARTA/paraview/surf/*.zip
+!SPARTA/paraview/grid/*.zip
+!SPARTA/paraview/results/*.gif
