@@ -192,10 +192,14 @@ for j, s_name in enumerate(sat_names):
 
 if save_to_input:
     # Write command to run all SPARTA input files
-    with open(sys.path[0] + "/SPARTA/setup/inputs/run_all.sh", "r+") as run_f:
-        run_f.seek(0)
-        run_f.write(run_all_cmd)
-        run_f.truncate()
+    try:
+        with open(sys.path[0] + "/SPARTA/setup/inputs/run_all.sh", "r+") as run_f:
+            run_f.seek(0)
+            run_f.write(run_all_cmd)
+            run_f.truncate()
+    except FileNotFoundError:
+        with open(sys.path[0] + "/SPARTA/setup/inputs/run_all.sh", "w") as run_f:
+            run_f.write(run_all_cmd)
     # Write command to create ParaView files
     paraview_cmd = "#!/bin/sh\n"
     paraview_cmd += "cd surf\n"
@@ -203,8 +207,11 @@ if save_to_input:
     paraview_cmd += paraview_surf
     paraview_cmd += "cd ../grid\n"
     paraview_cmd += paraview_grid
-    with open(sys.path[0] + "/SPARTA/paraview/paraview_convert.sh", "r+") as run_f:
-        run_f.seek(0)
-        run_f.write(paraview_cmd)
-        run_f.truncate()
-
+    try:
+        with open(sys.path[0] + "/SPARTA/paraview/paraview_convert.sh", "r+") as run_f:
+            run_f.seek(0)
+            run_f.write(paraview_cmd)
+            run_f.truncate()
+    except FileNotFoundError:
+        with open(sys.path[0] + "/SPARTA/paraview/paraview_convert.sh", "w") as run_f:
+            run_f.write(paraview_cmd)
