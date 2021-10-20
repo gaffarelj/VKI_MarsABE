@@ -22,7 +22,7 @@ fracs = [
 ]
 
 save_to_input = True
-run_all_cmd = "#!/bin/sh\n"
+run_all_cmd = "#!/bin/sh\nmodule load openmpi/n"
 paraview_surf = ""
 paraview_grid = ""
 sat_names = ["CS_0020"]#, "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
