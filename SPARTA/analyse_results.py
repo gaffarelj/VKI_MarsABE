@@ -70,5 +70,5 @@ for s_name in sat_names:
             #print("Maximum temperature of %.5e K" % max_T)
 
             # Plot the number of particles over time
-            PU.plot_multiple([times_np]*3, [results_np_mean, results_np_mean+3*results_np_std, results_np_mean-3*results_np_std], \
-                "Timestep number [-]", "Number of particles per cell [-]", "SPARTA/npart_%s_%skm" % (s_name, h), legends=["$\mu$", "$\mu$+3$\sigma$", "$\mu$-3$\sigma$"])
+            PU.plot_multiple([times_np]*3, [results_np_mean, results_np_mean+results_np_std], \
+                "Timestep number [-]", "Number of particles per cell [-]", "SPARTA/npart_%s_%skm" % (s_name, h), legends=["$\mu$", "$\mu$+$\sigma$"])
