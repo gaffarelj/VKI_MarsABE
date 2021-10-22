@@ -10,7 +10,7 @@ tot_epochs = [10000, 8750, 7500]    # Number of simulation epochs for each altit
 meas_dt = [25, 25, 25]              # When to save data
 
 # Define conditions at different orbital altitudes
-hs = [85]#, 115, 150]
+hs = [85, 115, 150]
 rhos = [7.1E-07, 1.8E-08, 1.6E-10]
 ps = [2.3E-02, 3.7E-04, 7.1E-06]
 Ts = [135, 115, 175]
@@ -25,7 +25,7 @@ save_to_input = True
 run_all_cmd = "#!/bin/sh\nmodule load openmpi\n"
 paraview_surf = ""
 paraview_grid = ""
-sat_names = ["CS_0020"]#, "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
+sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
 L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
     print("\n\n* Satellite", s_name)
@@ -35,8 +35,9 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
-            os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+            #shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+            #os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+            pass
         except (PermissionError, OSError):
             print("Warning: could not delete folder", s_name)
     # Loop trough conditions
@@ -50,9 +51,9 @@ for j, s_name in enumerate(sat_names):
         T = Ts[i]       # temperature [K]
         u_s = Vs[i]     # free-stream velocity [m/s]
         L = L_s[j]      # reference length [m] (satellite width)
-        h_box = 0.2    # box height [m]
-        w_box = 0.2    # box width [m]
-        l_box = 1.0     # box length [m]
+        h_box = 0.7     # box height [m]
+        w_box = 0.7     # box width [m]
+        l_box = 1.4     # box length [m]
         # Fraction of each species
         species_frac = fracs[i]
         if round(sum(species_frac), 5) != 1:
@@ -86,10 +87,10 @@ for j, s_name in enumerate(sat_names):
         grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), l_box/50)       # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), l_box/50)    # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
-        f = 3  # increase this factor for an extra fine grid
-        n_x = l_box / ((grid_f + grid_ps)/2)*f                          # spacing of grid along x
-        n_y = w_box / ((grid_f + grid_ps)/2)*f                          # number of grid segments along y
-        n_z = h_box / ((grid_f + grid_ps)/2)*f                          # number of grid segments along z
+        f = 1.25 # increase this factor for an extra fine grid
+        n_x = int(l_box / ((grid_f + grid_ps)/2)*f)                     # spacing of grid along x
+        n_y = int(w_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along y
+        n_z = int(h_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along z
         n_cells = n_x * n_y * n_z                                       # number of cells
         n_sim = 40 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
@@ -168,7 +169,7 @@ for j, s_name in enumerate(sat_names):
             input_s += "compute             sum reduce sum f_avg[*]\n"
             input_s += "\n"
             if check_part_cells:
-                input_s += "compute             npart grid all all n nrho\n"
+                input_s += "compute             npart grid all all n massrho\n"
                 input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz id c_npart[*]\n" % (meas_dt[i], s_name, h)
                 input_s += "\n"
             input_s += "stats               %i\n" % (meas_dt[i]*5)
