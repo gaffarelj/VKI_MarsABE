@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
 plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})
+import sys
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 
 def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, equal_ax=False):
     """
@@ -28,7 +31,7 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
     if equal_ax:
         ax.set_aspect("equal")
     # Save the plot in the figure folder, as a pdf
-    plt.savefig("figures/%s.pdf" % fname)
+    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
 def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, colors=None, xlog=False,\
@@ -65,7 +68,7 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     if xlim is not None:
         ax.set_xlim(xlim)
     # Save the plot in the figure folder, as a pdf
-    plt.savefig("figures/%s.pdf" % fname)
+    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
 
@@ -99,7 +102,7 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
     # Save space
     fig.tight_layout()
     # Save the plot in the figure folder, as a pdf
-    plt.savefig("figures/%s.pdf" % fname)
+    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
 def plot_4d(x, y, z, h, labels, fname):
@@ -117,7 +120,7 @@ def plot_4d(x, y, z, h, labels, fname):
     ax.set_zlabel(labels[2], fontsize=12)
     clb.ax.set_title(labels[3], fontsize=12)
     plt.tight_layout()
-    plt.savefig("figures/%s.pdf" % fname)
+    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
 def pareto_front():
