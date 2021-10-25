@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from utils import sat_models as SM
