@@ -11,7 +11,7 @@ from tudatpy.kernel.interface import spice_interface
 
 FIT_INPUTS, FIT_HASHS, FIT_RESULTS = [], [], []
 
-def comp_fitness(sat, h_p, h_a, i, omega, Omega):
+def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     # Save the inputs in a list, and compute their hash
     fit_input = [sat.name, h_p, h_a, i, omega, Omega]
     fit_hash = hash(frozenset(fit_input))
@@ -33,7 +33,7 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega):
     e = 1 - (OS.R_cb + min(h_p, h_a)) / a       # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
     OS.create_initial_state(a=a, e=e, i=i, omega=omega, Omega=Omega)
     # Load the accelerations from default config 1: Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
-    OS.create_accelerations(default_config=1, thrust=1)
+    OS.create_accelerations(default_config=1, thrust=thrust_model)
     # Create the integrator, termination settings, dependent variables, and propagator
     OS.create_integrator()
     OS.create_termination_settings()
@@ -86,10 +86,11 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega):
 
 class HT_problem:
 
-    def __init__(self, design_var_range, fitness_weights, verbose=False):
+    def __init__(self, design_var_range, fitness_weights, thrust_model=1, verbose=False):
         self.design_var_range = design_var_range
         self.fitness_weights = fitness_weights
         self.verbose = verbose
+        self.thrust_model = thrust_model
 
     def get_bounds(self):
         """
@@ -121,7 +122,7 @@ class HT_problem:
         satellite = SM.satellites[sat_name]
 
         # Compute the fitnesses, and the simulation performance parameters
-        power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0)
+        power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model)
         
         if self.verbose:
             print("Satellite %s starts from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d" % \

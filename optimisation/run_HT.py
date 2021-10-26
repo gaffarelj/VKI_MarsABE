@@ -29,7 +29,7 @@ design_var_range = (
 # Setup the optimisation problem
 fitness_weights = [1, 1, 1]
 fitness_names = ["Mean power", "Periapsis decay", "Mean altitude"]
-current_HT_problem = HTp.HT_problem(design_var_range, fitness_weights, verbose=False)
+current_HT_problem = HTp.HT_problem(design_var_range, fitness_weights, thrust_model=1, verbose=False)
 problem = pygmo.problem(current_HT_problem)
 
 ### Select whether to run the optimisation or load the latest result file ###
