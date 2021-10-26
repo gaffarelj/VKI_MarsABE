@@ -8,7 +8,7 @@ import sys
 sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
-from optimisation import HT_problem as HTp
+from optimisation import with_tank_problem as WTp
 from utils import sat_models as SM
 from tools import plot_utilities as PU
 
@@ -29,7 +29,7 @@ design_var_range = (
 # Setup the optimisation problem
 fitness_weights = [1, 1, 1]
 fitness_names = ["Mean power", "Periapsis decay", "Mean altitude"]
-current_HT_problem = HTp.HT_problem(design_var_range, fitness_weights, thrust_model=1, verbose=False)
+current_HT_problem = WTp.WT_problem(design_var_range, fitness_weights, thrust_model=1, verbose=False)
 problem = pygmo.problem(current_HT_problem)
 
 ### Select whether to run the optimisation or load the latest result file ###
