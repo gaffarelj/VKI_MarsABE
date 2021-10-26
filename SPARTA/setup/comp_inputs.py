@@ -7,18 +7,18 @@ from tools import plot_utilities as PU
 
 check_part_cells = True             # Set to True to check the number of particles in each cells
 tot_epochs = [10000, 8750, 7500]    # Number of simulation epochs for each altitude
-meas_dt = [25, 25, 25]              # When to save data
+meas_dt = [50, 50, 50]              # When to save data
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
-rhos = [7.1E-07, 1.8E-08, 1.6E-10]
-ps = [2.3E-02, 3.7E-04, 7.1E-06]
-Ts = [135, 115, 175]
-Vs = [3494.17, 3493.29, 3483.82]
+rhos = [2.69329E-06, 1.37030E-06, 3.04190E-10]
+ps = [7.36261E-02, 3.73367E-02, 1.06037E-05]
+Ts = [143.093, 128.038, 166.587]
+Vs = [3510.90, 3495.84, 3475.51]
 fracs = [
-    np.array([0.905, 0.035, 0.025, 0.015, 0.015, 0.005]),
-    np.array([0.809, 0.045, 0.035, 0.05, 0.055, 0.005]), # first one should be 0.81 but this causes an error in SPARTA
-    np.array([0.42, 0.125, 0.045, 0.15, 0.25, 0.01])
+    np.array([95.874, 1.781, 1.822, 0.249, 0.126, 0.148])/100,
+    np.array([90.556, 3.295, 3.292, 1.605, 0.971, 0.281])/100,
+    np.array([69.792, 10.613, 5.061, 6.932, 6.655, 0.947])/100
 ]
 
 save_to_input = True
@@ -35,9 +35,8 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            #shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
-            #os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
-            pass
+            shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+            os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
             print("Warning: could not delete folder", s_name)
     # Loop trough conditions

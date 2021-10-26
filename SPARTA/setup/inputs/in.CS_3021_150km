@@ -16,34 +16,34 @@ balance_grid        rcb cell
 
 write_grid          ../results_sparta/CS_3021/grid_150km.dat
 
-global              nrho 2.9835e+15 fnum 4.4702e+09
+global              nrho 4.6944e+15 fnum 7.0337e+09
 
 species             ../atmo.species CO2 N2 Ar CO O O2
-mixture             atmo CO2 vstream -3483.8200 0.0 0.0 frac 0.4200
-mixture             atmo N2 vstream -3483.8200 0.0 0.0 frac 0.1250
-mixture             atmo Ar vstream -3483.8200 0.0 0.0 frac 0.0450
-mixture             atmo CO vstream -3483.8200 0.0 0.0 frac 0.1500
-mixture             atmo O vstream -3483.8200 0.0 0.0 frac 0.2500
-mixture             atmo O2 vstream -3483.8200 0.0 0.0 frac 0.0100
+mixture             atmo CO2 vstream -3475.5100 0.0 0.0 frac 0.6979
+mixture             atmo N2 vstream -3475.5100 0.0 0.0 frac 0.1061
+mixture             atmo Ar vstream -3475.5100 0.0 0.0 frac 0.0506
+mixture             atmo CO vstream -3475.5100 0.0 0.0 frac 0.0693
+mixture             atmo O vstream -3475.5100 0.0 0.0 frac 0.0665
+mixture             atmo O2 vstream -3475.5100 0.0 0.0 frac 0.0095
 
 read_surf           ../data/data.CS_3021
-surf_collide        1 diffuse 293.15 0.9073
+surf_collide        1 diffuse 293.15 0.7961
 surf_modify         all collide 1
 
 collide             vss atmo ../atmo.vss
 
 fix                 in emit/face atmo xhi twopass
 
-timestep            5.1084e-06
+timestep            5.1206e-06
 
 compute             2 surf all all fx fy fz
 fix                 avg ave/surf all 1 5 5 c_2[*] ave running
-dump                1 surf all 25 ../results_sparta/CS_3021/force_150km.*.gz f_avg[*]
+dump                1 surf all 50 ../results_sparta/CS_3021/force_150km.*.gz f_avg[*]
 compute             sum reduce sum f_avg[*]
 
 compute             npart grid all all n massrho
-dump                2 grid all 25 ../results_sparta/CS_3021/npart_150km.*.gz id c_npart[*]
+dump                2 grid all 50 ../results_sparta/CS_3021/npart_150km.*.gz id c_npart[*]
 
-stats               125
+stats               250
 stats_style         step cpu np nscoll nexit c_sum[1]
 run                 7500
