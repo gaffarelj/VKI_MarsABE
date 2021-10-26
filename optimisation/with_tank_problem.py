@@ -6,7 +6,6 @@ while sys.path[0].split("/")[-1] != "VKI_MarsABE":
 from utils import sat_models as SM
 from utils import propagation as P
 from tudatpy.kernel import constants
-from tudatpy.kernel.interface import spice_interface
 
 
 FIT_INPUTS, FIT_HASHS, FIT_RESULTS = [], [], []

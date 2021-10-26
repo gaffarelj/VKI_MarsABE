@@ -50,6 +50,7 @@ class thrust_model:
         elif self.thrust_mod == 1:
             # If there is more than a certain power available, keep it for the other systems
             self.thrust, self.m_flow, self.I_sp = BHT_100.from_power(min(self.power, self.power_treshold[1]))
+            print(self.thrust)
             return self.thrust
 
     def specific_impulse(self, time):
