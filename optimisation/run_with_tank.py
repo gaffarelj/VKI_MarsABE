@@ -15,7 +15,7 @@ from tools import plot_utilities as PU
 ## Select the thrust model
 # 1 = BHT-100 Hall thruster (on when power > 107 W)
 # 2 = μNRIT 2.5 Grid ion thruster (on when power > 13.1 W)
-thrust_model = 1
+thrust_model = 2
 
 print("Optimisation with thrust model %i (and using a propellant tank)." % thrust_model)
 
@@ -84,6 +84,8 @@ if run_opti:    # Run a new optimisation
 
 else:       # Load the last saved results
     file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-*.npz" % thrust_model))
+    if len(file_list) == 0:
+        raise FileNotFoundError("It appears that no optimisation for this given thrust model were already run and saved.")
     last_results = np.load(file_list[-1])
     fit_inputs = last_results["inputs"]
     fit_results = last_results["results"]
