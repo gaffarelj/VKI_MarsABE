@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib
 from numpy.lib.index_tricks import s_
 import pygmo
 from natsort import natsorted
@@ -117,11 +118,22 @@ obj_power, obj_decay, obj_h = fit_results[:,-4], fit_results[:,-3], fit_results[
 # Filter periapsis decays above 100km
 idx_decay_too_high = np.where(obj_decay >= 100e3)
 obj_power, obj_decay, obj_h = np.delete(obj_power, idx_decay_too_high), np.delete(obj_decay, idx_decay_too_high), np.delete(obj_h, idx_decay_too_high)
+# Select color as a function of the satellite
+s_names = np.delete(fit_inputs[:,0], idx_decay_too_high)
+s_numbers = np.arange(0, len(SM.satellites), 1)
+s_nn_map = dict(zip(list(SM.satellites.keys()), s_numbers))
+# Make the plots
 PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", "optimisation/HT/Pareto_Pd", \
     scatter=True, add_front=True, front_sign=[-1,1])
 PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", "optimisation/HT/Pareto_Ph", \
     scatter=True, add_front=True, front_sign=[-1,1])
 PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hd", \
     scatter=True, add_front=True, front_sign=[1,1])
+power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
+                matplotlib.pyplot.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
 PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hdP", \
-    scatter=True, add_front=True, front_sign=[1,1], z_data=obj_power, z_label="Mean power [W]")
+    scatter=True, add_front=True, front_sign=[1,1], z_data=obj_power, z_label="Mean power [W]", cmap=power_cmap)
+PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hdS", \
+    scatter=True, add_front=True, front_sign=[1,1], z_data=[s_nn_map[s_n] for s_n in s_names], z_label="Satellite", \
+        cmap="Set1", cticks=np.linspace(0.5, len(SM.satellites)-1.5, len(SM.satellites)), clabels=list(SM.satellites.keys()))
