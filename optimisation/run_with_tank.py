@@ -38,8 +38,8 @@ fitness_names = ["Mean power", "Periapsis decay", "Mean altitude"]
 current_HT_problem = WTp.WT_problem(design_var_range, fitness_weights, thrust_model=thrust_model, verbose=False)
 problem = pygmo.problem(current_HT_problem)
 
-### Select whether to run the optimisation or load the latest result file ###
-run_opti = (input("Run the optimisation ? ([y]/n) (otherwise, load latest result file): ").lower().strip() in ["", "y"])
+# Select whether to run the optimisation or load the latest result file
+run_opti = (input("Run the optimisation ? ([y]/n) (if no, load latest saved results): ").lower().strip() in ["", "y"])
 if run_opti:    # Run a new optimisation
     # Setup Pygmo
     seed = 12345
