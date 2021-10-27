@@ -113,45 +113,53 @@ PU.plot_multiple([list(range(1, opti_hist.shape[0]+1))]*(len(fitness_weights)+1)
     lstyle=["solid"]*len(fitness_weights)+["dashed"])
 
 # Generate Pareto fronts
-obj_power, obj_decay, obj_h = fit_results[:,-4], fit_results[:,-3], fit_results[:,-2]
-# Filter periapsis decays above 100km
-idx_decay_too_high = np.where(obj_decay >= 100e3)
-obj_power, obj_decay, obj_h = np.delete(obj_power, idx_decay_too_high), np.delete(obj_decay, idx_decay_too_high), np.delete(obj_h, idx_decay_too_high)
-# Select color as a function of the satellite
-s_names = np.delete(fit_inputs[:,0], idx_decay_too_high)
-s_numbers = np.arange(0, len(SM.satellites), 1)
-s_nn_map = dict(zip(list(SM.satellites.keys()), s_numbers))
-## Make the plots
-# Classic Pareto plots, 2 objectives
-PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", "optimisation/HT/Pareto_Pd", \
-    scatter=True, add_front=True, front_sign=[-1,1])
-PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", "optimisation/HT/Pareto_Ph", \
-    scatter=True, add_front=True, front_sign=[-1,1])
-PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hd", \
-    scatter=True, add_front=True, front_sign=[1,1])
-# Plot decay vs mean altitude with power in the colormap
-power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
-                matplotlib.pyplot.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
-PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hdP", \
-    scatter=True, add_front=True, front_sign=[1,1], z_data=obj_power, z_label="Mean power [W]", cmap=power_cmap)
-# Plot decay vs mean altitude with satellite name in the colormap
-PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hdS", \
-    scatter=True, add_front=True, front_sign=[1,1], z_data=[s_nn_map[s_n] for s_n in s_names], z_label="Satellite", \
-        cmap="Set1", cticks=np.linspace(0.5, len(SM.satellites)-1.5, len(SM.satellites)), clabels=list(SM.satellites.keys()))
+for zoomed in [False, True]:
+    if zoomed:
+        # Zoom in on region where mean altitude is below 150km and where periapsis decay is within -5km to 5km
+        idx_remove = np.where((fit_results[:,-3] > 5e3) | (fit_results[:,-3] < -5e3) | (fit_results[:,-2] > 150e3))
+        prefix = "_zoomed"
+    else:
+        # Filter periapsis decays above 100km
+        idx_remove = np.where(fit_results[:,-3] > 100e3)
+        prefix = ""
+    # Remove at selected indexes
+    obj_power, obj_decay, obj_h = np.delete(fit_results[:,-4], idx_remove), np.delete(fit_results[:,-3], idx_remove), np.delete(fit_results[:,-2], idx_remove)  
+    s_names = np.delete(fit_inputs[:,0], idx_remove)
+    # Select color as a function of the satellite
+    s_numbers = np.arange(0, len(SM.satellites), 1)
+    s_nn_map = dict(zip(list(SM.satellites.keys()), s_numbers))
+    ## Make the plots
+    # Classic Pareto plots, 2 objectives
+    PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", "optimisation/HT/Pareto_Pd"+prefix, \
+        scatter=True, add_front=True, front_sign=[-1,1])
+    PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", "optimisation/HT/Pareto_Ph"+prefix, \
+        scatter=True, add_front=True, front_sign=[-1,1])
+    PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hd"+prefix, \
+        scatter=True, add_front=True)
+    # Plot decay vs mean altitude with power in the colormap
+    power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                    'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
+                    matplotlib.pyplot.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
+    PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hdP"+prefix, \
+        scatter=True, add_front=True, z_data=obj_power, z_label="Mean power [W]", cmap=power_cmap)
+    # Plot decay vs mean altitude with satellite name in the colormap
+    PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hdS"+prefix, \
+        scatter=True, add_front=True, z_data=[s_nn_map[s_n] for s_n in s_names], z_label="Satellite", \
+            cmap="Set1", cticks=np.linspace(0.5, len(SM.satellites)-1.5, len(SM.satellites)), clabels=list(SM.satellites.keys()))
 
+idx_remove = np.where(fit_results[:,-3] >= 100e3)
 # Make a Panda dataframe from the results
 import pandas as pd
 import plotly.express as px
-s_pd = pd.Series(obj_decay, name="Periapsis decay")
-s_mh = pd.Series(obj_h, name="Mean altitude")
-s_mp = pd.Series(obj_power, name="Mean power")
-s_sn = pd.Series(s_names, name="Satellite")
-s_i_hp = pd.Series(np.delete(fit_inputs[:,1], idx_decay_too_high), name="Initial h_p")
-s_i_ha = pd.Series(np.delete(fit_inputs[:,2], idx_decay_too_high), name="Initial h_a")
-s_i_i = pd.Series(np.delete(fit_inputs[:,3], idx_decay_too_high), name="Initial i")
-s_i_omega = pd.Series(np.delete(fit_inputs[:,4], idx_decay_too_high), name="Initial omega")
-s_i_Omega = pd.Series(np.delete(fit_inputs[:,5], idx_decay_too_high), name="Initial Omega")
+s_pd = pd.Series(fit_results[:,-3], name="Periapsis decay")
+s_mh = pd.Series(fit_results[:,-2], name="Mean altitude")
+s_mp = pd.Series(fit_results[:,-4], name="Mean power")
+s_sn = pd.Series(fit_inputs[:,0], name="Satellite")
+s_i_hp = pd.Series(np.delete(fit_inputs[:,1], idx_remove), name="Initial h_p")
+s_i_ha = pd.Series(np.delete(fit_inputs[:,2], idx_remove), name="Initial h_a")
+s_i_i = pd.Series(np.delete(fit_inputs[:,3], idx_remove), name="Initial i")
+s_i_omega = pd.Series(np.delete(fit_inputs[:,4], idx_remove), name="Initial omega")
+s_i_Omega = pd.Series(np.delete(fit_inputs[:,5], idx_remove), name="Initial Omega")
 df = pd.concat([s_pd, s_mh, s_mp, s_sn, s_i_hp, s_i_ha, s_i_i, s_i_omega, s_i_Omega], axis=1)
 # Make interactive plot
 fig = px.scatter(df, x="Mean altitude", y="Periapsis decay", hover_name="Satellite", \
