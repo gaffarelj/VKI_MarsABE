@@ -49,7 +49,7 @@ if run_opti:    # Run a new optimisation
         pygmo.algorithm(pygmo.nspso(seed=seed)),
         pygmo.algorithm(pygmo.ihs(seed=seed)) # maybe, but only 1 pop improved by generation (-> increase gen number)
     ]
-    sizes = [12, 10, 10, 10]
+    sizes = [32, 10, 10, 10]
 
     algo_idx = 0
     pop_size = sizes[algo_idx]
@@ -60,7 +60,7 @@ if run_opti:    # Run a new optimisation
     opti_hist = []
 
     # Run the optimisation
-    n_generations = 10
+    n_generations = 15
     t0 = time.time()
     for i in range(1,n_generations+1):
         print("Running generation %2d / %2d" % (i, n_generations))
@@ -117,6 +117,11 @@ obj_power, obj_decay, obj_h = fit_results[:,-4], fit_results[:,-3], fit_results[
 # Filter periapsis decays above 100km
 idx_decay_too_high = np.where(obj_decay >= 100e3)
 obj_power, obj_decay, obj_h = np.delete(obj_power, idx_decay_too_high), np.delete(obj_decay, idx_decay_too_high), np.delete(obj_h, idx_decay_too_high)
-PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", "optimisation/HT/Pareto_Pd", scatter=True, add_front=True, front_sign=[-1,1])
-PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", "optimisation/HT/Pareto_Ph", scatter=True, add_front=True, front_sign=[-1,1])
-PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hd", scatter=True, add_front=True, front_sign=[1,1])
+PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", "optimisation/HT/Pareto_Pd", \
+    scatter=True, add_front=True, front_sign=[-1,1])
+PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", "optimisation/HT/Pareto_Ph", \
+    scatter=True, add_front=True, front_sign=[-1,1])
+PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hd", \
+    scatter=True, add_front=True, front_sign=[1,1])
+PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hdP", \
+    scatter=True, add_front=True, front_sign=[1,1], z_data=obj_power, z_label="Mean power [W]")
