@@ -9,16 +9,16 @@ sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 
-def comp_pareto(X, Y):
-	sl = sorted([[X[i], Y[i]] for i in range(len(X))])
-	pf = [sl[0]]
-	for xy in sl[1:]:
-			if xy[1] <= pf[-1][1]:
-				pf.append(xy)
-	x, y = [c[0] for c in pf], [c[1] for c in pf]
-	return x, y
+def comp_pareto(X, Y, front_sign=[1, 1]):
+    sl = sorted([[X[i]*front_sign[0], Y[i]*front_sign[1]] for i in range(len(X))])
+    pf = [sl[0]]
+    for xy in sl[1:]:
+        if xy[1] <= pf[-1][1]:
+            pf.append(xy)
+    x, y = [c[0]*front_sign[0] for c in pf], [c[1]*front_sign[1] for c in pf]
+    return x, y
 
-def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, equal_ax=False, add_front=False):
+def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, equal_ax=False, add_front=False, front_sign=[1, 1]):
     """
     Simple plot
     """
@@ -29,7 +29,7 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
     else:
         ax.plot(x_data, y_data)
     if add_front:
-        x, y = comp_pareto(x_data, y_data)
+        x, y = comp_pareto(x_data, y_data, front_sign)
         ax.step(x, y, where='post', color="red")
     # Set labels
     ax.set_xlabel(x_label), ax.set_ylabel(y_label)
