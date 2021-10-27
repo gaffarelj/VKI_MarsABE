@@ -24,7 +24,8 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
 
     ## Setup the simulation
     # Create the orbital simulation instance, setup to simulate 5 days
-    OS = P.orbit_simulation(sat, "Mars", 5*constants.JULIAN_DAY, save_power=True)
+    sim_days = 5
+    OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False])
     # Create the initial state of the satellite
@@ -40,12 +41,11 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     OS.create_propagator(prop_mass=True)
 
     # Simulate the satellite in orbit
-    OS.simulate()
+    times, _, _ = OS.simulate()
 
     # Extract the results from the simulation
     power_hist = list(OS.power_dict.values())
     h_p_s = OS.get_dep_var("h_p")
-    decay = h_p_s[0] - h_p_s[-1]
     altitudes = OS.get_dep_var("h")
     drags = OS.get_dep_var("D")
     drags_norm = np.fabs(np.linalg.norm(drags, axis=1))
@@ -54,6 +54,10 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
 
     # Compute the simulation performance parameters
     mean_P, decay, mean_h, mean_T_D = np.mean(power_hist), h_p_s[0] - h_p_s[-1], np.mean(altitudes), np.mean(thrusts_norm)/np.mean(drags_norm)
+
+    # Give a penality in the decay if the simulation stopped earlier and the decay was not properly registered
+    if times[-1] - times[0] < (sim_days-1)*constants.JULIAN_DAY and decay < 50e3:
+        decay = 300e3
 
     ## Compute the fitness (=cost); scaling is used because, ideally, all cost values would be in the same range (0-1 for instance)
     # Max mean power; lots of power = smaller value = better (use maximum observed value as scale)
