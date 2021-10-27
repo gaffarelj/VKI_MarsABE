@@ -12,6 +12,12 @@ from optimisation import with_tank_problem as WTp
 from utils import sat_models as SM
 from tools import plot_utilities as PU
 
+## Select the thrust model
+# 1 = BHT-100 Hall thruster (on when power > 107 W)
+# 2 = μNRIT 2.5 Grid ion thruster (on when power > 13.1 W)
+thrust_model = 1
+
+print("Optimisation with thrust model %i (and using a propellant tank)." % thrust_model)
 
 # Setup the design variables range
 min_h_p, max_h_p = 85e3, 150e3
@@ -29,7 +35,7 @@ design_var_range = (
 # Setup the optimisation problem
 fitness_weights = [1, 1, 1]
 fitness_names = ["Mean power", "Periapsis decay", "Mean altitude"]
-current_HT_problem = WTp.WT_problem(design_var_range, fitness_weights, thrust_model=1, verbose=False)
+current_HT_problem = WTp.WT_problem(design_var_range, fitness_weights, thrust_model=thrust_model, verbose=False)
 problem = pygmo.problem(current_HT_problem)
 
 ### Select whether to run the optimisation or load the latest result file ###
@@ -46,8 +52,9 @@ if run_opti:    # Run a new optimisation
     sizes = [12, 10, 10, 10]
 
     algo_idx = 0
-    print("Generating starting population (of size %i)..." % sizes[algo_idx])
-    pop = pygmo.population(problem, size=sizes[algo_idx], seed=seed)
+    pop_size = sizes[algo_idx]
+    print("Generating starting population (of size %i)..." % pop_size)
+    pop = pygmo.population(problem, size=pop_size, seed=seed)
     algo = algo_list[algo_idx]
 
     opti_hist = []
@@ -70,13 +77,13 @@ if run_opti:    # Run a new optimisation
         best_f.append(min(np.mean(np.fabs(f), axis=1)))
         opti_hist.append(best_f)
 
-    fit_results, fit_inputs, opti_hist = np.array(HTp.FIT_RESULTS), HTp.FIT_INPUTS, np.array(opti_hist)
+    fit_results, fit_inputs, opti_hist = np.array(WTp.FIT_RESULTS), WTp.FIT_INPUTS, np.array(opti_hist)
 
     # Save the results
-    np.savez(sys.path[0]+"/optimisation/results/%s_%s" % (time.strftime("%d%m%y_%H%M%S"), seed), inputs=fit_inputs, results=fit_results, opti_hist=opti_hist)
+    np.savez(sys.path[0]+"/optimisation/results/WT_%i-%i_%i-%s_%s" % (thrust_model, pop_size, n_generations, time.strftime("%d%m%y_%H%M%S"), seed), inputs=fit_inputs, results=fit_results, opti_hist=opti_hist)
 
 else:       # Load the last saved results
-    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/*.npz"))
+    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-*.npz" % thrust_model))
     last_results = np.load(file_list[-1])
     fit_inputs = last_results["inputs"]
     fit_results = last_results["results"]
