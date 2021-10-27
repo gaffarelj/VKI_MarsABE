@@ -111,3 +111,12 @@ print("Explored %i different possibilities." % len(fit_inputs))
 PU.plot_multiple([list(range(1, opti_hist.shape[0]+1))]*(len(fitness_weights)+1), opti_hist.T, "Generation number", "Best fitness", \
     "optimisation/HT/history", legends=fitness_names+["Average fitness"], colors=["darkorange", "seagreen", "royalblue", "#202020"], \
     lstyle=["solid"]*len(fitness_weights)+["dashed"])
+
+# Generate Pareto fronts
+obj_power, obj_decay, obj_h = fit_results[:,-4], fit_results[:,-3], fit_results[:,-2]
+# Filter periapsis decays above 100km
+idx_decay_too_high = np.where(obj_decay >= 100e3)
+obj_power, obj_decay, obj_h = np.delete(obj_power, idx_decay_too_high), np.delete(obj_decay, idx_decay_too_high), np.delete(obj_h, idx_decay_too_high)
+PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", "optimisation/HT/Pareto_Pd", scatter=True, add_front=True, front_sign=[-1,1])
+PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", "optimisation/HT/Pareto_Ph", scatter=True, add_front=True, front_sign=[-1,1])
+PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", "optimisation/HT/Pareto_hd", scatter=True, add_front=True, front_sign=[1,1])
