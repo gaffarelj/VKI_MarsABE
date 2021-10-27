@@ -99,7 +99,7 @@ idx_best = np.where(np.sum(fit_results[:,:len(fitness_weights)], axis=1) == np.m
 optimum_input, optimum_result = fit_inputs[idx_best], fit_results[idx_best]
 
 # Print the results
-print("Optimum (when summing the fitness): %s \n  with initial state: h_p=%3d km, h_a=%3d km, i=%2d, omega=%3d, Omega=%.3d" % \
+print("Optimum (when summing the fitness): %s \n  with initial state: h_p=%.2f km, h_a=%.2f km, i=%.2f, omega=%.2f, Omega=%.2f" % \
     (SM.satellites[optimum_input[0]], min(optimum_input[1:3])/1e3, max(optimum_input[1:3])/1e3, \
         np.rad2deg(optimum_input[3]), np.rad2deg(optimum_input[4]), np.rad2deg(optimum_input[5])))
 print("Resulting optimum fitness:", optimum_result[:3]*np.array(fitness_weights))
