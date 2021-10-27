@@ -40,6 +40,11 @@ problem = pygmo.problem(current_HT_problem)
 
 # Select whether to run the optimisation or load the latest result file
 run_opti = (input("Run the optimisation ? ([y]/n) (if no, load latest saved results): ").lower().strip() in ["", "y"])
+# Configure population size and number of generations
+sizes = [32, 10, 10, 10]
+algo_idx = 0
+pop_size = sizes[algo_idx]
+n_generations = 25
 if run_opti:    # Run a new optimisation
     # Setup Pygmo
     seed = 12345
@@ -49,10 +54,7 @@ if run_opti:    # Run a new optimisation
         pygmo.algorithm(pygmo.nspso(seed=seed)),
         pygmo.algorithm(pygmo.ihs(seed=seed)) # maybe, but only 1 pop improved by generation (-> increase gen number)
     ]
-    sizes = [32, 10, 10, 10]
 
-    algo_idx = 0
-    pop_size = sizes[algo_idx]
     print("Generating starting population (of size %i)..." % pop_size)
     pop = pygmo.population(problem, size=pop_size, seed=seed)
     algo = algo_list[algo_idx]
@@ -60,7 +62,6 @@ if run_opti:    # Run a new optimisation
     opti_hist = []
 
     # Run the optimisation
-    n_generations = 15
     t0 = time.time()
     for i in range(1,n_generations+1):
         print("Running generation %2d / %2d" % (i, n_generations))
@@ -83,9 +84,9 @@ if run_opti:    # Run a new optimisation
     np.savez(sys.path[0]+"/optimisation/results/WT_%i-%i_%i-%s_%s" % (thrust_model, pop_size, n_generations, time.strftime("%d%m%y_%H%M%S"), seed), inputs=fit_inputs, results=fit_results, opti_hist=opti_hist)
 
 else:       # Load the last saved results
-    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-*.npz" % thrust_model))
+    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-%i_%i-*.npz" % (thrust_model, pop_size, n_generations)))
     if len(file_list) == 0:
-        raise FileNotFoundError("It appears that no optimisation for this given thrust model were already run and saved.")
+        raise FileNotFoundError("It appears that no optimisation for this given thrust model and optimiser settings were already run and saved.")
     last_results = np.load(file_list[-1])
     fit_inputs = last_results["inputs"]
     fit_results = last_results["results"]
@@ -113,7 +114,7 @@ PU.plot_multiple([list(range(1, opti_hist.shape[0]+1))]*(len(fitness_weights)+1)
     lstyle=["solid"]*len(fitness_weights)+["dashed"])
 
 # Generate Pareto fronts
-for zoomed in [False, True]:
+for zoomed in [False]:#, True]:
     if zoomed:
         # Zoom in on region where mean altitude is below 150km and where periapsis decay is within -5km to 5km
         idx_remove = np.where((fit_results[:,-3] > 5e3) | (fit_results[:,-3] < -5e3) | (fit_results[:,-2] > 150e3))
@@ -151,10 +152,10 @@ idx_remove = np.where(fit_results[:,-3] >= 100e3)
 # Make a Panda dataframe from the results
 import pandas as pd
 import plotly.express as px
-s_pd = pd.Series(fit_results[:,-3], name="Periapsis decay")
-s_mh = pd.Series(fit_results[:,-2], name="Mean altitude")
-s_mp = pd.Series(fit_results[:,-4], name="Mean power")
-s_sn = pd.Series(fit_inputs[:,0], name="Satellite")
+s_pd = pd.Series(np.delete(fit_results[:,-3], idx_remove), name="Periapsis decay")
+s_mh = pd.Series(np.delete(fit_results[:,-2], idx_remove), name="Mean altitude")
+s_mp = pd.Series(np.delete(fit_results[:,-4], idx_remove), name="Mean power")
+s_sn = pd.Series(np.delete(fit_inputs[:,0], idx_remove), name="Satellite")
 s_i_hp = pd.Series(np.delete(fit_inputs[:,1], idx_remove), name="Initial h_p")
 s_i_ha = pd.Series(np.delete(fit_inputs[:,2], idx_remove), name="Initial h_a")
 s_i_i = pd.Series(np.delete(fit_inputs[:,3], idx_remove), name="Initial i")
