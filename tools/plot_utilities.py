@@ -18,19 +18,29 @@ def comp_pareto(X, Y, front_sign=[1, 1]):
     x, y = [c[0]*front_sign[0] for c in pf], [c[1]*front_sign[1] for c in pf]
     return x, y
 
-def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, equal_ax=False, add_front=False, front_sign=[1, 1]):
+def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, \
+    equal_ax=False, add_front=False, front_sign=[1, 1], z_data=None, z_label=""):
     """
     Simple plot
     """
     fig, ax = plt.subplots()
     # Plot
     if scatter:
-        ax.scatter(x_data, y_data)
+        if z_data is not None:
+            cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
+                plt.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
+            plt.scatter(x_data, y_data, c=z_data, cmap=cmap)
+            plt.colorbar(label=z_label)
+        else:
+            ax.scatter(x_data, y_data)
     else:
         ax.plot(x_data, y_data)
+    # Add a pareto front (front_sign is used to specify whether it's best to be high or low
+    # If [1, -1]: best is to be high for first objective, low for second)
     if add_front:
         x, y = comp_pareto(x_data, y_data, front_sign)
-        ax.step(x, y, where='post', color="red")
+        ax.step(x, y, where='post', color=(0.35, 0.7, 0.5))
     # Set labels
     ax.set_xlabel(x_label), ax.set_ylabel(y_label)
     # Save space
