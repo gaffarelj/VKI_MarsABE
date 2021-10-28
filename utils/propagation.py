@@ -4,6 +4,7 @@ from tudatpy.kernel.interface import spice_interface
 from tudatpy.kernel import constants
 from tudatpy.kernel.numerical_simulation import environment_setup
 from tudatpy.kernel.numerical_simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import SingleArcSimulator
 from tudatpy.kernel.astro import element_conversion
 import sys
 sys.path = [p for p in sys.path if p != ""]
@@ -88,7 +89,7 @@ class orbit_simulation:
             # Use the atmospheric model from the Mars Climate Database
             from MCD.parallel_mcd import parallel_mcd as PMCD
             mcd = PMCD(load_on_init=preload_MCD, save_all_vals=save_MCD_vals)
-            body_settings.get(self.central_body).atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
+            body_settings.get(self.central_body).atmosphere_settings = environment_setup.atmosphere.custom_four_dimensional_constant_temperature(
                 mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
             # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
 
@@ -385,7 +386,7 @@ class orbit_simulation:
             t0 = time.time()
 
         # Run the simulation
-        dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
+        dynamics_simulator = SingleArcSimulator(
             self.bodies, self.integrator_settings, self.propagator_settings, print_dependent_variable_data=self.verbose
         )
 

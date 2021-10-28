@@ -25,6 +25,7 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
     Simple plot
     """
     fig, ax = plt.subplots()
+    sys.path = [p for p in sys.path if p != ""]
     # Plot
     if scatter:
         if z_data is not None:
@@ -66,6 +67,7 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     Plot multiple lines
     """
     fig, ax = plt.subplots()
+    sys.path = [p for p in sys.path if p != ""]
     if type(lstyle) != list:
         lstyle = [lstyle] * len(x_datas)
     # Plot
@@ -108,6 +110,7 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
     else:
         x_data_1, x_data_2 = x_data, x_data
     fig, ax1 = plt.subplots()
+    sys.path = [p for p in sys.path if p != ""]
     # Set the color of the left y axis
     color = "tab:red"
     ax1.set_xlabel(x_label)
@@ -133,6 +136,7 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
 
 def plot_4d(x, y, z, h, labels, fname):
     fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+    sys.path = [p for p in sys.path if p != ""]
     grid_x, grid_y = np.mgrid[min(x):max(x):200j, min(y):max(y):200j]
     grid_z = griddata((x, y), z, (grid_x, grid_y), method='nearest')
     grid_c = griddata((x, y), h, (grid_x, grid_y), method='nearest')

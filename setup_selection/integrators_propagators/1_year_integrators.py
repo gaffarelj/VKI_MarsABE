@@ -1,10 +1,12 @@
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
+sys.path = [p for p in sys.path if p != ""]
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tudatpy.kernel import constants
-from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
 from setup_selection import setup_utils as SU
-import matplotlib.pyplot as plt
-import numpy as np
+#import matplotlib.pyplot as plt
+#import numpy as np
 
 simulation_start_epoch = 0.0
 simulation_end_epoch = 1*constants.JULIAN_YEAR
@@ -37,7 +39,6 @@ for i_integrator in range(1, 18):
     integrator_settings = SU.get_integrator_settings(i_integrator, verbose=True)
 
     # Run the simulation
-    print("Running simulation...")
     time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_settings, propagator_settings)
 
     # Compute the difference with the baseline

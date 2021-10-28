@@ -1,13 +1,16 @@
 # Import modules
 import numpy as np
 from tudatpy.kernel.interface import spice_interface
-from tudatpy.kernel.simulation import environment_setup
-from tudatpy.kernel.simulation import propagation_setup
-from tudatpy.kernel.astro import conversion
+from tudatpy.kernel.numerical_simulation import environment_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import SingleArcSimulator
+from tudatpy.kernel.astro import element_conversion
 from tudatpy.kernel.math import interpolators
 import time
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2])) # get back to uppermost level of the project
+sys.path = [p for p in sys.path if p != ""]
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 spice_interface.load_standard_kernels()
 
 # Drag coefficient of different satellite at given altitudes
@@ -48,7 +51,7 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, sat_name="", sat_mass
     else:
         from MCD.parallel_mcd import parallel_mcd as PMCD
         mcd = PMCD()
-        body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.custom_constant_temperature_detailed(
+        body_settings.get("Mars").atmosphere_settings = environment_setup.atmosphere.custom_four_dimensional_constant_temperature(
             mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
         # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
 
@@ -152,7 +155,7 @@ def get_initial_state(bodies, altitude=300e3, inclination=np.deg2rad(0), eccentr
     mars_gravitational_parameter = bodies.get_body("Mars").gravitational_parameter
     mars_radius = spice_interface.get_average_radius("Mars")
 
-    initial_state = conversion.keplerian_to_cartesian(
+    initial_state = element_conversion.keplerian_to_cartesian_elementwise(
         gravitational_parameter = mars_gravitational_parameter,
         semi_major_axis = mars_radius + altitude,
         eccentricity = eccentricity,
@@ -184,7 +187,7 @@ def simulation_settings(end_time, end_altitude=50e3):
 def run_simulation(bodies, integrator_settings, propagator_settings, verbose=False, return_raw=False):
     print("Starting simulation...")
     t0 = time.time()
-    dynamics_simulator = propagation_setup.SingleArcDynamicsSimulator(
+    dynamics_simulator = SingleArcSimulator(
         bodies, integrator_settings, propagator_settings, print_dependent_variable_data = verbose
     )
 

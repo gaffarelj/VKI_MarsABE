@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
 from tudatpy.kernel import constants
-from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
 import setup_selection.setup_utils as SU
 import tools.plot_utilities as PU
 import tools.time_conversions as TC
@@ -45,4 +45,4 @@ for h in [200e3, 250e3, 300e3]:
     time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_settings, propagator_settings)
 
 ## Make plot
-#PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "MCD/test_MCD_atmo")
+PU.plot_dual(np.array(time)/3600, altitudes/1e3, densities, "Time [hr]", "Altitude [km]", "Density [kg/m$^3$]", "MCD/test_MCD_atmo")

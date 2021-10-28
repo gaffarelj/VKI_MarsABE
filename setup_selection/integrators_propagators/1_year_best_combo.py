@@ -1,11 +1,13 @@
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
+sys.path = [p for p in sys.path if p != ""]
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tudatpy.kernel import constants
-from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
 from setup_selection import setup_utils as SU
 from tools import plot_utilities as PU
 from tools import time_conversions as TC
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 
 simulation_days = 20

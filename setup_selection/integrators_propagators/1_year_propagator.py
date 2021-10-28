@@ -1,9 +1,11 @@
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
+sys.path = [p for p in sys.path if p != ""]
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tudatpy.kernel import constants
-from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
 from setup_selection import setup_utils as SU
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 from tools import time_conversions as TC
 
@@ -48,7 +50,6 @@ for propagator in available_propagators:
     print("Propagator used:", propagator)
 
     # Run the simulation
-    print("Running simulation...")
     time, altitudes, densities, cpu_time = SU.run_simulation(bodies, integrator_settings, propagator_settings)
 
     # Compute the difference with the baseline
