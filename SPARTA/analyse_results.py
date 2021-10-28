@@ -9,7 +9,7 @@ from tools import plot_utilities as PU
 
 check_part_cells = True     # Set to True to check the number of particles in each cells
 
-meas_dt = [25, 25, 25]      # Epoch between measurements
+meas_dt = [50, 50, 50]      # Epoch between measurements
 
 # Define the altitudes and satellite names for which there is results to analyse
 hs = [85, 115, 150]
