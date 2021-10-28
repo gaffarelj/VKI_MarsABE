@@ -43,12 +43,29 @@ The [thrust](thrust) folder contains a first [simple thrust class](thrust/simple
 This test class has been run using the [test_simplest.py](thrust/test_simplest.py) script.
 
 ## Requirements
-This section lists the required Python packages and libraries that shall be installed.
+This section lists the required Python packages, libraries, and software that shall be installed.
+
+### Conda environment
+To ease the installation, a [conda environment file](environment.yaml) has been created.
+In the same folder as this file, the following command can then be used to install the conda environment with its required packages:
+```
+conda env create -f environment.yaml
+```
+This environment then contains most importantly TUDAT(Py) (TU Delft Astrodynamics Toolbox Python) and Pygmo (Python version of the Parallel Global Multiobjective Optimizer).
+
+Before running any code, one must make sure that this environment is activated.
+This can be done using:
+```
+conda activate tudat-pygmo-vki
+```
+
+If errors arise when running part of the code, it may be wise to force conda to use TUDAT(Py) version 0.5.22 and Pygmo version 2.16.1. This can be done by uncommenting the version numbers in the [conda environment file](environment.yaml).
 
 ### Mars Climate Database
 First of, the MCD data files are required. By default, the code wants them to be in `/mnt/c/MCD/data/`.
 This can however be changed in the Python files of the [MCD](MCD) folder.
 
+<!--
 ### TU Delft Astrodynamics Toolbox
 In addition, it is required to install `TudatPy`. This is the TU Delft Astrodynamics Toolbox used to run the astrodynamic simulations.
 Please note that, in my case, the Windows Subsystem for Linux (v2) has been used.
@@ -107,6 +124,7 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 conda install pygmo
 ```
+!-->
 
 ### SPARTA
 The SPARTA library is required to run the simulations to obtain the drag coefficient of the different satellites.

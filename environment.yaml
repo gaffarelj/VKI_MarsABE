@@ -1,0 +1,13 @@
+name: tudat-pygmo-vki
+channels:
+  - conda-forge
+  - tudat-team
+dependencies:
+  - tudatpy
+  - pygmo
+  - matplotlib
+  - scipy
+  - pandas
+  - natsort
+  - gzip
+  - plotly
