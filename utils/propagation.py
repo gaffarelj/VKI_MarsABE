@@ -119,7 +119,7 @@ class orbit_simulation:
         # Define the aerodynamic coefficient settings
         def force_coefficients(_):
             # Get the altitude from the flight conditions
-            h = self.bodies.get_body(self.sat.name).get_flight_conditions().current_altitude
+            h = self.bodies.get_body(self.sat.name).flight_conditions.altitude
             # Interpolate the drag coefficient given the altitude
             C_d = self.sat.get_cd(h)
             return [C_d, 0, 0]
@@ -350,7 +350,7 @@ class orbit_simulation:
          * prop_mass (bool): whether or not to propagate the satellite mass based on thrust or not
         """
         # Define the translational propagator settings
-        translation_propagator = propagation_setup.propagator.translational(
+        translation_propagator_settings = propagation_setup.propagator.translational(
             [self.central_body],
             self.acceleration_models,
             [self.sat.name],
@@ -362,22 +362,19 @@ class orbit_simulation:
         # Also propagate the mass based on the acceleration from the thrust
         if prop_mass:
             # Define the mass propagator settings
-            mass_rate_model = {self.sat.name: [propagation_setup.mass_rate.from_thrust()]}
-            mass_propagator = propagation_setup.propagator.mass(
+            mass_rate_settings = {self.sat.name: [propagation_setup.mass_rate.from_thrust()]}
+            mass_rate_model = propagation_setup.create_mass_rate_models(self.bodies, mass_rate_settings, self.acceleration_models)
+            mass_propagator_settings = propagation_setup.propagator.mass(
                 [self.sat.name],
                 mass_rate_model,
-                np.array([self.sat.wet_mass]),
+                [self.sat.wet_mass],
                 self.termination_settings)
             # Define the full propagator settings
             self.propagator_settings = propagation_setup.propagator.multitype(
-                [translation_propagator, mass_propagator], self.termination_settings, self.dependent_variables_to_save)
-            # The following 3 lines are needed to properly propagate the mass
-            translation_propagator.recreate_state_derivative_models(self.bodies)
-            translation_propagator.reset_and_recreate_acceleration_models({self.sat.name: self.accelerations}, self.bodies)
-            self.propagator_settings.recreate_state_derivative_models(self.bodies)
+                [translation_propagator_settings, mass_propagator_settings], self.termination_settings, self.dependent_variables_to_save)
         # Only propagate the vehicle translationally
         else:
-            self.propagator_settings = translation_propagator
+            self.propagator_settings = translation_propagator_settings
 
     def simulate(self):
         # If the verbose is set to True, time the simulation run

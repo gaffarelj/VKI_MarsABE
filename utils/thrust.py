@@ -47,7 +47,7 @@ class thrust_model:
     
     def magnitude(self, time):
         # If there is no more propellant, return 0
-        if self.sat.dry_mass is not None and self.vehicle.get_body_mass() <= self.sat.dry_mass:
+        if self.sat.dry_mass is not None and self.vehicle.mass <= self.sat.dry_mass:
             return 0
         # Return a constant thrust magnitude
         if self.thrust_mod == 0:
@@ -71,7 +71,7 @@ class thrust_model:
         Define whether the engine is on or not
         """
         # Engine is on if the air density is above a given treshold
-        curr_dens = self.vehicle.get_flight_conditions().current_density
+        curr_dens = self.vehicle.flight_conditions.density
         density_ok = curr_dens > self.dens_treshold[0] and curr_dens < self.dens_treshold[1]
         # Engine is on if the solar irradiance is above a given treshold
         power_ok = self.power_available(time) > self.power_treshold[0]

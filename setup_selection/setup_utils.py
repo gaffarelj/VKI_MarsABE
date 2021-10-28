@@ -76,7 +76,7 @@ def create_bodies(use_MCD_atmo=False, use_MCD_winds=False, sat_name="", sat_mass
         drag_interpolator = interpolators.create_one_dimensional_interpolator(drag_values, interpolator_settings)
         def force_coefficients(_):
             # Get the altitude from the flight conditions
-            h = bodies.get_body("Satellite").get_flight_conditions().current_altitude
+            h = bodies.get_body("Satellite").flight_conditions.altitude
             # Interpolate the drag coefficient given the altitude
             C_d = drag_interpolator.interpolate(h)
             return [C_d, 0, 0]
