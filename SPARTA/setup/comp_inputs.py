@@ -86,7 +86,7 @@ for j, s_name in enumerate(sat_names):
         grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), l_box/50)       # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), l_box/50)    # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
-        f = 1.25 # increase this factor for an extra fine grid
+        f = 1.75 # increase this factor for an extra fine grid
         n_x = int(l_box / ((grid_f + grid_ps)/2)*f)                     # spacing of grid along x
         n_y = int(w_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along y
         n_z = int(h_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along z
