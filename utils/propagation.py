@@ -11,11 +11,11 @@ sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tools import time_conversions as TC
+from tools.std import suppress_stdout_stderr as suppress
 from utils import thrust as T
 # Load the SPICE kernel
 if spice_interface.get_total_count_of_kernels_loaded() == 0:
     spice_interface.load_standard_kernels()
-
 
 class env_acceleration:
     
@@ -383,9 +383,16 @@ class orbit_simulation:
             t0 = time.time()
 
         # Run the simulation
-        dynamics_simulator = SingleArcSimulator(
-            self.bodies, self.integrator_settings, self.propagator_settings, print_dependent_variable_data=self.verbose
-        )
+        if self.verbose:
+            dynamics_simulator = SingleArcSimulator(
+                self.bodies, self.integrator_settings, self.propagator_settings, print_dependent_variable_data=self.verbose
+            )
+        else:
+            # Suppress all stderr from tudat
+            with suppress():
+                dynamics_simulator = SingleArcSimulator(
+                    self.bodies, self.integrator_settings, self.propagator_settings, print_dependent_variable_data=self.verbose
+                )
 
         # Extract the states and time
         self.states = np.vstack(list(dynamics_simulator.state_history.values()))
