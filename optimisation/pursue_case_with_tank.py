@@ -23,7 +23,7 @@ i, omega, Omega = 0.8070622, 0.5213307, 2.9493216
 
 
 # Create the orbital simulation instance, setup to simulate 5 days
-OS = P.orbit_simulation(SM.satellites[s_name], "Mars", 5*constants.JULIAN_DAY, save_power=True)
+OS = P.orbit_simulation(SM.satellites_with_tank[s_name], "Mars", 5*constants.JULIAN_DAY, save_power=True)
 # Create the simulation bodies, and use the MCD
 OS.create_bodies(use_MCD=[False, False])
 # Create the initial state of the satellite

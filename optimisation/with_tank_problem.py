@@ -123,8 +123,8 @@ class WT_problem:
         h_p_0, h_a_0, i_0, omega_0, Omega_0, sat_index = design_variables
 
         # Select the satellite
-        sat_name = list(SM.satellites.keys())[int(sat_index)]
-        satellite = SM.satellites[sat_name]
+        sat_name = list(SM.satellites_with_tank.keys())[int(sat_index)]
+        satellite = SM.satellites_with_tank[sat_name]
 
         # Compute the fitnesses, and the simulation performance parameters
         power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model)
