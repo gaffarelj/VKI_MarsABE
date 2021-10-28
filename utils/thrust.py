@@ -1,8 +1,9 @@
-# import sys
-# while sys.path[0].split("/")[-1] != "VKI_MarsABE":
-#     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
+import sys
+sys.path = [p for p in sys.path if p != ""]
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 import numpy as np
-from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
 from tudatpy.kernel.interface import spice_interface
 from tools import mission_geometry as MG
 from utils.thrust_models import BHT_100
@@ -117,9 +118,9 @@ def thrust_settings(propagation, thrust_mod):
     # Define the thrust guidance function
     thrust_guidance = thrust_model(propagation, thrust_mod)
     # Define the thrust settings (direction and magnitude)
-    thrust_direction_s = propagation_setup.acceleration.thrust_direction_from_state_guidance(
+    thrust_direction_s = propagation_setup.thrust.thrust_direction_from_state_guidance(
         central_body=propagation.central_body, is_colinear_with_velocity=True, direction_is_opposite_to_vector=False)
-    thrust_magnitude_s = propagation_setup.acceleration.custom_thrust_magnitude(
+    thrust_magnitude_s = propagation_setup.thrust.custom_thrust_magnitude(
         thrust_guidance.magnitude, thrust_guidance.specific_impulse, thrust_guidance.is_thrust_on)
     # Return the acceleration for Tudat
-    return propagation_setup.acceleration.thrust_acceleration(thrust_direction_s, thrust_magnitude_s)
+    return propagation_setup.acceleration.thrust_from_direction_and_magnitude(thrust_direction_s, thrust_magnitude_s)

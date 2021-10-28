@@ -2,10 +2,11 @@ import numpy as np
 import time
 from tudatpy.kernel.interface import spice_interface
 from tudatpy.kernel import constants
-from tudatpy.kernel.simulation import environment_setup
-from tudatpy.kernel.simulation import propagation_setup
-from tudatpy.kernel.astro import conversion
+from tudatpy.kernel.numerical_simulation import environment_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
+from tudatpy.kernel.astro import element_conversion
 import sys
+sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tools import time_conversions as TC
@@ -153,7 +154,7 @@ class orbit_simulation:
         if a is None:
             a = (self.R_cb + h_p) / (1 - e)
         # Convert the Keplerian orbit to an initial cartesian state
-        self.initial_state = conversion.keplerian_to_cartesian(
+        self.initial_state = element_conversion.keplerian_to_cartesian_elementwise(
             gravitational_parameter = self.mu,
             semi_major_axis = a,
             eccentricity = e,
@@ -360,7 +361,7 @@ class orbit_simulation:
         # Also propagate the mass based on the acceleration from the thrust
         if prop_mass:
             # Define the mass propagator settings
-            mass_rate_model = {self.sat.name: [propagation_setup.mass.from_thrust()]}
+            mass_rate_model = {self.sat.name: [propagation_setup.mass_rate.from_thrust()]}
             mass_propagator = propagation_setup.propagator.mass(
                 [self.sat.name],
                 mass_rate_model,
