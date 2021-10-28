@@ -6,6 +6,7 @@ from tudatpy.kernel.simulation import propagation_setup
 from tudatpy.kernel.interface import spice_interface
 from tools import mission_geometry as MG
 from utils.thrust_models import BHT_100
+from utils.thrust_models import muNRIT_25
 
 # Astronomical Unit distance in [m]
 AU = 149597890e3
@@ -20,6 +21,7 @@ class thrust_model:
          * thrust_mod (int): thrust model to use
            * 0: constant thrust of 1 mN when power above 10 N and at any density
            * 1: thrust based on the BHT-100 hall thrusters, interpolated from power, on when power above 107 W, at any density
+           * 2: thrust based on the μNRIT2.5 grid ion thruster, interpolated from power, on when power above 13.1 W, at any density
         """
         # Save the relevant variables in the class
         self.os_sim = orbit_sim
@@ -38,6 +40,9 @@ class thrust_model:
         elif thrust_mod == 1:
             self.power_treshold = [107, 158]
             self.dens_treshold = [0, np.inf]
+        elif thrust_mod == 2:
+            self.power_treshold = [13.1, 34.4]
+            self.dens_treshold = [0, np.inf]
     
     def magnitude(self, time):
         # If there is no more propellant, return 0
@@ -48,8 +53,12 @@ class thrust_model:
             return 0.001
         # Return thrust from BHT 100 thruster, based on power
         elif self.thrust_mod == 1:
-            # If there is more than a certain power available, keep it for the other systems
+            # If there is more than a certain power available, keep it for the other systems (thus use of min())
             self.thrust, self.m_flow, self.I_sp = BHT_100.from_power(min(self.power, self.power_treshold[1]))
+            return self.thrust
+        # Return thrust from μNRIT 2.5 thruster, based on power
+        elif self.thrust_mod == 2:
+            self.thrust, self.m_flow, self.I_sp = muNRIT_25.from_power(min(self.power, self.power_treshold[1]))
             return self.thrust
 
     def specific_impulse(self, time):

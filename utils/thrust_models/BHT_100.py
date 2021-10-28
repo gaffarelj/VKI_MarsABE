@@ -1,5 +1,7 @@
 import sys
-sys.path.insert(0,"\\".join(sys.path[0].split("\\")[:-2]))
+sys.path = [p for p in sys.path if p != ""]
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 import numpy as np
 
 # Lists containing the characteristics of the BHT 100 Hall thruster (Power [W], mass flow [mg/s], Thrust [mN], Isp [s])

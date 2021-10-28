@@ -307,7 +307,7 @@ class orbit_simulation:
                 size = 3
             elif dep_key == "D":
                 # Acceleration due to the atmosphere
-                d_v = propagation_setup.dependent_variable.single_acceleration_norm(
+                d_v = propagation_setup.dependent_variable.single_acceleration(
                     propagation_setup.acceleration.aerodynamic_type, self.sat.name, self.central_body)
                 size = 3
             elif dep_key == "C_D":
