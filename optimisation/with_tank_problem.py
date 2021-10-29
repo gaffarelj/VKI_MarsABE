@@ -133,7 +133,7 @@ class WT_problem:
             print("Satellite %s starts from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d" % \
                 (sat_name, min(h_p_0, h_a_0)/1e3, max(h_p_0, h_a_0)/1e3, np.rad2deg(i_0), np.rad2deg(omega_0), np.rad2deg(Omega_0)))
             print(" -> mean power=%.2f W, total decay=%4d km, mean altitude=%3d km, mean T/D=%.2f" % \
-                (mean_P, decay/1e3, mean_h/1e3), mean_T_D)
+                (mean_P, decay/1e3, mean_h/1e3, mean_T_D))
 
         # Assemble and return the cost
         cost = np.array(self.fitness_weights) * np.array([power_f, decay_f, h_f]) # Mean power, periapsis decay, mean altitude
