@@ -41,10 +41,10 @@ problem = pygmo.problem(current_HT_problem)
 # Select whether to run the optimisation or load the latest result file
 run_opti = (input("Run the optimisation ? ([y]/n) (if no, load latest saved results): ").lower().strip() in ["", "y"])
 # Configure population size and number of generations
-sizes = [32, 10, 10, 10]
+sizes = [60, 10, 10, 10]
 algo_idx = 0
 pop_size = sizes[algo_idx]
-n_generations = 25
+n_generations = 10
 if run_opti:    # Run a new optimisation
     # Setup Pygmo
     seed = 12345
