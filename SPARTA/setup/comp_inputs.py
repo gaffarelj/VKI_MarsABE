@@ -5,9 +5,11 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-check_part_cells = True             # Set to True to check the number of particles in each cells
 tot_epochs = [10000, 8750, 7500]    # Number of simulation epochs for each altitude
 meas_dt = [50, 50, 50]              # When to save data
+
+# Set which sat/altitude should be refined even more (factor 5 more refined grid)
+refine_more = []#[("CS_0021", 85), ("CS_2120", 85)]
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -26,6 +28,7 @@ run_all_cmd = "#!/bin/sh\nmodule load openmpi\n"
 paraview_surf = ""
 paraview_grid = ""
 sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
+L_sats = [0.6 if _n[-1] == "1" else 0.3 for _n in sat_names]
 L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
     print("\n\n* Satellite", s_name)
@@ -52,7 +55,7 @@ for j, s_name in enumerate(sat_names):
         L = L_s[j]      # reference length [m] (satellite width)
         h_box = 0.7     # box height [m]
         w_box = 0.7     # box width [m]
-        l_box = 1.4     # box length [m]
+        l_box = 1.10    # box length [m]
         # Fraction of each species
         species_frac = fracs[i]
         if round(sum(species_frac), 5) != 1:
@@ -74,7 +77,7 @@ for j, s_name in enumerate(sat_names):
         Kn = lambda_f / L                                               # Knudsen number [-]
         T_ps = weighted_m * u_s**2 / (7*k_b)                            # post-shock T (Cv=2.5*R) [K]
         cr_ps = np.sqrt(16*k_b*T_ps / (np.pi*weighted_m))               # post-shock average relative velocity [m/s]\
-        nrho_ps = 7.67*nrho                                             # post-shock number density [#/m3]
+        nrho_ps = 23/3*nrho                                             # post-shock number density [#/m3]
         lambda_ps = 1 / (np.sqrt(2) * weighted_sigma * nrho_ps)         # post-shock mean free path [m]
         nu_ps = weighted_sigma * nrho_ps * cr_ps                        # post-shock collision frequency [Hz]
         tau_ps = 1 / nu_ps                                              # post-shock collision time [s]
@@ -83,15 +86,17 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt                                             # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt                                          # post-shock grid dimension [m] (based on velocity)
-        grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), l_box/50)       # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
-        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), l_box/50)    # Take minimum grid dimension (or L_ref/25, to avoid grid of 1, or l_box/50, to avoid grid too big)
+        grid_f = min(grid_f_mfp, grid_f_vel, L/50)                      # Take minimum grid dimension (or L_ref/50, to avoid grid too small)
+        grid_ps = min(grid_ps_mfp, grid_ps_vel, L/50)                   # Take minimum grid dimension (or L_ref/50, to avoid grid too small)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
-        f = 1.75 # increase this factor for an extra fine grid
-        n_x = int(l_box / ((grid_f + grid_ps)/2)*f)                     # spacing of grid along x
+        f = 1 # increase this factor for an extra fine grid
+        if (s_name, h) in refine_more:
+            f *= 5
+        n_x = int(l_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along x
         n_y = int(w_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along y
         n_z = int(h_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along z
         n_cells = n_x * n_y * n_z                                       # number of cells
-        n_sim = 40 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
+        n_sim = 10 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
         # Check that dt is small enough given dx and v
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
@@ -152,7 +157,7 @@ for j, s_name in enumerate(sat_names):
             for n, sp_n in enumerate(species_names):
                 input_s += "mixture             atmo %s vstream -%.4f 0.0 0.0 frac %.4f\n" % (sp_n, u_s, species_frac[n])
             input_s += "\n"
-            input_s += "read_surf           ../data/data.%s\n" % (s_name)
+            input_s += "read_surf           ../data/data.%s trans %.4f 0 0\n" % (s_name, (0.075+L_sats[j]/2))
             input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
             input_s += "surf_modify         all collide 1\n"
             input_s += "\n"
@@ -164,13 +169,12 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
             input_s += "compute             2 surf all all fx fy fz\n"
             input_s += "fix                 avg ave/surf all 1 5 5 c_2[*] ave running\n"
-            input_s += "dump                1 surf all %i ../results_sparta/%s/force_%skm.*.gz f_avg[*]\n" % (meas_dt[i], s_name, h)
+            input_s += "dump                1 surf all %i ../results_sparta/%s/force_%skm.*.dat f_avg[*]\n" % (meas_dt[i], s_name, h)
             input_s += "compute             sum reduce sum f_avg[*]\n"
             input_s += "\n"
-            if check_part_cells:
-                input_s += "compute             npart grid all all n massrho u temp\n"
-                input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.gz id c_npart[*]\n" % (meas_dt[i], s_name, h)
-                input_s += "\n"
+            input_s += "compute             npart grid all all n massrho u temp\n"
+            input_s += "dump                2 grid all %i ../results_sparta/%s/npart_%skm.*.dat id c_npart[*]\n" % (meas_dt[i], s_name, h)
+            input_s += "\n"
             input_s += "stats               %i\n" % (meas_dt[i]*5)
             input_s += "stats_style         step cpu np nscoll nexit c_sum[1]\n"
             input_s += "run                 %i\n" % (tot_epochs[i])
@@ -179,9 +183,9 @@ for j, s_name in enumerate(sat_names):
             paraview_grid += "rm -rf %s_%skm \n" % (s_name, h)
             paraview_grid += "rm -rf %s_%skm.pvd \n" % (s_name, h)
             paraview_grid += "echo 'Converting result grid of %s at %skm to ParaView...'\n" % (s_name, h)
-            paraview_grid += "pvpython ../../tools/grid2paraview.py def/grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.gz \n" % (s_name, h, s_name, h, s_name, h, )
-            paraview_grid += "rm CS_0020_85km.z*\n"
-            paraview_grid += "zip -r -s 95m %s_%skm.zip %s_%skm.pvd %s_%skm/*\n" % (s_name, h, s_name, h, s_name, h)
+            paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm %s_%skm -r ../../setup/results_sparta/%s/npart_%skm.*.dat \n" % (s_name, h, s_name, h, s_name, h, )
+            #paraview_grid += "rm CS_0020_85km.z*\n"
+            #paraview_grid += "zip -r -s 95m %s_%skm.zip %s_%skm.pvd %s_%skm/*\n" % (s_name, h, s_name, h, s_name, h)
             
             # Write SPARTA inputs to input
             with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
@@ -207,7 +211,7 @@ if save_to_input:
     paraview_cmd += "cd surf\n"
     paraview_cmd += "rm -rf *\n"
     paraview_cmd += paraview_surf
-    paraview_cmd += "zip -r all_sats.zip *\n"
+    #paraview_cmd += "zip -r all_sats.zip *\n"
     paraview_cmd += "cd ../grid\n"
     paraview_cmd += paraview_grid
     try:
