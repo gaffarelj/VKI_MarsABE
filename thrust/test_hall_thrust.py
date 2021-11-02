@@ -15,7 +15,7 @@ sim_time = 2*constants.JULIAN_DAY
 OS = P.orbit_simulation(satellite, "Mars", 2*constants.JULIAN_DAY, verbose=False, save_power=True)
 
 OS.create_bodies()                                              # Create the simulation bodies
-OS.create_initial_state(h=140e3)                                # Start in a circular orbit at an altitude of 140km above Mars
+OS.create_initial_state(h_p=140e3)                                # Start in a circular orbit at an altitude of 140km above Mars
 OS.create_termination_settings()                                # Create the settings to terminate the simulation
 OS.create_dependent_variables(to_save=["F_T", "rho", "h", "m"]) # Setup the dependent variables to be saved
 OS.create_accelerations(default_config=1, thrust=1)             # Create the acceleration models, with the hall thrust
