@@ -37,9 +37,6 @@ for s_name in sat_names:
             # Read the file
             #data = np.array([l.decode().strip().split(" ") for l in gzip.open(res_file, "rb").readlines()[9:]], dtype=float)
             data = np.loadtxt(res_file, dtype=float, skiprows=9)
-            print(data)
-            print(data.shape)
-            input()
             # Sum data from all surface
             forces = np.sum(data[:,:3], axis=0)
             # Save forces
@@ -61,9 +58,6 @@ for s_name in sat_names:
             # Read the file
             #data = np.array([l.decode().strip().split(" ") for l in gzip.open(res_file, "rb").readlines()[9:]], dtype=float)
             data = np.loadtxt(res_file, dtype=float, skiprows=9)
-            print(data)
-            print(data.shape)
-            input()
             # Get the average number of particles per cell
             mean_npart = np.mean(data[:,1])
             # Get the std of the number of particles per cell
