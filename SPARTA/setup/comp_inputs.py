@@ -96,7 +96,7 @@ for j, s_name in enumerate(sat_names):
         n_y = int(w_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along y
         n_z = int(h_box / ((grid_f + grid_ps)/2)*f)                     # number of grid segments along z
         n_cells = n_x * n_y * n_z                                       # number of cells
-        n_sim = 10 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
+        n_sim = 25 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
         # Check that dt is small enough given dx and v
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
