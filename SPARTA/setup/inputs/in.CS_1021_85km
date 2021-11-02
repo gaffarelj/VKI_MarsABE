@@ -10,13 +10,13 @@ global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100
 boundary            o r r
 create_box          -0.5500 0.5500 -0.3500 0.3500 -0.3500 0.3500
 
-create_grid         574 365 365
+create_grid         186 118 118
 
 balance_grid        rcb cell
 
 write_grid          ../results_sparta/CS_1021/grid_85km.dat
 
-global              nrho 3.7227e+19 fnum 4.5481e+10
+global              nrho 3.7227e+19 fnum 1.3429e+12
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3510.9000 0.0 0.0 frac 0.9587
@@ -34,7 +34,7 @@ collide             vss atmo ../atmo.vss
 
 fix                 in emit/face atmo xhi twopass
 
-timestep            4.0938e-07
+timestep            6.8078e-07
 
 compute             2 surf all all fx fy fz
 fix                 avg ave/surf all 1 5 5 c_2[*] ave running
