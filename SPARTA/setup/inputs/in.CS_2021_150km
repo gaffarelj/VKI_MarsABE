@@ -8,15 +8,15 @@ dimension           3
 global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100
 
 boundary            o r r
-create_box          -0.7000 0.7000 -0.3500 0.3500 -0.3500 0.3500
+create_box          -0.5500 0.5500 -0.3500 0.3500 -0.3500 0.3500
 
-create_grid         87 43 43
+create_grid         93 59 59
 
 balance_grid        rcb cell
 
 write_grid          ../results_sparta/CS_2021/grid_150km.dat
 
-global              nrho 4.6944e+15 fnum 2.1696e+09
+global              nrho 4.6944e+15 fnum 1.3548e+09
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3475.5100 0.0 0.0 frac 0.6979
@@ -26,7 +26,7 @@ mixture             atmo CO vstream -3475.5100 0.0 0.0 frac 0.0693
 mixture             atmo O vstream -3475.5100 0.0 0.0 frac 0.0665
 mixture             atmo O2 vstream -3475.5100 0.0 0.0 frac 0.0095
 
-read_surf           ../data/data.CS_2021
+read_surf           ../data/data.CS_2021 trans 0.3750 0 0
 surf_collide        1 diffuse 293.15 0.7961
 surf_modify         all collide 1
 
@@ -34,15 +34,15 @@ collide             vss atmo ../atmo.vss
 
 fix                 in emit/face atmo xhi twopass
 
-timestep            3.4726e-06
+timestep            2.5524e-06
 
 compute             2 surf all all fx fy fz
 fix                 avg ave/surf all 1 5 5 c_2[*] ave running
-dump                1 surf all 50 ../results_sparta/CS_2021/force_150km.*.gz f_avg[*]
+dump                1 surf all 50 ../results_sparta/CS_2021/force_150km.*.dat f_avg[*]
 compute             sum reduce sum f_avg[*]
 
-compute             npart grid all all n massrho
-dump                2 grid all 50 ../results_sparta/CS_2021/npart_150km.*.gz id c_npart[*]
+compute             npart grid all all n massrho u temp
+dump                2 grid all 50 ../results_sparta/CS_2021/npart_150km.*.dat id c_npart[*]
 
 stats               250
 stats_style         step cpu np nscoll nexit c_sum[1]
