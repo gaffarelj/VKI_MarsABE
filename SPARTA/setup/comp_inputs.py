@@ -86,8 +86,8 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt                                             # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt                                          # post-shock grid dimension [m] (based on velocity)
-        grid_f = min(grid_f_mfp, grid_f_vel, L/50)                      # Take minimum grid dimension (or L_ref/50, to avoid grid too small)
-        grid_ps = min(grid_ps_mfp, grid_ps_vel, L/50)                   # Take minimum grid dimension (or L_ref/50, to avoid grid too small)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), L/100)          # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), L/100)       # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
         f = 1 # increase this factor for an extra fine grid
         if (s_name, h) in refine_more:
