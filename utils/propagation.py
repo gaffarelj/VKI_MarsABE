@@ -1,5 +1,6 @@
 import numpy as np
 import time
+from GRAM.call_GRAM import GRAM_atmo
 from tudatpy.kernel.interface import spice_interface
 from tudatpy.kernel import constants
 from tudatpy.kernel.numerical_simulation import environment_setup
@@ -68,13 +69,14 @@ class orbit_simulation:
         # Power dict
         self.power_dict = dict()
 
-    def create_bodies(self, additional_bodies=["Sun", "Jupiter"], use_MCD=[False, False], preload_MCD=False, save_MCD_vals=False):
+    def create_bodies(self, additional_bodies=["Sun", "Jupiter"], use_MCD=[False, False], preload_MCD=False, save_MCD_vals=False, use_GRAM=False):
         """
         Create the simulation bodies.
         Inputs:
          * additional_bodies ([string]): bodies to create in addition to the central body (by default, the two most massives in the solar system)
          * use_MCD ([bool, bool]): first boolean to indicate wether the MCD atmosphere model should be implemented. If True, the second boolean is used to indicate whether winds should also be added
          * preload_MCD (bool): if True, load all of the MCD files at once
+         * use_GRAM (bool): if True, the GRAM 2010 atmospheric model os NASA is used for Mars
         """
         bodies_to_create = [self.central_body] + additional_bodies      # Bodies that will be created and used in the simulation
         global_frame_origin = self.central_body                         # Body at the centre of the simulation
@@ -85,15 +87,21 @@ class orbit_simulation:
             base_frame_orientation="ECLIPJ2000"
         )
 
-        if use_MCD[0] and self.central_body == "Mars":
-            # Use the atmospheric model from the Mars Climate Database
-            from MCD.parallel_mcd import parallel_mcd as PMCD
-            mcd = PMCD(load_on_init=preload_MCD, save_all_vals=save_MCD_vals)
+        if (use_MCD[0] or use_GRAM) and self.central_body == "Mars":
+            if use_GRAM:
+                # Use the GRAM (2010) atmospheric model
+                from GRAM import call_GRAM as cG
+                GRAM_rho = cG.GRAM_atmo()
+                get_density = GRAM_rho.get_density
+            else:
+                # Use the atmospheric model from the Mars Climate Database
+                from MCD.parallel_mcd import parallel_mcd as PMCD
+                mcd = PMCD(load_on_init=preload_MCD, save_all_vals=save_MCD_vals)
+                get_density = mcd.density
             body_settings.get(self.central_body).atmosphere_settings = environment_setup.atmosphere.custom_four_dimensional_constant_temperature(
-                mcd.density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
+                get_density, constant_temperature=210, specific_gas_constant=192, ratio_of_specific_heats=1.3)
             # Values taken from https://meteor.geol.iastate.edu/classes/mt452/Class_Discussion/Mars-physical_and_orbital_statistics.pdf
-
-            if use_MCD[1]:
+            if np.array(use_MCD).all():
                 # Add winds from the MCD. Only possible if the MCD atmospheric model is used
                 body_settings.get(self.central_body).atmosphere_settings.wind_settings = environment_setup.atmosphere.custom_wind_model(mcd.wind)
         else:
@@ -279,6 +287,8 @@ class orbit_simulation:
            * r_cb:  relative position of the central body w.r.t. the sun
            * Kep:   Keplerian state of the satellite (a, e, i, omega, Omega, theta)
            * h_p:   altitude of the periapsis of the satellite
+           * lat:   latitude of the satellite
+           * lon:   longitude of the satellite
         """
         # Start with no dependent variables to save
         self.dependent_variables_to_save = []
@@ -328,9 +338,17 @@ class orbit_simulation:
                 # Altitude of the periapsis of the satellite
                 d_v = propagation_setup.dependent_variable.periapsis_altitude(self.sat.name, self.central_body)
                 size = 1
+            elif dep_key == "lat":
+                # Latitude of the satellite
+                d_v = propagation_setup.dependent_variable.latitude(self.sat.name, self.central_body)
+                size = 1
+            elif dep_key == "lon":
+                # Longitude of the satellite
+                d_v = propagation_setup.dependent_variable.longitude(self.sat.name, self.central_body)
+                size = 1
             else:
                 # Show a warning message if the dependent variable is not known
-                list_d_v = ["h", "rho", "V", "m", "F_T", "D", "C_D", "r_cb", "Kep"]
+                list_d_v = ["h", "rho", "V", "m", "F_T", "D", "C_D", "r_cb", "Kep", "lat", "lon"]
                 if self.verbose:
                     print("Warning: The dependent variable '%s' is not in known list:" % dep_key, list_d_v)
                 size = 0
