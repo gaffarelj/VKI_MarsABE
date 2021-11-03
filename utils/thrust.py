@@ -23,6 +23,7 @@ class thrust_model:
            * 0: constant thrust of 1 mN when power above 10 N and at any density
            * 1: thrust based on the BHT-100 hall thrusters, interpolated from power, on when power above 107 W, at any density
            * 2: thrust based on the μNRIT2.5 grid ion thruster, interpolated from power, on when power above 13.1 W, at any density
+           * 3: thrust based on the μNRIT2.5 grid ion thruster, interpolated from power and mass flow, on when power above 13.1 W or mass flow at engine above 1.45E-08 kg/s
         """
         # Save the relevant variables in the class
         self.os_sim = orbit_sim
@@ -34,16 +35,17 @@ class thrust_model:
         self.I_sp = I_sp
         self.solar_constant = solar_constant
         self.thrust_mod = thrust_mod
+        self.m_treshold = 0
         # Select the thrust model (and associated operating conditions)
         if thrust_mod == 0:
             self.power_treshold = [10, 100]
-            self.dens_treshold = [0, np.inf]
         elif thrust_mod == 1:
             self.power_treshold = [107, 158]
-            self.dens_treshold = [0, np.inf]
         elif thrust_mod == 2:
             self.power_treshold = [13.1, 34.4]
-            self.dens_treshold = [0, np.inf]
+        elif thrust_mod == 3:
+            self.power_treshold = [13.1, 34.4]
+            self.m_treshold = 1.456e-8
     
     def magnitude(self, time):
         # If there is no more propellant, return 0
@@ -61,6 +63,10 @@ class thrust_model:
         elif self.thrust_mod == 2:
             self.thrust, self.m_flow, self.I_sp = muNRIT_25.from_power(min(self.power, self.power_treshold[1]))
             return self.thrust
+        elif self.thrust_mod == 3:
+            self.thrust, _power, self.m_flow, self.Isp = muNRIT_25.from_P_m(self.power, self.m_flow_t)
+            return self.thrust
+        raise NotImplementedError("The thrust model %i has not been implemented." % self.thrust_mod)
 
     def specific_impulse(self, time):
         # Return the specific impulse
@@ -70,12 +76,16 @@ class thrust_model:
         """
         Define whether the engine is on or not
         """
-        # Engine is on if the air density is above a given treshold
-        curr_dens = self.vehicle.flight_conditions.density
-        density_ok = curr_dens > self.dens_treshold[0] and curr_dens < self.dens_treshold[1]
         # Engine is on if the solar irradiance is above a given treshold
         power_ok = self.power_available(time) > self.power_treshold[0]
-        return density_ok and power_ok
+        # Engine is on if the atmospheric mass flow at engine inlet is above given treshold
+        density_fs = self.vehicle.flight_conditions.density
+        velocity_fs = self.vehicle.flight_conditions.airspeed
+        # TODO: interpolate it trough values from SPARTA at different altitudes (implement in satellite models) #################################
+        dens_ratio = 150                         
+        self.m_flow_t = dens_ratio * density_fs * velocity_fs * self.sat.S_t
+        m_flow_ok = self.m_flow_t >= self.m_treshold
+        return m_flow_ok and power_ok
 
     def power_available(self, time):
         """
