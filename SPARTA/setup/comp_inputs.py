@@ -157,16 +157,16 @@ for j, s_name in enumerate(sat_names):
         input_s += "timestep            %.4e\n" % (dt)
         input_s += "\n"
         input_s += "compute             forces surf all all fx fy fz\n"
-        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (tot_epochs[i]/1000, tot_epochs[i]/100, tot_epochs[i]/20)
+        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
         input_s += "compute             sum_force reduce sum f_avg[*]\n"
         input_s += "\n"
         input_s += "compute             grid_data grid all all n nrho massrho u temp\n"
-        input_s += "fix                 grid_avg ave/grid all %i %i %i c_grid_data[*]\n" % (tot_epochs[i]/1000, tot_epochs[i]/100, tot_epochs[i]/20)
+        input_s += "fix                 grid_avg ave/grid all %i %i %i c_grid_data[*]\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
         input_s += "compute             avg_ppc reduce ave f_grid_avg[1]\n"
         input_s += "\n"
         input_s += "compute             knudsen lambda/grid f_grid_avg[2] f_grid_avg[5] CO2\n"
         input_s += "\n"
-        input_s += "stats               %i\n" % (tot_epochs[i]/100)
+        input_s += "stats               %i\n" % (tot_epochs[i]/50)
         input_s += "stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc\n"
         input_s += "\n"
         input_s += "dump                0v grid all %i ../results_sparta/%s/gridvals_%ikm_0.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
@@ -188,7 +188,7 @@ for j, s_name in enumerate(sat_names):
         grid_def[2] += "read_grid           ../../setup/results_sparta/%s/grid_%skm2.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * 3/10)
         
-        run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
+        run_all_cmd += "mpirun -np 8 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
         for i_r in range(3):
             paraview_grid += "\n"
             paraview_grid += "rm -rf %s_%skm_%i \n" % (s_name, h, i_r)
