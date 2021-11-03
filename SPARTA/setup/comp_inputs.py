@@ -143,7 +143,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
         for n, sp_n in enumerate(species_names):
-            input_s += "mixture             atmo %s vstream -%.4f 0.0 0.0 frac %.4f\n" % (sp_n, u_s, species_frac[n])
+            input_s += "mixture             atmo %s vstream -%.4f 0.0 0.0 frac %.4f temp %.4f\n" % (sp_n, u_s, species_frac[n], T)
         input_s += "collide             vss atmo ../atmo.vss\n"
         input_s += "\n"
         input_s += "read_surf           ../data/data.%s trans %.4f 0 0\n" % (s_name, (0.075+L_sats[j]/2))
