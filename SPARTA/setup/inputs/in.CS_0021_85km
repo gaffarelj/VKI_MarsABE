@@ -10,11 +10,11 @@ global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100
 boundary            o r r
 create_box          -0.5500 0.5500 -0.3500 0.3500 -0.3500 0.3500
 
-create_grid         56 35 35
+create_grid         186 118 118
 
 balance_grid        rcb cell
 
-global              nrho 3.7227e+19 fnum 4.5481e+10
+global              nrho 3.7227e+19 fnum 1.3429e+12
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3510.9000 0.0 0.0 frac 0.9587
@@ -31,7 +31,7 @@ surf_modify         all collide 1
 
 fix                 in emit/face atmo xhi twopass
 
-timestep            4.0938e-07
+timestep            6.8078e-07
 
 compute             forces surf all all fx fy fz
 fix                 avg ave/surf all 1 4 20 c_forces[*] ave running
@@ -51,13 +51,17 @@ dump                0K grid all 100 ../results_sparta/CS_0021/gridKn_85km_0.*.da
 write_grid          ../results_sparta/CS_0021/grid_85km_0.dat
 run                 500
 
-adapt_grid          all refine coarsen value c_knudsen 0.05 0.1 combine min thresh less more
+adapt_grid          all refine coarsen value c_knudsen 0.05 0.2 combine min thresh less more
+undump              0v
+undump              0K
 dump                1v grid all 100 ../results_sparta/CS_0021/gridvals_85km_1.*.dat id f_grid_avg[*]
 dump                1K grid all 100 ../results_sparta/CS_0021/gridKn_85km_1.*.dat id c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_85km_1.dat
 run                 300
 
-adapt_grid          all refine coarsen value c_knudsen 0.05 0.1 combine min thresh less more
+adapt_grid          all refine coarsen value c_knudsen 0.05 0.2 combine min thresh less more
+undump              1v
+undump              1K
 dump                2v grid all 100 ../results_sparta/CS_0021/gridvals_85km_2.*.dat id f_grid_avg[*]
 dump                2K grid all 100 ../results_sparta/CS_0021/gridKn_85km_2.*.dat id c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_85km_2.dat
