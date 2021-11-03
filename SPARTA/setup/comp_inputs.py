@@ -5,7 +5,7 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-tot_epochs = [5000, 5000, 5000]    # Number of simulation epochs for each altitude (should be multiple of 5)
+tot_epochs = [1000, 1000, 1000]    # Number of simulation epochs for each altitude (should be multiple of 5)
 
 # Define conditions at different orbital altitudes
 hs = [85]#, 115, 150]
@@ -154,7 +154,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "fix                 in emit/face atmo xhi twopass\n"
         input_s += "\n"
-        input_s += "timestep            %.4e\n" % (dt)
+        input_s += "timestep            %.4e\n" % (dt*10)
         input_s += "\n"
         input_s += "compute             forces surf all all fx fy fz\n"
         input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
@@ -174,21 +174,25 @@ for j, s_name in enumerate(sat_names):
         input_s += "write_grid          ../results_sparta/%s/grid_%ikm_0.dat\n" % (s_name, h)
         grid_def = [grid_def]*3
         grid_def[0] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_0.dat\n" % (s_name, h)
-        input_s += "run                 %i\n" % (tot_epochs[i] * 2/5)
+        input_s += "run                 %i\n" % (tot_epochs[i] * 1/2)
         input_s += "\n"
+        input_s += "adapt_grid          all refine coarsen value c_knudsen 0.05 0.1 combine min thresh less more\n"
+        input_s += "timestep            %.4e\n" % (dt)
         input_s += "dump                1v grid all %i ../results_sparta/%s/gridvals_%ikm_1.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
         input_s += "dump                1K grid all %i ../results_sparta/%s/gridKn_%ikm_1.*.dat id c_knudsen[*]\n" % (tot_epochs[i]/10, s_name, h)
         input_s += "write_grid          ../results_sparta/%s/grid_%ikm_1.dat\n" % (s_name, h)
         grid_def[1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_1.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * 3/10)
         input_s += "\n"
+        input_s += "adapt_grid          all refine coarsen value c_knudsen 0.05 0.1 combine min thresh less more\n"
+        input_s += "timestep            %.4e\n" % (dt/5)
         input_s += "dump                2v grid all %i ../results_sparta/%s/gridvals_%ikm_2.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
         input_s += "dump                2K grid all %i ../results_sparta/%s/gridKn_%ikm_2.*.dat id c_knudsen[*]\n" % (tot_epochs[i]/10, s_name, h)
         input_s += "write_grid          ../results_sparta/%s/grid_%ikm_2.dat\n" % (s_name, h)
         grid_def[2] += "read_grid           ../../setup/results_sparta/%s/grid_%skm2.dat\n" % (s_name, h)
-        input_s += "run                 %i\n" % (tot_epochs[i] * 3/10)
+        input_s += "run                 %i\n" % (tot_epochs[i] * 1/5)
         
-        run_all_cmd += "mpirun -np 8 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
+        run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
         for i_r in range(3):
             paraview_grid += "\n"
             paraview_grid += "rm -rf %s_%skm_%i \n" % (s_name, h, i_r)
