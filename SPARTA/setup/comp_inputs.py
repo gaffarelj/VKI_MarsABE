@@ -94,7 +94,7 @@ for j, s_name in enumerate(sat_names):
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
         dt = min(dt, dx/u_s*0.75, dx/cr_ps*0.75)                        # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
         # Make sure that the initial grid size (before refinement) is not too small
-        n_x, n_y, n_z = min(n_x, 100/l_box), min(n_y, 100/w_box), min(n_z, 100/h_box)
+        n_x, n_y, n_z = min(n_x, 100*l_box), min(n_y, 100*w_box), min(n_z, 100*h_box)
         # Compute the accomodation coefficient based on the adsorption of atomic oxygen
         # https://doi.org/10.2514/1.49330
         K = 7.5E-17                     # model fitting parameter
@@ -154,7 +154,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "fix                 in emit/face atmo xhi twopass\n"
         input_s += "\n"
-        input_s += "timestep            %.4e\n" % (dt*10)
+        input_s += "timestep            %.4e\n" % (dt/100)
         input_s += "\n"
         input_s += "compute             forces surf all all fx fy fz\n"
         input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
@@ -185,7 +185,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "run                 %i\n" % (tot_epochs[i] * 3/10)
         input_s += "\n"
         input_s += "adapt_grid          all refine coarsen value c_knudsen 0.05 0.1 combine min thresh less more\n"
-        input_s += "timestep            %.4e\n" % (dt/5)
+        input_s += "timestep            %.4e\n" % (dt*10)
         input_s += "dump                2v grid all %i ../results_sparta/%s/gridvals_%ikm_2.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
         input_s += "dump                2K grid all %i ../results_sparta/%s/gridKn_%ikm_2.*.dat id c_knudsen[*]\n" % (tot_epochs[i]/10, s_name, h)
         input_s += "write_grid          ../results_sparta/%s/grid_%ikm_2.dat\n" % (s_name, h)
