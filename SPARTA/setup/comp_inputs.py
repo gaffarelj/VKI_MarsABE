@@ -24,7 +24,7 @@ paraview_surf = ""
 paraview_grid = ""
 sat_names = ["CS_0021"]#["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
 L_sats = [0.6 if _n[-1] == "1" else 0.3 for _n in sat_names]
-L_s = [0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
+L_s = [0.589778]#[0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
     print("\n\n* Satellite", s_name)
     # Create folder for results of this satellite
@@ -81,8 +81,8 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt                                             # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt                                          # post-shock grid dimension [m] (based on velocity)
-        grid_f = min(grid_f_mfp, grid_f_vel, L/25)                      # Take minimum grid dimension (or L_ref/25, to avoid grid too small)
-        grid_ps = min(grid_ps_mfp, grid_ps_vel, L/25)                   # Take minimum grid dimension (or L_ref/25, to avoid grid too small)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), L/100)          # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), L/100)       # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
         n_x = int(l_box / ((grid_f + grid_ps)/2))                       # number of grid segments along x
         n_y = int(w_box / ((grid_f + grid_ps)/2))                       # number of grid segments along y
@@ -93,8 +93,6 @@ for j, s_name in enumerate(sat_names):
         # Check that dt is small enough given dx and v
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
         dt = min(dt, dx/u_s*0.75, dx/cr_ps*0.75)                        # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
-        # Make sure that the initial grid size (before refinement) is not too small
-        n_x, n_y, n_z = min(n_x, 50*l_box), min(n_y, 50*w_box), min(n_z, 50*h_box)
         # Compute the accomodation coefficient based on the adsorption of atomic oxygen
         # https://doi.org/10.2514/1.49330
         K = 7.5E-17                     # model fitting parameter
@@ -193,8 +191,10 @@ for j, s_name in enumerate(sat_names):
         run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
         for i_r in range(3):
             paraview_grid += "\n"
-            paraview_grid += "rm -rf %s_%skm_%i \n" % (s_name, h, i_r)
-            paraview_grid += "rm -rf %s_%skm_%i.pvd \n" % (s_name, h, i_r)
+            paraview_grid += "rm -rf vals_%s_%skm_%i \n" % (s_name, h, i_r)
+            paraview_grid += "rm -rf vals_%s_%skm_%i.pvd \n" % (s_name, h, i_r)
+            paraview_grid += "rm -rf Kn_%s_%skm_%i \n" % (s_name, h, i_r)
+            paraview_grid += "rm -rf Kn_%s_%skm_%i.pvd \n" % (s_name, h, i_r)
             paraview_grid += "echo 'Converting result grid of %s at %skm (refinement %i) to ParaView...'\n" % (s_name, h, i_r)
             paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm_%i vals_%s_%skm_%i -r ../../setup/results_sparta/%s/gridvals_%skm_%i.*.dat \n" % \
                 (s_name, h, i_r, s_name, h, i_r, s_name, h, i_r)
