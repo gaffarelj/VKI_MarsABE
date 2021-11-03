@@ -10,13 +10,11 @@ global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100
 boundary            o r r
 create_box          -0.5500 0.5500 -0.3500 0.3500 -0.3500 0.3500
 
-create_grid         90 30 30
+create_grid         56 35 35
 
 balance_grid        rcb cell
 
-write_grid          ../results_sparta/CS_0021/grid_85km.dat
-
-global              nrho 3.7227e+19 fnum 1.3429e+14
+global              nrho 3.7227e+19 fnum 4.5481e+10
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 vstream -3510.9000 0.0 0.0 frac 0.9587
@@ -25,39 +23,42 @@ mixture             atmo Ar vstream -3510.9000 0.0 0.0 frac 0.0182
 mixture             atmo CO vstream -3510.9000 0.0 0.0 frac 0.0025
 mixture             atmo O vstream -3510.9000 0.0 0.0 frac 0.0013
 mixture             atmo O2 vstream -3510.9000 0.0 0.0 frac 0.0015
+collide             vss atmo ../atmo.vss
 
 read_surf           ../data/data.CS_0021 trans 0.3750 0 0
 surf_collide        1 diffuse 293.15 0.9980
 surf_modify         all collide 1
 
-collide             vss atmo ../atmo.vss
-
 fix                 in emit/face atmo xhi twopass
 
-timestep            6.8078e-06
+timestep            4.0938e-07
 
-compute             2 surf all all fx fy fz
-fix                 avg ave/surf all 1 5 5 c_2[*] ave running
-dump                1 surf all 50 ../results_sparta/CS_0021/force_85km.*.dat f_avg[*]
-compute             sum reduce sum f_avg[*]
+compute             forces surf all all fx fy fz
+fix                 avg ave/surf all 1 4 20 c_forces[*] ave running
+compute             sum_force reduce sum f_avg[*]
 
-compute             npart grid all all n nrho massrho u temp
-fix                 01 ave/grid all 10 100 1000 c_npart[*]
-dump                2 grid all 1000 ../results_sparta/CS_0021/npart_85km.*.dat id f_01[*]
+compute             grid_data grid all all n nrho massrho u temp
+fix                 grid_avg ave/grid all 1 4 20 c_grid_data[*]
+compute             avg_ppc reduce ave f_grid_avg[1]
 
-stats               250
-stats_style         step cpu np nscoll nexit c_sum[1]
-run                 3000
+compute             knudsen lambda/grid f_grid_avg[2] f_grid_avg[5] CO2
 
+stats               20
+stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc
 
-compute             knudsen lambda/grid f_01[2] f_01[5] C02
+dump                0v grid all 100 ../results_sparta/CS_0021/gridvals_85km_0.*.dat id f_grid_avg[*]
+dump                0K grid all 100 ../results_sparta/CS_0021/gridKn_85km_0.*.dat id c_knudsen[*]
+write_grid          ../results_sparta/CS_0021/grid_85km_0.dat
+run                 500
 
 adapt_grid          all refine coarsen value c_knudsen 0.05 0.1 combine min thresh less more
-run                 1000
+dump                1v grid all 100 ../results_sparta/CS_0021/gridvals_85km_1.*.dat id f_grid_avg[*]
+dump                1K grid all 100 ../results_sparta/CS_0021/gridKn_85km_1.*.dat id c_knudsen[*]
+write_grid          ../results_sparta/CS_0021/grid_85km_1.dat
+run                 300
 
 adapt_grid          all refine coarsen value c_knudsen 0.05 0.1 combine min thresh less more
-dump                2 grid all 1000 ../results_sparta/CS_0021/npart_85km.*.dat id f_01[*]
-run                 1000
-
-write_grid          ../results_sparta/CS_0021/grid_85km_ref.dat
-
+dump                2v grid all 100 ../results_sparta/CS_0021/gridvals_85km_2.*.dat id f_grid_avg[*]
+dump                2K grid all 100 ../results_sparta/CS_0021/gridKn_85km_2.*.dat id c_knudsen[*]
+write_grid          ../results_sparta/CS_0021/grid_85km_2.dat
+run                 200
