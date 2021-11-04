@@ -151,8 +151,8 @@ class parallel_mcd:
          * density: float, in [kg/m3]
         """
         self.xz = self.Mars_R + h   # convert altitude to distance from centre of Mars
-        self.xlat = lat
-        self.xlon = lon
+        self.xlat = np.rad2deg(lat)
+        self.xlon = np.rad2deg(lon)
         # If the time is a Julian date, convert it to solar longitude and day of the year
         if time_is_JD:
             Ls, Ds = TC.JD_to_Ls(time, JD_Tudat=JD_Tudat)
