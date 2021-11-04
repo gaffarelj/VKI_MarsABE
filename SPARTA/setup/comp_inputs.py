@@ -33,8 +33,9 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
-            os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+            if False:
+                shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
+                os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
             print("Warning: could not delete folder", s_name)
     # Loop trough conditions
@@ -139,11 +140,11 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "balance_grid        rcb cell\n"
         input_s += "\n"
-        input_s += "global              nrho %.4e fnum %.4e\n" % (nrho, f_num)
+        input_s += "global              nrho %.4e fnum %.4e vstream -%.4f 0.0 0.0 temp %.4f\n" % (nrho, f_num, u_s, T)
         input_s += "\n"
         input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
         for n, sp_n in enumerate(species_names):
-            input_s += "mixture             atmo %s vstream -%.4f 0.0 0.0 frac %.4f temp %.4f\n" % (sp_n, u_s, species_frac[n], T)
+            input_s += "mixture             atmo %s frac %.4f\n" % (sp_n, species_frac[n])
         input_s += "collide             vss atmo ../atmo.vss\n"
         input_s += "\n"
         input_s += "read_surf           ../data/data.%s trans %.4f 0 0\n" % (s_name, (0.075+L_sats[j]/2))
