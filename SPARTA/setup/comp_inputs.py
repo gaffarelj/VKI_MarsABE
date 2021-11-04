@@ -132,7 +132,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100\n"
         input_s += "\n"
-        input_s += "boundary            o r r\n"
+        input_s += "boundary            o o o\n"
         input_s += "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
         grid_def+= "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
         input_s += "\n"
@@ -151,7 +151,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
         input_s += "surf_modify         all collide 1\n"
         input_s += "\n"
-        input_s += "fix                 in emit/face atmo xhi twopass\n"
+        input_s += "fix                 in emit/face atmo xhi zhi zlo yhi ylo #twopass\n"
         input_s += "\n"
         input_s += "timestep            %.4e\n" % dt
         input_s += "\n"
