@@ -5,7 +5,7 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-tot_epochs = [2000, 2000, 2000]    # Number of simulation epochs for each altitude (should be multiple of 1000)
+tot_epochs = [5000, 5000, 5000]    # Number of simulation epochs for each altitude (should be multiple of 1000)
 
 # Define conditions at different orbital altitudes
 hs = [85]#, 115, 150]
@@ -33,7 +33,7 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            if False:
+            if True:
                 shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
                 os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
@@ -175,7 +175,7 @@ for j, s_name in enumerate(sat_names):
         grid_def[0] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_0.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * 1/2)
         input_s += "\n"
-        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 0.05 0.2 combine min thresh less more\n"
+        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more\n"
         input_s += "undump              0v\n"
         input_s += "undump              0K\n"
         input_s += "dump                1v grid all %i ../results_sparta/%s/gridvals_%ikm_1.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
@@ -184,7 +184,7 @@ for j, s_name in enumerate(sat_names):
         grid_def[1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_1.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * 3/10)
         input_s += "\n"
-        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 0.05 0.2 combine min thresh less more\n"
+        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more\n"
         input_s += "undump              1v\n"
         input_s += "undump              1K\n"
         input_s += "dump                2v grid all %i ../results_sparta/%s/gridvals_%ikm_2.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
