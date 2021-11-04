@@ -5,7 +5,7 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-tot_epochs = [1000, 1000, 1000]    # Number of simulation epochs for each altitude (should be multiple of 1000)
+tot_epochs = [2000, 2000, 2000]    # Number of simulation epochs for each altitude (should be multiple of 1000)
 
 # Define conditions at different orbital altitudes
 hs = [85]#, 115, 150]
@@ -163,7 +163,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "fix                 grid_avg ave/grid all %i %i %i c_grid_data[*]\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
         input_s += "compute             avg_ppc reduce ave f_grid_avg[1]\n"
         input_s += "\n"
-        input_s += "compute             knudsen lambda/grid f_grid_avg[2] f_grid_avg[5] CO2\n"
+        input_s += "compute             knudsen lambda/grid f_grid_avg[2] f_grid_avg[5] CO2 kall\n"
         input_s += "\n"
         input_s += "stats               %i\n" % (tot_epochs[i]/50)
         input_s += "stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc\n"
@@ -175,7 +175,7 @@ for j, s_name in enumerate(sat_names):
         grid_def[0] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_0.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * 1/2)
         input_s += "\n"
-        input_s += "adapt_grid          all refine coarsen value c_knudsen 0.05 0.2 combine min thresh less more\n"
+        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 0.05 0.2 combine min thresh less more\n"
         input_s += "undump              0v\n"
         input_s += "undump              0K\n"
         input_s += "dump                1v grid all %i ../results_sparta/%s/gridvals_%ikm_1.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
@@ -184,7 +184,7 @@ for j, s_name in enumerate(sat_names):
         grid_def[1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_1.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * 3/10)
         input_s += "\n"
-        input_s += "adapt_grid          all refine coarsen value c_knudsen 0.05 0.2 combine min thresh less more\n"
+        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 0.05 0.2 combine min thresh less more\n"
         input_s += "undump              1v\n"
         input_s += "undump              1K\n"
         input_s += "dump                2v grid all %i ../results_sparta/%s/gridvals_%ikm_2.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
@@ -213,7 +213,7 @@ for j, s_name in enumerate(sat_names):
         # Write grid definition in ParaView folder
         for i_g in range(3):
             with open(sys.path[0] + "/SPARTA/paraview/grid/def/grid.%s_%skm_%i" % (s_name, h, i_g), "w") as input_f:
-                input_f.write(grid_def[i])
+                input_f.write(grid_def[i_g])
 
 
 # Write command to run all SPARTA input files
