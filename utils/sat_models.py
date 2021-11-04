@@ -36,10 +36,10 @@ class satellite:
         
         if type(self.Cd_list) == list:
             # Create a cubic spline interpolator, capped at the boundaries
-            interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.use_default_value)
+            interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.throw_exception_at_boundary)
             drag_dict = dict(zip(self.Cd_h, self.Cd_list))
             # Setup the drag interpolator
-            self.drag_interpolator = interpolators.create_one_dimensional_interpolator(drag_dict, interpolator_settings)
+            self.drag_interpolator = interpolators.create_one_dimensional_scalar_interpolator(drag_dict, interpolator_settings)
 
     def __str__(self):
         # Return the satellite represented as a string
@@ -67,9 +67,10 @@ class satellite:
                 self.h_warning[0] = False
             else:
                 self.h_warning[1] = False
-        Cd = self.drag_interpolator.interpolate(h)
         # If the interpolated Cd is out of the boundaries, take the average
-        if Cd == 0:
+        try:
+            Cd = self.drag_interpolator.interpolate(h)
+        except RuntimeError:
             Cd = np.mean(self.Cd_list)
         return Cd
 
