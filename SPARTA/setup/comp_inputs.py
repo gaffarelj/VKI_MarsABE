@@ -175,23 +175,15 @@ for j, s_name in enumerate(sat_names):
         grid_def[0] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_0.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * 1/2)
         input_s += "\n"
-        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more\n"
-        input_s += "undump              0v\n"
-        input_s += "undump              0K\n"
-        input_s += "dump                1v grid all %i ../results_sparta/%s/gridvals_%ikm_1.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
-        input_s += "dump                1K grid all %i ../results_sparta/%s/gridKn_%ikm_1.*.dat id c_knudsen[*]\n" % (tot_epochs[i]/10, s_name, h)
-        input_s += "write_grid          ../results_sparta/%s/grid_%ikm_1.dat\n" % (s_name, h)
-        grid_def[1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_1.dat\n" % (s_name, h)
-        input_s += "run                 %i\n" % (tot_epochs[i] * 3/10)
-        input_s += "\n"
-        input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more\n"
-        input_s += "undump              1v\n"
-        input_s += "undump              1K\n"
-        input_s += "dump                2v grid all %i ../results_sparta/%s/gridvals_%ikm_2.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
-        input_s += "dump                2K grid all %i ../results_sparta/%s/gridKn_%ikm_2.*.dat id c_knudsen[*]\n" % (tot_epochs[i]/10, s_name, h)
-        input_s += "write_grid          ../results_sparta/%s/grid_%ikm_2.dat\n" % (s_name, h)
-        grid_def[2] += "read_grid           ../../setup/results_sparta/%s/grid_%skm2.dat\n" % (s_name, h)
-        input_s += "run                 %i\n" % (tot_epochs[i] * 1/5)
+        for i_refine, epoch_frac in enumerate([3/10, 2/10]):
+            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more\n"
+            input_s += "undump              %iv\n" % i_refine
+            input_s += "undump              %iK\n" % i_refine
+            input_s += "dump                %iv grid all %i ../results_sparta/%s/gridvals_%ikm_%i.*.dat id f_grid_avg[*]\n" % (i_refine+1, tot_epochs[i]/10, s_name, h, i_refine+1)
+            input_s += "dump                %iK grid all %i ../results_sparta/%s/gridKn_%ikm_%i.*.dat id c_knudsen[*]\n" % (i_refine+1, tot_epochs[i]/10, s_name, h, i_refine+1)
+            input_s += "write_grid          ../results_sparta/%s/grid_%ikm_%i.dat\n" % (s_name, h, i_refine+1)
+            grid_def[i_refine+1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_%i.dat\n" % (s_name, h, i_refine+1)
+            input_s += "run                 %i\n" % (tot_epochs[i] * epoch_frac)
         
         run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
         for i_r in range(3):
@@ -205,6 +197,7 @@ for j, s_name in enumerate(sat_names):
                 (s_name, h, i_r, s_name, h, i_r, s_name, h, i_r)
             paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm_%i Kn_%s_%skm_%i -r ../../setup/results_sparta/%s/gridKn_%skm_%i.*.dat \n" % \
                 (s_name, h, i_r, s_name, h, i_r, s_name, h, i_r)
+            paraview_grid += "\n"
         
         # Write SPARTA inputs to input
         with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
