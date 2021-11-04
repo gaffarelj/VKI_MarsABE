@@ -89,11 +89,13 @@ for j, s_name in enumerate(sat_names):
         n_y = int(w_box / ((grid_f + grid_ps)/2))                       # number of grid segments along y
         n_z = int(h_box / ((grid_f + grid_ps)/2))                       # number of grid segments along z
         n_cells = n_x * n_y * n_z                                       # number of cells
-        n_sim = 40 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
+        n_sim = 100 * n_cells                                           # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
+        
         # Check that dt is small enough given dx and v
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
         dt = min(dt, dx/u_s*0.75, dx/cr_ps*0.75)                        # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
+        
         # Compute the accomodation coefficient based on the adsorption of atomic oxygen
         # https://doi.org/10.2514/1.49330
         K = 7.5E-17                     # model fitting parameter
@@ -140,6 +142,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "balance_grid        rcb cell\n"
         input_s += "\n"
+
         input_s += "global              nrho %.4e fnum %.4e vstream -%.4f 0.0 0.0 temp %.4f\n" % (nrho, f_num, u_s, T)
         input_s += "\n"
         input_s += "species             ../atmo.species CO2 N2 Ar CO O O2\n"
@@ -151,7 +154,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
         input_s += "surf_modify         all collide 1\n"
         input_s += "\n"
-        input_s += "fix                 in emit/face atmo xhi zhi zlo yhi ylo #twopass\n"
+        input_s += "fix                 in emit/face atmo xhi zhi zlo yhi ylo\n"
         input_s += "\n"
         input_s += "timestep            %.4e\n" % dt
         input_s += "\n"
@@ -159,43 +162,50 @@ for j, s_name in enumerate(sat_names):
         input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
         input_s += "compute             sum_force reduce sum f_avg[*]\n"
         input_s += "\n"
-        input_s += "compute             grid_data grid all all n nrho massrho u temp\n"
-        input_s += "fix                 grid_avg ave/grid all %i %i %i c_grid_data[*]\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
-        input_s += "compute             avg_ppc reduce ave f_grid_avg[1]\n"
+
+        # Grid data to save
+        grid_data = ["n", "nrho", "massrho", "u"]
+        for g_d in grid_data:
+            input_s += "compute             %s grid all all %s\n" % (g_d, g_d)
+            input_s += "fix                 %s_avg ave/grid all %i %i %i c_%s[*]\n" % (g_d, tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50, g_d)
+            input_s += "\n"
+        input_s += "compute             avg_ppc reduce ave f_n_avg\n"
         input_s += "\n"
-        input_s += "compute             knudsen lambda/grid f_grid_avg[2] f_grid_avg[5] CO2 kall\n"
+        input_s += "compute             T thermal/grid all all temp\n"
+        input_s += "fix                 T_avg ave/grid all 5 20 100 c_T[*]\n"
+        input_s += "\n"
+        input_s += "compute             knudsen lambda/grid f_nrho_avg f_T_avg CO2 kall\n"
         input_s += "\n"
         input_s += "stats               %i\n" % (tot_epochs[i]/50)
         input_s += "stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc\n"
         input_s += "\n"
-        input_s += "dump                0v grid all %i ../results_sparta/%s/gridvals_%ikm_0.*.dat id f_grid_avg[*]\n" % (tot_epochs[i]/10, s_name, h)
-        input_s += "dump                0K grid all %i ../results_sparta/%s/gridKn_%ikm_0.*.dat id c_knudsen[*]\n" % (tot_epochs[i]/10, s_name, h)
+        input_s += "dump                0 grid all %i ../results_sparta/%s/vals_%ikm_0.*.dat id %s f_T_avg c_knudsen[*]\n" \
+            % (tot_epochs[i]/10, s_name, h,  " ".join(["f_%s_avg" % _n for _n in grid_data]))
         input_s += "write_grid          ../results_sparta/%s/grid_%ikm_0.dat\n" % (s_name, h)
-        grid_def = [grid_def]*3
+
+        run_fractions = [5/10, 1/10, 1/10, 1/10, 2/10]
+        grid_def = [grid_def]*len(run_fractions)
         grid_def[0] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_0.dat\n" % (s_name, h)
-        input_s += "run                 %i\n" % (tot_epochs[i] * 1/2)
+        input_s += "run                 %i\n" % (tot_epochs[i] * run_fractions[0])
         input_s += "\n"
-        for i_refine, epoch_frac in enumerate([3/10, 2/10]):
+
+        for i_refine, epoch_frac in enumerate(run_fractions[1:]):
             input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more\n"
-            input_s += "undump              %iv\n" % i_refine
-            input_s += "undump              %iK\n" % i_refine
-            input_s += "dump                %iv grid all %i ../results_sparta/%s/gridvals_%ikm_%i.*.dat id f_grid_avg[*]\n" % (i_refine+1, tot_epochs[i]/10, s_name, h, i_refine+1)
-            input_s += "dump                %iK grid all %i ../results_sparta/%s/gridKn_%ikm_%i.*.dat id c_knudsen[*]\n" % (i_refine+1, tot_epochs[i]/10, s_name, h, i_refine+1)
+            input_s += "undump              %i\n" % i_refine
+            input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
+                % (i_refine+1, tot_epochs[i]/10, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
             input_s += "write_grid          ../results_sparta/%s/grid_%ikm_%i.dat\n" % (s_name, h, i_refine+1)
             grid_def[i_refine+1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_%i.dat\n" % (s_name, h, i_refine+1)
             input_s += "run                 %i\n" % (tot_epochs[i] * epoch_frac)
+            input_s += "\n"
         
         run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
         for i_r in range(3):
             paraview_grid += "\n"
             paraview_grid += "rm -rf vals_%s_%skm_%i \n" % (s_name, h, i_r)
             paraview_grid += "rm -rf vals_%s_%skm_%i.pvd \n" % (s_name, h, i_r)
-            paraview_grid += "rm -rf Kn_%s_%skm_%i \n" % (s_name, h, i_r)
-            paraview_grid += "rm -rf Kn_%s_%skm_%i.pvd \n" % (s_name, h, i_r)
-            paraview_grid += "echo 'Converting result grid of %s at %skm (refinement %i) to ParaView...'\n" % (s_name, h, i_r)
-            paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm_%i vals_%s_%skm_%i -r ../../setup/results_sparta/%s/gridvals_%skm_%i.*.dat \n" % \
-                (s_name, h, i_r, s_name, h, i_r, s_name, h, i_r)
-            paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm_%i Kn_%s_%skm_%i -r ../../setup/results_sparta/%s/gridKn_%skm_%i.*.dat \n" % \
+            paraview_grid += "echo 'Converting results of %s at %skm (refinement %i) to ParaView...'\n" % (s_name, h, i_r)
+            paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm_%i vals_%s_%skm_%i -r ../../setup/results_sparta/%s/vals_%skm_%i.*.dat \n" % \
                 (s_name, h, i_r, s_name, h, i_r, s_name, h, i_r)
             paraview_grid += "\n"
         
