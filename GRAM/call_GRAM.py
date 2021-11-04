@@ -52,5 +52,5 @@ class GRAM_atmo:
         else:
             Ls, Ds = time
         # Interpolate the 3d atmospheric lookup table at the given solar latitude (deg), altitude (km), and latitude (deg)
-        T, P, rho = interpn(self.table_params, self.table_values, [Ls, h/1e3, np.rad2deg(lat)], bounds_error=True, fill_value=None)[0]
+        T, P, rho = interpn(self.table_params, self.table_values, [Ls, h/1e3, np.rad2deg(lat)], bounds_error=False, fill_value=None)[0]
         return rho
