@@ -1,5 +1,3 @@
-import matplotlib
-matplotlib.use("pdf")
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
@@ -57,8 +55,12 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
         plt.yscale("log")
     if equal_ax:
         ax.set_aspect("equal")
+    # Show the plot
+    if fname == "SHOW":
+        plt.show()
     # Save the plot in the figure folder, as a pdf
-    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
+    else:
+        plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
 def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, colors=None, xlog=False,\
@@ -95,8 +97,12 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
         ax.set_ylim(ylim)
     if xlim is not None:
         ax.set_xlim(xlim)
+    # Show the plot
+    if fname == "SHOW":
+        plt.show()
     # Save the plot in the figure folder, as a pdf
-    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
+    else:
+        plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
 
@@ -130,8 +136,12 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
     ax2.tick_params(axis="y", labelcolor=color)
     # Save space
     fig.tight_layout()
+    # Show the plot
+    if fname == "SHOW":
+        plt.show()
     # Save the plot in the figure folder, as a pdf
-    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
+    else:
+        plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
 def plot_4d(x, y, z, h, labels, fname):
@@ -150,5 +160,10 @@ def plot_4d(x, y, z, h, labels, fname):
     ax.set_zlabel(labels[2], fontsize=12)
     clb.ax.set_title(labels[3], fontsize=12)
     plt.tight_layout()
-    plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
+    # Show the plot
+    if fname == "SHOW":
+        plt.show()
+    # Save the plot in the figure folder, as a pdf
+    else:
+        plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
