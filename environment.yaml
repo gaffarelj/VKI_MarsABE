@@ -8,6 +8,5 @@ dependencies:
   - matplotlib
   - scipy
   - pandas
-  - natsort
   - gzip
   - plotly

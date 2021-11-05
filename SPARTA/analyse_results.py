@@ -1,7 +1,4 @@
 import numpy as np
-import glob
-from natsort import natsorted
-import gzip
 import sys
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
