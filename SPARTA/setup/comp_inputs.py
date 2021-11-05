@@ -8,7 +8,7 @@ from tools import plot_utilities as PU
 tot_epochs = [5000, 5000, 5000]    # Number of simulation epochs for each altitude (should be multiple of 1000)
 
 # Define conditions at different orbital altitudes
-hs = [85]#, 115, 150]
+hs = [85, 115, 150]
 rhos = [2.69329E-06, 1.37030E-06, 3.04190E-10]
 ps = [7.36261E-02, 3.73367E-02, 1.06037E-05]
 Ts = [143.093, 128.038, 166.587]
@@ -200,21 +200,20 @@ for j, s_name in enumerate(sat_names):
             input_s += "\n"
         
         run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
-        for i_r in range(3):
+        for i_r in range(len(run_fractions)):
             paraview_grid += "\n"
             paraview_grid += "rm -rf vals_%s_%skm_%i \n" % (s_name, h, i_r)
             paraview_grid += "rm -rf vals_%s_%skm_%i.pvd \n" % (s_name, h, i_r)
             paraview_grid += "echo 'Converting results of %s at %skm (refinement %i) to ParaView...'\n" % (s_name, h, i_r)
             paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm_%i vals_%s_%skm_%i -r ../../setup/results_sparta/%s/vals_%skm_%i.*.dat \n" % \
                 (s_name, h, i_r, s_name, h, i_r, s_name, h, i_r)
-            paraview_grid += "\n"
         
         # Write SPARTA inputs to input
         with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
             input_f.write(input_s)
 
         # Write grid definition in ParaView folder
-        for i_g in range(3):
+        for i_g in range(len(run_fractions)):
             with open(sys.path[0] + "/SPARTA/paraview/grid/def/grid.%s_%skm_%i" % (s_name, h, i_g), "w") as input_f:
                 input_f.write(grid_def[i_g])
 
