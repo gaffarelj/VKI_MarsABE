@@ -71,17 +71,18 @@ for j, s_name in enumerate(sat_names):
         nrho = rho / weighted_m                                         # number density [#/m3]
         lambda_f = 1 / (np.sqrt(2) * weighted_sigma * nrho)             # mean free path [m]
         Kn = lambda_f / L                                               # Knudsen number [-]
-        T_ps = weighted_m * u_s**2 / (7*k_b)                            # post-shock T (Cv=2.5*R) [K]
-        cr_ps = np.sqrt(16*k_b*T_ps / (np.pi*weighted_m))               # post-shock average relative velocity [m/s]\
-        nrho_ps = 23/3*nrho                                             # post-shock number density [#/m3]
-        lambda_ps = 1 / (np.sqrt(2) * weighted_sigma * nrho_ps)         # post-shock mean free path [m]
+        # T_ps = weighted_m * u_s**2 / (7*k_b)                            # post-shock T (Cv=2.5*R) [K]
+        # cr_ps = np.sqrt(16*k_b*T_ps / (np.pi*weighted_m))               # post-shock average relative velocity [m/s]
+        # nrho_ps = 23/3*nrho                                             # post-shock number density [#/m3]
+        # lambda_ps = 1 / (np.sqrt(2) * weighted_sigma * nrho_ps)         # post-shock mean free path [m]
+        T_ps, cr_ps, nrho_ps, lambda_ps = 4500, 2250, 3e19, 0.05        # Values taken from preliminary SPARTA results
         nu_ps = weighted_sigma * nrho_ps * cr_ps                        # post-shock collision frequency [Hz]
         tau_ps = 1 / nu_ps                                              # post-shock collision time [s]
-        dt = tau_ps / 5                                                 # time step [s]
+        dt_mfp = tau_ps / 5                                             # time step [s] (based on mean free path)
         grid_f_mfp = lambda_f / 5                                       # grid dimension before shock [m] (based on mean free path)
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
-        grid_f_vel = u_s*dt                                             # grid dimension before shock [m] (based on velocity)
-        grid_ps_vel = cr_ps*dt                                          # post-shock grid dimension [m] (based on velocity)
+        grid_f_vel = u_s*dt_mfp                                             # grid dimension before shock [m] (based on velocity)
+        grid_ps_vel = cr_ps*dt_mfp                                          # post-shock grid dimension [m] (based on velocity)
         grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), L/100)          # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
         grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), L/100)       # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
@@ -89,12 +90,12 @@ for j, s_name in enumerate(sat_names):
         n_y = int(w_box / ((grid_f + grid_ps)/2))                       # number of grid segments along y
         n_z = int(h_box / ((grid_f + grid_ps)/2))                       # number of grid segments along z
         n_cells = n_x * n_y * n_z                                       # number of cells
-        n_sim = 100 * n_cells                                           # number of simulated particles (int factor results from analysis to have 10 ppc)
+        n_sim = 50 * n_cells                                           # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
         
         # Check that dt is small enough given dx and v
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
-        dt = min(dt, dx/u_s*0.75, dx/cr_ps*0.75)                        # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
+        dt = min(dt_mfp, dx/u_s*0.75, dx/cr_ps*0.75)                        # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
         
         # Compute the accomodation coefficient based on the adsorption of atomic oxygen
         # https://doi.org/10.2514/1.49330
@@ -150,9 +151,12 @@ for j, s_name in enumerate(sat_names):
             input_s += "mixture             atmo %s frac %.4f\n" % (sp_n, species_frac[n])
         input_s += "collide             vss atmo ../atmo.vss\n"
         input_s += "\n"
-        input_s += "read_surf           ../data/data.%s trans %.4f 0 0\n" % (s_name, (0.075+L_sats[j]/2))
+        sat_front = 0.075 + L_sats[j]/2
+        input_s += "read_surf           ../data/data.%s trans %.4f 0 0\n" % (s_name, sat_front)
         input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
         input_s += "surf_modify         all collide 1\n"
+        input_s += "\n"
+        input_s += "region              sat_front block %.4f %.4f -0.075 0.075 -0.075 0.075\n" % (sat_front-0.035, sat_front+0.065)
         input_s += "\n"
         input_s += "fix                 in emit/face atmo xhi zhi zlo yhi ylo\n"
         input_s += "\n"
@@ -190,7 +194,10 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
 
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
-            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more\n"
+            input_s += "timestep            %.4e\n" % (dt/(4**(i_refine+1)))
+            input_s += "scale_particles     all 4.0\n"
+            specify_region = "" if i_refine < len(run_fractions)//2 else " region sat_front"
+            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more%s\n" % specify_region
             input_s += "undump              %i\n" % i_refine
             input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
                 % (i_refine+1, tot_epochs[i]/10, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
