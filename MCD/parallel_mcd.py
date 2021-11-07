@@ -38,8 +38,8 @@ class parallel_mcd:
 
     def default_inputs(self):
         # Load a set of default inputs for the MCD interface module
-        self.zkey = 1                    # xz is thus the radial distance from the centre of Mars
-        self.xz = self.Mars_R+200e3      # [m], distance from the centre of Mars (200km altitude as default)
+        self.zkey = 2                    # xz is thus the the altitude above the Martian zero datum (Mars geoid)
+        self.xz = 125e3                  # [m], distance above the Martian geoid (125km altitude as default)
         self.xlon = 137.4                # [deg], East longitude
         self.xlat = -4.6                 # [deg], Latitude
         self.hireskey = 0                # use the lower resolution grid of 5.625x3.75 deg
@@ -94,7 +94,7 @@ class parallel_mcd:
         if localtime is not None: self.localtime = localtime    # local time [hours], between 0 and 24
         if lat is not None: self.xlat = lat                     # latitude [deg], between -90 and 90
         if lon is not None: self.xlon = lon                     # longitude [deg], between -180 and 180
-        if h is not None: self.xz = self.Mars_R+h               # distance from Mars centre [m], specified using the altitude h in [m]
+        if h is not None: self.xz = h                           # distance above the Martian geoid [m]
         # Find what module should be used for the given solar longitude
         # (the 15 deg value comes from the fact that each module actually loads two datasets, before and after the centre of the 30deg interval)
         if self.load_parallel:
@@ -141,8 +141,8 @@ class parallel_mcd:
         Return the density at a specific position and time. Used mainly interfaced to Tudat.
         Inputs:
          * h: altitude, in [m]
-         * lat: latitude, in [deg]
-         * lon: longitude, in [deg]
+         * lat: latitude, in [rad]
+         * lon: longitude, in [rad]
          * time: Julian date in seconds since J2000 by default. Can be changed (see optional inputs)
         Optional inputs:
          * time_is_JD: boolean specifying whether the input time is a Julian date (true), or a tuple containing the solar longitude and time of day (false)
@@ -150,7 +150,7 @@ class parallel_mcd:
         Output:
          * density: float, in [kg/m3]
         """
-        self.xz = self.Mars_R + h   # convert altitude to distance from centre of Mars
+        self.xz = h
         self.xlat = np.rad2deg(lat)
         self.xlon = np.rad2deg(lon)
         # If the time is a Julian date, convert it to solar longitude and day of the year
@@ -159,7 +159,7 @@ class parallel_mcd:
         else:
             Ls, Ds = time
         # Convert the day of the year to hour of the day
-        self.localtime = Ds % 1 * 24
+        self.localtime = Ds % 24
         self.xdate = Ls
         # Call the MCD
         self.call()
