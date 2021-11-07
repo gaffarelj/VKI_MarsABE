@@ -84,8 +84,6 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     # Set legend
     if legends is not None:
         ax.legend(legends, loc=legend_loc)
-    # Save space
-    fig.tight_layout()
     ax.grid()
     # Set log axis if requested
     if xlog:
@@ -97,6 +95,8 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
         ax.set_ylim(ylim)
     if xlim is not None:
         ax.set_xlim(xlim)
+    # Save space
+    fig.tight_layout()
     # Show the plot
     if fname == "SHOW":
         plt.show()
