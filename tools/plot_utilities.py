@@ -58,6 +58,9 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
     # Show the plot
     if fname == "SHOW":
         plt.show()
+    # Return the figure and axis
+    elif fname == "RETURN":
+        return fig, ax
     # Save the plot in the figure folder, as a pdf
     else:
         plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
@@ -100,6 +103,9 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     # Show the plot
     if fname == "SHOW":
         plt.show()
+    # Return the figure and axis
+    elif fname == "RETURN":
+        return fig, ax
     # Save the plot in the figure folder, as a pdf
     else:
         plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
@@ -139,6 +145,9 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
     # Show the plot
     if fname == "SHOW":
         plt.show()
+    # Return the figure and axis
+    elif fname == "RETURN":
+        return fig, ax1, ax2
     # Save the plot in the figure folder, as a pdf
     else:
         plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
@@ -163,6 +172,9 @@ def plot_4d(x, y, z, h, labels, fname):
     # Show the plot
     if fname == "SHOW":
         plt.show()
+    # Return the figure and axis
+    elif fname == "RETURN":
+        return fig, ax
     # Save the plot in the figure folder, as a pdf
     else:
         plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
