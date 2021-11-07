@@ -196,7 +196,7 @@ for j, s_name in enumerate(sat_names):
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
             input_s += "timestep            %.4e\n" % (dt/(4**(i_refine+1)))
             input_s += "scale_particles     all 4.0\n"
-            specify_region = "" if i_refine < len(run_fractions)//2 else " region sat_front"
+            specify_region = "" if i_refine < len(run_fractions)//2 else " region sat_front one"
             input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more%s\n" % specify_region
             input_s += "undump              %i\n" % i_refine
             input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
