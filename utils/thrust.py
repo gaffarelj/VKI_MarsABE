@@ -21,9 +21,9 @@ class thrust_model:
          * orbit_sim (utils.propagation.orbit_simulation): orbit_sim class of the satellite orbit
          * thrust_mod (int): thrust model to use
            * 0: constant thrust of 1 mN when power above 10 N and at any density
-           * 1: thrust based on the BHT-100 hall thrusters, interpolated from power, on when power above 107 W, at any density
-           * 2: thrust based on the μNRIT2.5 grid ion thruster, interpolated from power, on when power above 13.1 W, at any density
-           * 3: thrust based on the μNRIT2.5 grid ion thruster, interpolated from power and mass flow, on when power above 13.1 W or mass flow at engine above 1.45E-08 kg/s
+           * 1: thrust based on the BHT-100 hall thrusters (with tank), interpolated from power, on when power above 107 W, at any density
+           * 2: thrust based on the μNRIT2.5 grid ion thruster (with tank), interpolated from power, on when power above 13.1 W, at any density
+           * 3: thrust based on the μNRIT2.5 grid ion thruster (without tank), interpolated from power and mass flow, on when power above 13.1 W or mass flow at engine above 1.45E-08 kg/s
         """
         # Save the relevant variables in the class
         self.os_sim = orbit_sim
