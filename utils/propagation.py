@@ -207,6 +207,7 @@ class orbit_simulation:
         for env_a in env_accelerations:
             self.accelerations[env_a.body_name] = env_a.a
         # Add the thrust as an acceleration
+        self.thrust_model = thrust
         if thrust is not None:
             self.accelerations[self.sat.name] =  [T.thrust_settings(self, thrust)]
         # Create the acceleration models
@@ -379,6 +380,8 @@ class orbit_simulation:
         )
         # Also propagate the mass based on the acceleration from the thrust
         if prop_mass:
+            if self.thrust_model in [3]:
+                print("Warning: the mass of the satellite should not be propagated when the thrust model %i is used")
             # Define the mass propagator settings
             mass_rate_settings = {self.sat.name: [propagation_setup.mass_rate.from_thrust()]}
             mass_rate_model = propagation_setup.create_mass_rate_models(self.bodies, mass_rate_settings, self.acceleration_models)
@@ -392,6 +395,8 @@ class orbit_simulation:
                 [translation_propagator_settings, mass_propagator_settings], self.termination_settings, self.dependent_variables_to_save)
         # Only propagate the vehicle translationally
         else:
+            if self.thrust_model in [1, 2]:
+                print("Warning: the mass of the satellite should be propagated when the thrust model %i is used")
             self.propagator_settings = translation_propagator_settings
 
     def simulate(self):
