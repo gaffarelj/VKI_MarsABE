@@ -47,7 +47,7 @@ Then, the [environments folder](setup_selection/environments) contains scripts t
 Both sub-folders of the setup selection contains their own READMEs: one for the [environments](setup_selection/environments/README.md) and one for the [integratos/propagators](setup_selection/integrators_propagators/README.md).
 
 ### Thrust
-The [thrust](thrust) folder contains two test scripts: [test_simplest.py](thrust/test_simplest.py) is used to test the implementation of thrust, and [test_hall_thrust.py](thrust/test_hall_thrust.py) is used to test the implementation of the electric thrust.
+The [test_thrust](test_thrust) folder contains two test scripts: [test_simplest.py](test_thrust/test_simplest.py) is used to test the implementation of thrust, and [test_hall_thrust.py](test_thrust/test_hall_thrust.py) is used to test the implementation of the electric thrust.
 
 ### Tools
 The [tools](tools) folder contains the tools that are commonly used:
