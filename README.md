@@ -3,6 +3,7 @@ Project of the Short Training Program at the von Karman Institute.
 Study of the feasibility of using air-breathing engines for satellite altitude maintenance in very low Mars orbit.
 
 ## Repo structure
+This repository is organised in folders, each containing distinct modules, classes, and scripts, that can be used separatly, or in combination with each other.
 
 ### Global Reference Atmospheric Model for Mars (Mars GRAM 2010)
 The [GRAM](GRAM) folder contains a single Python script, [call_GRAM.py](GRAM/call_GRAM.py), that can be used to query the atmospheric density of Mars as a function of altitude, latitude, and time. These density are extrapolated based on the data from Mars GRAM 2010, by NASA.
@@ -67,7 +68,8 @@ More information can be found on these utilities in [their README](utils/README.
 
 ## Python requirements
 
-All of the Python modules required to run this repository can be installed by using the provided Conda environment. 
+All of the Python modules required to run this repository can be installed by using the provided Conda environment.
+Alternatively, the two core modules can be build from CMake. Tested explanations on how to do so can be found below.
 
 ### Conda environment
 To ease the installation, a [conda environment file](environment.yaml) has been created.
@@ -85,7 +87,7 @@ conda activate tudat-pygmo-vki
 
 If errors arise when running part of the code, it may be wise to force conda to use TUDAT(Py) version 0.5.22 and Pygmo version 2.16.1. This can be done by uncommenting the version numbers in the [conda environment file](environment.yaml).
 
-### Install with cmake
+### Installation from source
 Both Tudat(Py) and Pygmo can be installed by building their C++ libraries and their Python interface, using Pybind and CMake. This allows to edit their code, but requires a more tedious process to be followed, as explained below.
 
 #### TU Delft Astrodynamics Toolbox
@@ -105,12 +107,7 @@ conda env create -f environment.yaml
 conda activate tudat-bundle
 ```
 
-Before compiling Tudat on your machine, [this line](https://github.com/tudat-team/tudatpy/blob/4169c827eaa16bf4b6cc9b8626d29f54c6724a76/tudatpy/kernel/expose_simulation/expose_environment_setup/expose_atmosphere_setup.cpp#L86) shall be changed to:
-```
-m.def("custom_constant_temperature_detailed",
-```
-
-The warnings on [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/include/tudat/astro/propulsion/thrustGuidance.h#L185-L187) and [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/src/astro/reference_frames/aerodynamicAngleCalculator.cpp#L383-L416) have also been commented out, to prevent them from polluting the console.
+The warnings on [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/include/tudat/astro/propulsion/thrustGuidance.h#L185-L187) and [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/src/astro/reference_frames/aerodynamicAngleCalculator.cpp#L383-L416) have also can be commented out, to prevent them from polluting the console.
 
 In `build.sh`, the vonfiguration and build steps should be replaced by the followings:
 ```
@@ -140,9 +137,19 @@ echo "<tudat-bundle installation dir>/build/tudatpy" > ~/miniconda3/envs/tudat-b
 #### Pygmo
 The Pygmo optimisation toolbox from ESA shall be installed following the instructions [here](https://esa.github.io/pygmo2/install.html).
 
-In essence, the following commands can be used when the `tudat-bundle` environment is active, to install the required Pygmo packages:
+To only install Pygmo using conda (not from source), the following commands can be used when the `tudat-bundle` environment is active, to install the required Pygmo packages:
 ```
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 conda install pygmo
+```
+
+To install Pygmo from source, the following commands can be used:
+```
+git clone https://github.com/esa/pygmo2.git
+cd pygmo2
+mkdir build
+cd build
+cmake --build .
+cmake  --build . --target install
 ```
