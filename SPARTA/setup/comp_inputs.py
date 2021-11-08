@@ -5,7 +5,9 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-tot_epochs = [5000, 5000, 5000]    # Number of simulation epochs for each altitude (should be multiple of 1000)
+tot_epochs = [3000, 3000, 3000]                 # Number of simulation epochs for each altitude (should be multiple of 1000)
+fix_epochs = [5, 20]                            # Epochs at which to average results
+run_fractions = [20/30, 2/30, 2/30, 2/30, 4/30] # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -33,7 +35,7 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            if True:
+            if False:
                 shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
                 os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
@@ -81,8 +83,8 @@ for j, s_name in enumerate(sat_names):
         dt_mfp = tau_ps / 5                                             # time step [s] (based on mean free path)
         grid_f_mfp = lambda_f / 5                                       # grid dimension before shock [m] (based on mean free path)
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
-        grid_f_vel = u_s*dt_mfp                                             # grid dimension before shock [m] (based on velocity)
-        grid_ps_vel = cr_ps*dt_mfp                                          # post-shock grid dimension [m] (based on velocity)
+        grid_f_vel = u_s*dt_mfp                                         # grid dimension before shock [m] (based on velocity)
+        grid_ps_vel = cr_ps*dt_mfp                                      # post-shock grid dimension [m] (based on velocity)
         grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), L/100)          # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
         grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), L/100)       # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
@@ -156,14 +158,14 @@ for j, s_name in enumerate(sat_names):
         input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
         input_s += "surf_modify         all collide 1\n"
         input_s += "\n"
-        input_s += "region              sat_front block %.4f %.4f -0.075 0.075 -0.075 0.075\n" % (sat_front-0.035, sat_front+0.065)
+        input_s += "region              sat_front block %.4f %.4f -0.1 0.1 -0.1 0.1\n" % (sat_front-0.05, sat_front+0.1)
         input_s += "\n"
         input_s += "fix                 in emit/face atmo xhi zhi zlo yhi ylo\n"
         input_s += "\n"
         input_s += "timestep            %.4e\n" % dt
         input_s += "\n"
         input_s += "compute             forces surf all all fx fy fz\n"
-        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50)
+        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (fix_epochs[0], fix_epochs[1], fix_epochs[0]*fix_epochs[1])
         input_s += "compute             sum_force reduce sum f_avg[*]\n"
         input_s += "\n"
 
@@ -171,7 +173,7 @@ for j, s_name in enumerate(sat_names):
         grid_data = ["n", "nrho", "massrho", "u"]
         for g_d in grid_data:
             input_s += "compute             %s grid all all %s\n" % (g_d, g_d)
-            input_s += "fix                 %s_avg ave/grid all %i %i %i c_%s[*]\n" % (g_d, tot_epochs[i]/1000, tot_epochs[i]/250, tot_epochs[i]/50, g_d)
+            input_s += "fix                 %s_avg ave/grid all %i %i %i c_%s[*]\n" % (g_d, fix_epochs[0], fix_epochs[1], fix_epochs[0]*fix_epochs[1], g_d)
             input_s += "\n"
         input_s += "compute             avg_ppc reduce ave f_n_avg\n"
         input_s += "\n"
@@ -180,28 +182,30 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "compute             knudsen lambda/grid f_nrho_avg f_T_avg CO2 kall\n"
         input_s += "\n"
-        input_s += "stats               %i\n" % (tot_epochs[i]/50)
+        input_s += "stats               %i\n" % (fix_epochs[0]*fix_epochs[1])
         input_s += "stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc\n"
         input_s += "\n"
         input_s += "dump                0 grid all %i ../results_sparta/%s/vals_%ikm_0.*.dat id %s f_T_avg c_knudsen[*]\n" \
-            % (tot_epochs[i]/10, s_name, h,  " ".join(["f_%s_avg" % _n for _n in grid_data]))
+            % (tot_epochs[i]*min(run_fractions)/2, s_name, h,  " ".join(["f_%s_avg" % _n for _n in grid_data]))
         input_s += "write_grid          ../results_sparta/%s/grid_%ikm_0.dat\n" % (s_name, h)
 
-        run_fractions = [5/10, 1/10, 1/10, 1/10, 2/10]
         grid_def = [grid_def]*len(run_fractions)
         grid_def[0] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_0.dat\n" % (s_name, h)
         input_s += "run                 %i\n" % (tot_epochs[i] * run_fractions[0])
         input_s += "\n"
 
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
-            scale_factor = 2
-            input_s += "timestep            %.4e\n" % (dt/(scale_factor**(i_refine+1)))
-            input_s += "scale_particles     all %i\n" % (scale_factor**3)
+            # For the new dt, make sure the following condition is satisfied: u_ps*dt < dx
+            input_s += "timestep            %.4e\n" % (min(l_box/n_x, w_box/n_y, h_box/n_z)/2**(i_refine+1)/cr_ps)
+            # Increase the number of particles so that the PPC stay > ~10
+            input_s += "scale_particles     all 5\n"
+            # After two refinements, only refine the region in front of the sat (in the shock wave)
             specify_region = "" if i_refine < len(run_fractions)//2 else " region sat_front one"
-            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more%s\n" % specify_region
+            # Refine the grid where the grid Knudsen number is below 5 (coarsen it back when it is above 20)
+            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 20 combine min thresh less more%s\n" % specify_region
             input_s += "undump              %i\n" % i_refine
             input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
-                % (i_refine+1, tot_epochs[i]/10, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
+                % (i_refine+1, tot_epochs[i]*min(run_fractions)/2, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
             input_s += "write_grid          ../results_sparta/%s/grid_%ikm_%i.dat\n" % (s_name, h, i_refine+1)
             grid_def[i_refine+1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_%i.dat\n" % (s_name, h, i_refine+1)
             input_s += "run                 %i\n" % (tot_epochs[i] * epoch_frac)
