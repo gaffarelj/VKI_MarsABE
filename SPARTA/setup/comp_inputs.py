@@ -8,6 +8,7 @@ from tools import plot_utilities as PU
 tot_epochs = [3000, 3000, 3000]                 # Number of simulation epochs for each altitude (should be multiple of 1000)
 fix_epochs = [5, 20]                            # Epochs at which to average results
 run_fractions = [20/30, 2/30, 2/30, 2/30, 4/30] # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
+particles_scale = [20, 3, 5, 3, 5]              # Scales the number of particles by these
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -35,7 +36,7 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            if False:
+            if True:
                 shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
                 os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
@@ -92,7 +93,7 @@ for j, s_name in enumerate(sat_names):
         n_y = int(w_box / ((grid_f + grid_ps)/2))                       # number of grid segments along y
         n_z = int(h_box / ((grid_f + grid_ps)/2))                       # number of grid segments along z
         n_cells = n_x * n_y * n_z                                       # number of cells
-        n_sim = 25 * n_cells                                            # number of simulated particles (int factor results from analysis to have 10 ppc)
+        n_sim = particles_scale[0] * n_cells                            # number of simulated particles (int factor results from analysis to have 10 ppc)
         f_num = n_real / n_sim                                          # f_num for SPARTA
         
         # Check that dt is small enough given dx and v
@@ -198,7 +199,7 @@ for j, s_name in enumerate(sat_names):
             # For the new dt, make sure the following condition is satisfied: u_ps*dt < dx
             input_s += "timestep            %.4e\n" % (min(l_box/n_x, w_box/n_y, h_box/n_z)/2**(i_refine+1)/cr_ps)
             # Increase the number of particles so that the PPC stay > ~10
-            input_s += "scale_particles     all 5\n"
+            input_s += "scale_particles     all %i\n" % particles_scale[i_refine+1]
             # After two refinements, only refine the region in front of the sat (in the shock wave)
             specify_region = "" if i_refine < len(run_fractions)//2 else " region sat_front one"
             # Refine the grid where the grid Knudsen number is below 5 (coarsen it back when it is above 20)
