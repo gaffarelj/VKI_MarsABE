@@ -46,7 +46,7 @@ Then, the [environments folder](setup_selection/environments) contains scripts t
 
 Both sub-folders of the setup selection contains their own READMEs: one for the [environments](setup_selection/environments/README.md) and one for the [integratos/propagators](setup_selection/integrators_propagators/README.md).
 
-### Thrust
+### Test thrust
 The [test_thrust](test_thrust) folder contains two test scripts: [test_simplest.py](test_thrust/test_simplest.py) is used to test the implementation of thrust, and [test_hall_thrust.py](test_thrust/test_hall_thrust.py) is used to test the implementation of the electric thrust.
 
 ### Tools
@@ -106,8 +106,6 @@ The conda environment can then be setup by using:
 conda env create -f environment.yaml
 conda activate tudat-bundle
 ```
-
-The warnings on [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/include/tudat/astro/propulsion/thrustGuidance.h#L185-L187) and [these lines](https://github.com/tudat-team/tudat/blob/fa30c49dca7ee27630717efb8546802589a4c8b7/src/astro/reference_frames/aerodynamicAngleCalculator.cpp#L383-L416) have also can be commented out, to prevent them from polluting the console.
 
 In `build.sh`, the vonfiguration and build steps should be replaced by the followings:
 ```
