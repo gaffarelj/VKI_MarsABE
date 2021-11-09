@@ -9,6 +9,12 @@ tot_epochs = [3000, 3000, 3000]                 # Number of simulation epochs fo
 fix_epochs = [5, 20]                            # Epochs at which to average results
 run_fractions = [20/30, 2/30, 2/30, 2/30, 4/30] # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
 particles_scale = [20, 3, 5, 3, 5]              # Scales the number of particles by these
+# List of satellite names
+sat_names = ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021"]#, "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
+# List of satellite reference lengths
+L_s = [0.589778]#, 0.589778, 0.589778, 0.6, 0.741421]#, 0.3, 0.341421, 0.541421, 0.741421]
+# List of satellite lengths
+L_sats = [0.6]#, 0.6, 0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -25,9 +31,6 @@ fracs = [
 run_all_cmd = "#!/bin/sh\nmodule load openmpi\n"
 paraview_surf = ""
 paraview_grid = ""
-sat_names = ["CS_0021"]#["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
-L_sats = [0.6 if _n[-1] == "1" else 0.3 for _n in sat_names]
-L_s = [0.589778]#[0.3, 0.589778, 0.341421, 0.589778, 0.541421, 0.589778, 0.6, 0.741421, 0.741421]
 for j, s_name in enumerate(sat_names):
     print("\n\n* Satellite", s_name)
     # Create folder for results of this satellite
