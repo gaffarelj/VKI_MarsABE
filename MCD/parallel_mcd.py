@@ -7,7 +7,8 @@ import time as T
 MODULE_LIST = []    # list that will contain the loaded MCD interface modules
 LAST_RESULTS = None # list that will contain the results from the last MCD call
 
-ALL_VALUES = []      # list that will contain all density, temperature, and pressure
+ALL_VALUES = []     # list that will contain all density, temperature, and pressure
+TIMES = []          # list that will contain the times at which the MCD was called  
 
 class parallel_mcd:
     """
@@ -88,7 +89,7 @@ class parallel_mcd:
                     self.localtime,self.dset,self.scena,self.perturkey,self.seedin,self.gwlength,self.extvarkeys)
 
     def call(self, Ls=None, localtime=None, lat=None, lon=None, h=None, print_results=False):
-        global MODULE_LIST, LAST_RESULTS
+        global MODULE_LIST, LAST_RESULTS, ALL_VALUES
         # Call the MCD
         if Ls is not None: self.xdate = Ls                      # solar longitude [deg], between 0 and 360
         if localtime is not None: self.localtime = localtime    # local time [hours], between 0 and 24
@@ -164,6 +165,8 @@ class parallel_mcd:
         # Call the MCD
         self.call()
         # Return the density
+        if self.save_all_vals:
+            TIMES.append(time)
         return self.dens
 
     def wind(self, h, lon, lat, time, time_is_JD=True, JD_Tudat=True):

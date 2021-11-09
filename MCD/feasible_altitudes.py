@@ -5,7 +5,7 @@ while sys.path[0].split("/")[-1] != "VKI_MarsABE":
 from utils import propagation as P
 from utils import sat_models as SM
 from tudatpy.kernel import constants
-from tudatpy.kernel.simulation import propagation_setup
+from tudatpy.kernel.numerical_simulation import propagation_setup
 from tools import plot_utilities as PU
 
 run_alt_study = False       # Run the study of the altitude vs orbital time
@@ -47,7 +47,7 @@ if run_atmo_study:
     OS = P.orbit_simulation(sat, "Mars", 2*650*constants.JULIAN_DAY)
     OS.create_bodies(use_MCD=[True, False], preload_MCD=False, save_MCD_vals=True)
     OS.create_termination_settings(min_altitude=25e3)
-    OS.create_dependent_variables(["h", "V"])
+    OS.create_dependent_variables(["h", "V", "rho"])
     OS.create_integrator(tolerance=1e-6, dt=[0.1, 250, 1e5])
     # Use a fixed step integrator with dt = 250s
     OS.integrator_settings = propagation_setup.integrator.runge_kutta_4(
@@ -60,19 +60,23 @@ if run_atmo_study:
     OS.create_accelerations(env_accelerations=accelerations)
     for h in altitudes:
         # Setup the simulation with the given altitude
-        OS.create_initial_state(h=h*1e3, i=np.deg2rad(45))
+        OS.create_initial_state(h_p=h*1e3, i=np.deg2rad(45))
         OS.create_propagator()
+        # Make sure the array to save the MCD values are empty
+        pmcd.ALL_VALUES, pmcd.TIMES = [], []
         # Run the simulation
         time, states, dep_vars = OS.simulate()
         print("* Altitude of %i km" % h)
         MCD_vals = np.array(pmcd.ALL_VALUES)
+        MCD_times = np.array(pmcd.TIMES)
         density, temperature, pressure, mixture = MCD_vals[:,0], MCD_vals[:,1], MCD_vals[:,2], MCD_vals[:,3:]
         # Make sure sum of mixtures is 1
         mixture = mixture[:,:6] / sum(np.mean(mixture[:,:6], axis=0))
         velocity = np.linalg.norm(states[:,3:], axis=1)
-        titles = ["Velocity", "Density", "Temperature", "Pressure"]
-        units = ["m/s", "kg/m3", "K", "Pa"]
-        vals = [velocity, density, temperature, pressure]
+        altitude_hist = OS.get_dep_var("h")
+        titles = ["Altitude", "Velocity", "Density", "Temperature", "Pressure"]
+        units = ["m", "m/s", "kg/m3", "K", "Pa"]
+        vals = [altitude_hist, velocity, density, temperature, pressure]
         # Print average results (with their standard deviations)
         for i in range(len(titles)):
             print("%s: mean of %.5e %s (std of %.5e %s)" % (titles[i], np.mean(vals[i]), units[i], np.std(vals[i]), units[i]))
