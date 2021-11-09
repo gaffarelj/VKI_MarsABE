@@ -151,3 +151,11 @@ cd build
 cmake --build .
 cmake  --build . --target install
 ```
+
+## Windows Subsystem for Linux
+Troughout this project, the Windows Subsystem for Linux has been used. This may explain how some file paths are manipulated.
+Also, the use of the MCD Fortran to Python interface, as well as of SPARTA, have only been tested using Linux.
+
+It is thus recommended to use Linux to run the files of this repository, or at least its Subsystem for Windows.
+
+The Linux subsystem for Windows can be activated following the steps described [here](https://docs.microsoft.com/en-us/windows/wsl/install).
