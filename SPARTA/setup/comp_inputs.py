@@ -5,10 +5,10 @@ import os
 import shutil
 from tools import plot_utilities as PU
 
-tot_epochs = [3000, 3000, 3000]                 # Number of simulation epochs for each altitude (should be multiple of 1000)
-fix_epochs = [5, 20]                            # Epochs at which to average results
-run_fractions = [20/30, 2/30, 2/30, 2/30, 4/30] # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-particles_scale = [20, 3, 5, 3, 5]              # Scales the number of particles by these
+tot_epochs = [3000, 3000, 3000]             # Number of simulation epochs for each altitude (should be multiple of 1000)
+fix_epochs = [5, 20]                        # Epochs at which to average results
+run_fractions = [20/30, 2/30, 2/30, 4/30]   # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
+particles_scale = [20, 4, 4, 4]             # Scales the number of particles by these
 # List of satellite names
 sat_names = ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021"]#, "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
@@ -157,12 +157,12 @@ for j, s_name in enumerate(sat_names):
             input_s += "mixture             atmo %s frac %.4f\n" % (sp_n, species_frac[n])
         input_s += "collide             vss atmo ../atmo.vss\n"
         input_s += "\n"
-        sat_front = 0.075 + L_sats[j]/2
+        sat_front = L_sats[j]/2 - 0.15
         input_s += "read_surf           ../data/data.%s trans %.4f 0 0\n" % (s_name, sat_front)
         input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
         input_s += "surf_modify         all collide 1\n"
         input_s += "\n"
-        input_s += "region              sat_front block %.4f %.4f -0.1 0.1 -0.1 0.1\n" % (sat_front-0.05, sat_front+0.1)
+        input_s += "region              sat_front block %.4f %.4f -0.1 0.1 -0.1 0.1\n" % (sat_front-0.05, sat_front+0.15)
         input_s += "\n"
         input_s += "fix                 in emit/face atmo xhi zhi zlo yhi ylo\n"
         input_s += "\n"
@@ -201,12 +201,15 @@ for j, s_name in enumerate(sat_names):
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
             # For the new dt, make sure the following condition is satisfied: u_ps*dt < dx
             input_s += "timestep            %.4e\n" % (min(l_box/n_x, w_box/n_y, h_box/n_z)/2**(i_refine+1)/cr_ps)
-            # Increase the number of particles so that the PPC stay > ~10
-            input_s += "scale_particles     all %i\n" % particles_scale[i_refine+1]
             # After two refinements, only refine the region in front of the sat (in the shock wave)
             specify_region = "" if i_refine < len(run_fractions)//2 else " region sat_front one"
             # Refine the grid where the grid Knudsen number is below 5 (coarsen it back when it is above 20)
             input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 20 combine min thresh less more%s\n" % specify_region
+            # Increase the number of particles so that the PPC stay > ~10
+            input_s += "scale_particles     all %i\n" % particles_scale[i_refine+1]
+            f_num *= particles_scale[i_refine+1]
+            input_s += "global              fnum %.4e\n" % f_num
+            # Make dumps for the new grid
             input_s += "undump              %i\n" % i_refine
             input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
                 % (i_refine+1, tot_epochs[i]*min(run_fractions)/2, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
