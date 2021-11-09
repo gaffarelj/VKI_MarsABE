@@ -1,6 +1,6 @@
-# SPARTA input file for satellite CS_0021, for an altitude of 85.0km
+# SPARTA input file for satellite CS_1021, for an altitude of 150.0km
 print ""
-print "***** Running SPARTA simulation for CS_0021, at h=85km *****"
+print "***** Running SPARTA simulation for CS_1021, at h=150km *****"
 print ""
 seed                12345
 dimension           3
@@ -10,30 +10,30 @@ global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100
 boundary            o o o
 create_box          -0.5500 0.5500 -0.3500 0.3500 -0.3500 0.3500
 
-create_grid         104 66 66
+create_grid         65 41 41
 
 balance_grid        rcb cell
 
-global              nrho 3.7227e+19 fnum 1.9996e+12 vstream -3510.9000 0.0 0.0 temp 143.0930
+global              nrho 4.6944e+15 fnum 3.7003e+12 vstream -3475.5100 0.0 0.0 temp 166.5870
 
 species             ../atmo.species CO2 N2 Ar CO O O2
-mixture             atmo CO2 frac 0.9587
-mixture             atmo N2 frac 0.0178
-mixture             atmo Ar frac 0.0182
-mixture             atmo CO frac 0.0025
-mixture             atmo O frac 0.0013
-mixture             atmo O2 frac 0.0015
+mixture             atmo CO2 frac 0.6979
+mixture             atmo N2 frac 0.1061
+mixture             atmo Ar frac 0.0506
+mixture             atmo CO frac 0.0693
+mixture             atmo O frac 0.0665
+mixture             atmo O2 frac 0.0095
 collide             vss atmo ../atmo.vss
 
-read_surf           ../data/data.CS_0021 trans 0.1500 0 0
-surf_collide        1 diffuse 293.15 0.9980
+read_surf           ../data/data.CS_1021 trans 0.1500 0 0
+surf_collide        1 diffuse 293.15 0.7961
 surf_modify         all collide 1
 
 region              sat_front block 0.1000 0.3000 -0.1 0.1 -0.1 0.1
 
 fix                 in emit/face atmo xhi zhi zlo yhi ylo
 
-timestep            2.2594e-06
+timestep            3.6519e-06
 
 compute             forces surf all all fx fy fz
 fix                 avg ave/surf all 5 15 75 c_forces[*] ave running
@@ -61,34 +61,34 @@ compute             knudsen lambda/grid f_nrho_avg f_T_avg CO2 kall
 stats               75
 stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc
 
-dump                0 grid all 150 ../results_sparta/CS_0021/vals_85km_0.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
-write_grid          ../results_sparta/CS_0021/grid_85km_0.dat
+dump                0 grid all 150 ../results_sparta/CS_1021/vals_150km_0.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
+write_grid          ../results_sparta/CS_1021/grid_150km_0.dat
 run                 2000
 
-timestep            2.3504e-06
+timestep            3.7607e-06
 adapt_grid          all refine coarsen value c_knudsen[2] 5 20 combine min thresh less more
 scale_particles     all 4
-global              fnum 7.9985e+12
+global              fnum 1.4801e+13
 undump              0
-dump                1 grid all 150 ../results_sparta/CS_0021/vals_85km_1.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
-write_grid          ../results_sparta/CS_0021/grid_85km_1.dat
+dump                1 grid all 150 ../results_sparta/CS_1021/vals_150km_1.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
+write_grid          ../results_sparta/CS_1021/grid_150km_1.dat
 run                 300
 
-timestep            1.1752e-06
+timestep            1.8803e-06
 adapt_grid          all refine coarsen value c_knudsen[2] 5 20 combine min thresh less more
 scale_particles     all 4
-global              fnum 3.1994e+13
+global              fnum 5.9205e+13
 undump              1
-dump                2 grid all 150 ../results_sparta/CS_0021/vals_85km_2.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
-write_grid          ../results_sparta/CS_0021/grid_85km_2.dat
+dump                2 grid all 150 ../results_sparta/CS_1021/vals_150km_2.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
+write_grid          ../results_sparta/CS_1021/grid_150km_2.dat
 run                 300
 
-timestep            5.8761e-07
+timestep            9.4017e-07
 adapt_grid          all refine coarsen value c_knudsen[2] 5 20 combine min thresh less more region sat_front one
 scale_particles     all 4
-global              fnum 1.2798e+14
+global              fnum 2.3682e+14
 undump              2
-dump                3 grid all 150 ../results_sparta/CS_0021/vals_85km_3.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
-write_grid          ../results_sparta/CS_0021/grid_85km_3.dat
+dump                3 grid all 150 ../results_sparta/CS_1021/vals_150km_3.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
+write_grid          ../results_sparta/CS_1021/grid_150km_3.dat
 run                 450
 
