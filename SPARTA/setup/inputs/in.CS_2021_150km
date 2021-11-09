@@ -63,7 +63,7 @@ stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc
 
 dump                0 grid all 150 ../results_sparta/CS_2021/vals_150km_0.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
 write_grid          ../results_sparta/CS_2021/grid_150km_0.dat
-run                 2000
+run                 2025
 
 timestep            3.7607e-06
 adapt_grid          all refine coarsen value c_knudsen[2] 5 20 combine min thresh less more

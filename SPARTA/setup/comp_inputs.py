@@ -8,7 +8,7 @@ from tools import std
 
 tot_epochs = [3000, 3000, 3000]             # Number of simulation epochs for each altitude (should be multiple of 1000)
 run_fractions = [40/60, 6/60, 6/60, 9/60]   # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-particles_scale = [20, 4, 4, 4]             # Scales the number of particles by these# List of satellite names
+particles_scale = [20, 4, 4, 4]             # ScaleS the number of particles by these# List of satellite names
 sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
 L_s = [0.589778, 0.589778, 0.589778, 0.6, 0.741421, 0.3, 0.341421, 0.541421, 0.741421]
@@ -111,7 +111,7 @@ for j, s_name in enumerate(sat_names):
         
         # Check that dt is small enough given dx and v
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
-        dt = min(dt_mfp, dx/u_s*0.75, dx/cr_ps*0.75)                        # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
+        dt = min(dt_mfp, dx/u_s*0.75, dx/cr_ps*0.75)                    # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
         
         # Compute the accomodation coefficient based on the adsorption of atomic oxygen
         # https://doi.org/10.2514/1.49330
@@ -197,7 +197,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "compute             knudsen lambda/grid f_nrho_avg f_T_avg CO2 kall\n"
         input_s += "\n"
-        input_s += "stats               %i\n" % (stats_freq)
+        input_s += "stats               %i\n" % stats_freq
         input_s += "stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc\n"
         input_s += "\n"
         input_s += "dump                0 grid all %i ../results_sparta/%s/vals_%ikm_0.*.dat id %s f_T_avg c_knudsen[*]\n" \
@@ -206,7 +206,11 @@ for j, s_name in enumerate(sat_names):
 
         grid_def = [grid_def]*len(run_fractions)
         grid_def[0] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_0.dat\n" % (s_name, h)
-        input_s += "run                 %i\n" % (tot_epochs[i] * run_fractions[0])
+        # Make sure the run number is a multiple of the stats (to be compatible with the compute/fix)
+        run_n = tot_epochs[i] * run_fractions[0]
+        if run_n % stats_freq != 0:
+            run_n = run_n + (stats_freq - run_n%stats_freq)
+        input_s += "run                 %i\n" % run_n
         input_s += "\n"
 
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
@@ -226,7 +230,11 @@ for j, s_name in enumerate(sat_names):
                 % (i_refine+1, stats_freq*2, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
             input_s += "write_grid          ../results_sparta/%s/grid_%ikm_%i.dat\n" % (s_name, h, i_refine+1)
             grid_def[i_refine+1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_%i.dat\n" % (s_name, h, i_refine+1)
-            input_s += "run                 %i\n" % (tot_epochs[i] * epoch_frac)
+            # Make sure the run number is a multiple of the stats (to be compatible with the compute/fix)
+            run_n = tot_epochs[i] * epoch_frac
+            if run_n % stats_freq != 0:
+                run_n = run_n + (stats_freq - run_n%stats_freq)
+            input_s += "run                 %i\n" % run_n
             input_s += "\n"
         
         run_all_cmd += "mpirun -np 16 spa_ < in.%s_%skm | tee ../results_sparta/%s/stats_%ikm.dat\n" % (s_name, h, s_name, h)
