@@ -4,17 +4,22 @@ sys.path.insert(0,"/".join(sys.path[0].split("/")[:-2]))
 import os
 import shutil
 from tools import plot_utilities as PU
+from tools import std
 
 tot_epochs = [3000, 3000, 3000]             # Number of simulation epochs for each altitude (should be multiple of 1000)
-fix_epochs = [5, 20]                        # Epochs at which to average results
-run_fractions = [20/30, 2/30, 2/30, 4/30]   # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-particles_scale = [20, 4, 4, 4]             # Scales the number of particles by these
-# List of satellite names
-sat_names = ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021"]#, "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
+run_fractions = [40/60, 6/60, 6/60, 9/60]   # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
+particles_scale = [20, 4, 4, 4]             # Scales the number of particles by these# List of satellite names
+sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
-L_s = [0.589778]#, 0.589778, 0.589778, 0.6, 0.741421]#, 0.3, 0.341421, 0.541421, 0.741421]
+L_s = [0.589778, 0.589778, 0.589778, 0.6, 0.741421, 0.3, 0.341421, 0.541421, 0.741421]
 # List of satellite lengths
-L_sats = [0.6]#, 0.6, 0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
+L_sats = [0.6, 0.6, 0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
+# Satellites for which to run what altitude:
+sat_run_h = {
+    85: ["CS_0021"],
+    115: ["CS_0021", "CS_2120", "CS_3021"],
+    150: ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"]
+}
 
 # Define conditions at different orbital altitudes
 hs = [85, 115, 150]
@@ -44,11 +49,16 @@ for j, s_name in enumerate(sat_names):
                 os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
             print("Warning: could not delete folder", s_name)
+    convert_STL = True
     # Loop trough conditions
     for i, h in enumerate(hs):
-        print("\nWith conditions at altitude of %i km:" % h)
-        print("Velocity is of %.2f m/s, and the species are mixed as follows:" % Vs[i])
-        print(fracs[i])
+        print("\n - With conditions at altitude of %i km:" % h)
+        print("     Velocity is of %.2f m/s, and the species are mixed as follows:" % Vs[i])
+        print("    ", fracs[i])
+        # Only run if specified
+        if s_name not in sat_run_h[h]:
+            print(" - SPARTA input file not created for %s at %ikm, as specified." % (s_name, h))
+            continue
         # Inputs
         rho = rhos[i]   # density [kg/m3]
         p = ps[i]       # pressure [Pa]
@@ -116,21 +126,21 @@ for j, s_name in enumerate(sat_names):
             PU.plot_single(P_s, alpha_s, "$n_O \cdot T [k m^3]$", "accomodation $\\alpha$", "test_accomodation")
 
         # Print the results
-        print("Minimum grid size of x=%.3e, y=%.3e, z=%.3e" % (n_x, n_y, n_z))
-        print("timestep of %.3e s, nrho=%.3e, f_num=%.3e" % (dt, nrho, f_num))
-        print("Knudsen number is %.3e" % Kn)
+        print("     Knudsen number is %.3e" % Kn)
 
         ## Save the results to an input input
-        # Convert STL only for the first altitude
-        if h == hs[0]:
+        # Convert STL only once
+        if convert_STL:
             # Write command to convert surface to ParaView
             paraview_surf += "pvpython ../../tools/surf2paraview.py ../../setup/data/data.%s %s \n" % (s_name, s_name)
-            print("Converting binary STL to SPARTA surface...")
-            # Convert STL from binary to asci
-            os.system("python2 \"%s/SPARTA/tools/stl_B2A.py\" \"%s/SPARTA/setup/STL/%s.stl\" -rs" % (sys.path[0], sys.path[0], s_name))
-            # Convert STL to data surface for SPARTA
-            os.system("python2 \"%s/SPARTA/tools/stl2surf.py\" \"%s/SPARTA/setup/STL/%s_ASCII.stl\" \"%s/SPARTA/setup/data/data.%s\"" % (sys.path[0], sys.path[0], s_name, sys.path[0], s_name))
-        print("Saving input to file...")
+            print(" - Converting binary STL to SPARTA surface...")
+            with std.suppress_stdout_stderr():
+                # Convert STL from binary to asci
+                os.system("python2 \"%s/SPARTA/tools/stl_B2A.py\" \"%s/SPARTA/setup/STL/%s.stl\" -rs" % (sys.path[0], sys.path[0], s_name))
+                # Convert STL to data surface for SPARTA
+                os.system("python2 \"%s/SPARTA/tools/stl2surf.py\" \"%s/SPARTA/setup/STL/%s_ASCII.stl\" \"%s/SPARTA/setup/data/data.%s\"" % (sys.path[0], sys.path[0], s_name, sys.path[0], s_name))
+            convert_STL = False
+        print(" - Saving input to file...")
 
         # Setup the SPARTA inputs
         input_s =  "# SPARTA input file for satellite %s, for an altitude of %.1fkm\n" % (s_name, h)
@@ -169,7 +179,8 @@ for j, s_name in enumerate(sat_names):
         input_s += "timestep            %.4e\n" % dt
         input_s += "\n"
         input_s += "compute             forces surf all all fx fy fz\n"
-        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (fix_epochs[0], fix_epochs[1], fix_epochs[0]*fix_epochs[1])
+        stats_freq = tot_epochs[i]*min(run_fractions)/4
+        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (5, stats_freq/5, stats_freq)
         input_s += "compute             sum_force reduce sum f_avg[*]\n"
         input_s += "\n"
 
@@ -177,20 +188,20 @@ for j, s_name in enumerate(sat_names):
         grid_data = ["n", "nrho", "massrho", "u"]
         for g_d in grid_data:
             input_s += "compute             %s grid all all %s\n" % (g_d, g_d)
-            input_s += "fix                 %s_avg ave/grid all %i %i %i c_%s[*]\n" % (g_d, fix_epochs[0], fix_epochs[1], fix_epochs[0]*fix_epochs[1], g_d)
+            input_s += "fix                 %s_avg ave/grid all %i %i %i c_%s[*]\n" % (g_d, 5, stats_freq/5, stats_freq, g_d)
             input_s += "\n"
         input_s += "compute             avg_ppc reduce ave f_n_avg\n"
         input_s += "\n"
         input_s += "compute             T thermal/grid all all temp\n"
-        input_s += "fix                 T_avg ave/grid all 5 20 100 c_T[*]\n"
+        input_s += "fix                 T_avg ave/grid all %i %i %i c_T[*]\n" % (5, stats_freq/5, stats_freq)
         input_s += "\n"
         input_s += "compute             knudsen lambda/grid f_nrho_avg f_T_avg CO2 kall\n"
         input_s += "\n"
-        input_s += "stats               %i\n" % (fix_epochs[0]*fix_epochs[1])
+        input_s += "stats               %i\n" % (stats_freq)
         input_s += "stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc\n"
         input_s += "\n"
         input_s += "dump                0 grid all %i ../results_sparta/%s/vals_%ikm_0.*.dat id %s f_T_avg c_knudsen[*]\n" \
-            % (tot_epochs[i]*min(run_fractions)/2, s_name, h,  " ".join(["f_%s_avg" % _n for _n in grid_data]))
+            % (stats_freq*2, s_name, h,  " ".join(["f_%s_avg" % _n for _n in grid_data]))
         input_s += "write_grid          ../results_sparta/%s/grid_%ikm_0.dat\n" % (s_name, h)
 
         grid_def = [grid_def]*len(run_fractions)
@@ -212,7 +223,7 @@ for j, s_name in enumerate(sat_names):
             # Make dumps for the new grid
             input_s += "undump              %i\n" % i_refine
             input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
-                % (i_refine+1, tot_epochs[i]*min(run_fractions)/2, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
+                % (i_refine+1, stats_freq*2, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
             input_s += "write_grid          ../results_sparta/%s/grid_%ikm_%i.dat\n" % (s_name, h, i_refine+1)
             grid_def[i_refine+1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_%i.dat\n" % (s_name, h, i_refine+1)
             input_s += "run                 %i\n" % (tot_epochs[i] * epoch_frac)
