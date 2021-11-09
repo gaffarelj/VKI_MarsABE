@@ -35,8 +35,8 @@ The [parallel_mcd.py](parallel_mcd.py) class contains two functions that are use
 
 The `density` method returns the atmospheric density in kg/m3 at the given inputs:
  * `h`: altitude above the Martian geoid, in meters
- * `lat`: Martian latitude, in radians
  * `lon`: Martian longitude, in radians
+ * `lat`: Martian latitude, in radians
  * `time`
    * with `time_is_JD=True` and `JD_Tudat=True`: Julian date in seconds since J2000
    * with `time_is_JD=True` and `JD_Tudat=False`: Julian date in days since J2023

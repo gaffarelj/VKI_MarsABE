@@ -136,13 +136,13 @@ class parallel_mcd:
             print("Wind = %.5f E / %.5f N / %.5f vert [m/s]" % (self.zonwind, self.merwind, self.vertwind))
             print("Species [mol/mol] = %s" % self.species_dict)
 
-    def density(self, h, lat, lon, time, time_is_JD=True, JD_Tudat=True):
+    def density(self, h, lon, lat, time, time_is_JD=True, JD_Tudat=True):
         """
         Return the density at a specific position and time. Used mainly interfaced to Tudat.
         Inputs:
          * h: altitude, in [m]
-         * lat: latitude, in [rad]
          * lon: longitude, in [rad]
+         * lat: latitude, in [rad]
          * time: Julian date in seconds since J2000 by default. Can be changed (see optional inputs)
         Optional inputs:
          * time_is_JD: boolean specifying whether the input time is a Julian date (true), or a tuple containing the solar longitude and time of day (false)
@@ -166,13 +166,13 @@ class parallel_mcd:
         # Return the density
         return self.dens
 
-    def wind(self, h, lat, lon, time, time_is_JD=True, JD_Tudat=True):
+    def wind(self, h, lon, lat, time, time_is_JD=True, JD_Tudat=True):
         """
         Return the density at a specific position and time. Used mainly interfaced to Tudat.
         Inputs:
          * h: altitude, in [m]
-         * lat: latitude, in [deg]
          * lon: longitude, in [deg]
+         * lat: latitude, in [deg]
          * time: Julian date in seconds since J2000 by default. Can be changed (see optional inputs)
         Optional inputs:
          * time_is_JD: boolean specifying whether the input time is a Julian date (true), or a tuple containing the solar longitude and time of day (false)
