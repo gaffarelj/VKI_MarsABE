@@ -156,5 +156,24 @@ In this example, `acceleration_Mars_on_sat` and `acceleration_Sun_on_sat` will t
 All of the acceleration models in these lists are defined using Tudat(Py).
 
 ## Satellite models
+All of the parameters related to the satellite itself have been compiled in the `satellite` class of [sat_models.py](sat_models.py) file.
+
+These are its mass(es), drag coefficient(s), solar array, and motor properties.
+
+This class can be initialized with the following inputs, of which only the three first have no default and must be specified:
+ * `name`: name of the satellite.
+ * `mass`: mass of the satellite.
+ * `Cd`: drag coefficient of the satellite, either a single float (constant Cd), or a list (Cd at given altitudes).
+ * `Cd_h`: list of altitudes (in meters) at which the Cd have been specified.
+ * `prop_mass`: propellant mass in the satellite in kg, defaulted to 0.
+ * `S_ref`: reference surface area in m2, defaulted to 0.01 m2.
+ * `SA_areas`: solar panel areas in the x/y/z planes, in m2 (more explanation [here](https://github.com/gaffarelj/VKI_MarsABE/tree/main/SPARTA#satellite-configurations)).
+ * `SA_frac`: fraction of the solar panel areas that actually collects solar radiation, defaulted to 0.7042.
+ * `SA_eff`: solar panel efficiency, defaulted to 0.29.
+ * `EPS_eff`: Electric Power System efficiency, defaulted to 0.89.
+ * `S_t`: area of the throat at the end of the air-breathing inlet in m2.
+ * `comp_ratio`: ratio between the free-stream density and the density at the end of the air-breathing inlet.
+
+The [sat_models.py](sat_models.py) script also contains two dictionaries of pre-defined satellites: `satellites` and `satellites_with_tank`.
 
 ## Thrust models
