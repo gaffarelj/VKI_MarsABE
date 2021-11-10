@@ -6,11 +6,11 @@ import shutil
 from tools import plot_utilities as PU
 from tools import std
 
-tot_epochs = [3000, 3000, 3000]           # Number of simulation epochs for each altitude (should be multiple of 1000)
-run_fractions = [2/3, 1/6, 1/6]           # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-particles_scale = [20, 5, 10]             # Scale the number of particles by these
+tot_epochs = [3000, 3000, 3000]         # Number of simulation epochs for each altitude (should be multiple of 1000)
+run_fractions = [2/3, 1/10, 1/10, 1/5]  # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
+particles_scale = [20, 10, 15, 10]      # Scale the number of particles by these
 # List of satellite names
-sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
+sat_names = ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
 L_s = [0.589778, 0.589778, 0.589778, 0.6, 0.741421, 0.3, 0.341421, 0.541421, 0.741421]
 # List of satellite lengths
@@ -100,8 +100,8 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt_mfp                                         # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt_mfp                                      # post-shock grid dimension [m] (based on velocity)
-        grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), L/100)          # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
-        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), L/100)       # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/100 to avoid grid too big)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), L/250)          # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/250 to avoid initial grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), L/250)       # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/250 to avoid initial grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
         n_x = int(l_box / ((grid_f + grid_ps)/2))                       # number of grid segments along x
         n_y = int(w_box / ((grid_f + grid_ps)/2))                       # number of grid segments along y
@@ -214,16 +214,17 @@ for j, s_name in enumerate(sat_names):
         input_s += "run                 %i\n" % run_n
         input_s += "\n"
 
+        new_dt = min(l_box/n_x, w_box/n_y, h_box/n_z)/cr_ps
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
             # For the first refinements, scale the grid by 2
             if i_refine < len(run_fractions)//2:
-                new_dt = (min(l_box/n_x, w_box/n_y, h_box/n_z)/2**(i_refine+1)/cr_ps)
+                new_dt /= 2
                 refine_more = "\n"
                 coarsen_num = 20
                 dump_freq = stats_freq*2
             # For the second half of the refinements, scale the grid by 5, raise the coarsen limit, dump twice as often
             else:
-                new_dt = (min(l_box/n_x, w_box/n_y, h_box/n_z)/5**(i_refine+1)/cr_ps)
+                new_dt /= 5
                 refine_more = " region sat_front one cells 5 5 5\n"
                 coarsen_num = 100
                 dump_freq = stats_freq
