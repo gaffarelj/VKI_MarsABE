@@ -8,7 +8,8 @@ from tools import std
 
 tot_epochs = [3000, 3000, 3000]             # Number of simulation epochs for each altitude (should be multiple of 1000)
 run_fractions = [40/60, 6/60, 6/60, 9/60]   # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-particles_scale = [20, 4, 4, 4]             # ScaleS the number of particles by these# List of satellite names
+particles_scale = [20, 10, 5, 5]            # Scale the number of particles by these
+# List of satellite names
 sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
 L_s = [0.589778, 0.589778, 0.589778, 0.6, 0.741421, 0.3, 0.341421, 0.541421, 0.741421]
@@ -16,8 +17,8 @@ L_s = [0.589778, 0.589778, 0.589778, 0.6, 0.741421, 0.3, 0.341421, 0.541421, 0.7
 L_sats = [0.6, 0.6, 0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
 # Satellites for which to run what altitude:
 sat_run_h = {
-    85: ["CS_0021"],
-    115: ["CS_0021", "CS_2120", "CS_3021"],
+    85: ["CS_0021", "CS_2120", "CS_3021"],
+    115: ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"],
     150: ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"]
 }
 
@@ -79,7 +80,7 @@ for j, s_name in enumerate(sat_names):
         species_m = np.array([7.31E-26, 4.65E-26, 6.63E-26, 4.65E-26, 2.65E-26, 5.31E-26])
         species_d = np.array([33e-11, 364e-12, 340e-12, 376e-12, 7.4e-11, 346e-12])
         species_sigma = np.pi*species_d**2
-        k_b = 1.38e-23  # Bolzmann constant
+        k_b = 1.38e-23  # Boltzmann constant
 
         # Compute values
         weighted_m = sum(species_frac * species_m)                      # weighted mass of species
@@ -113,17 +114,17 @@ for j, s_name in enumerate(sat_names):
         dx = min(l_box/n_x, w_box/n_y, h_box/n_z)
         dt = min(dt_mfp, dx/u_s*0.75, dx/cr_ps*0.75)                    # Take smallest dt of all (factor of 0.75 to make sure to be below the limit imposed by velocity)
         
-        # Compute the accomodation coefficient based on the adsorption of atomic oxygen
+        # Compute the accommodation coefficient based on the adsorption of atomic oxygen
         # https://doi.org/10.2514/1.49330
         K = 7.5E-17                     # model fitting parameter
         n_0 = nrho * species_frac[-2]   # number density of the atomic oxygen
         P = n_0 * T                     # atomic oxygen partial pressure
-        alpha = K*P/(1+K*P)             # accomodation coefficient
+        alpha = K*P/(1+K*P)             # accommodation coefficient
         test_accomodation = False
         if test_accomodation and s_name == sat_names[0] and h == hs[0]:
             P_s = np.linspace(1.5e17, 9e18, 200)
             alpha_s = [K*_P/(1+K*_P) for _P in P_s]
-            PU.plot_single(P_s, alpha_s, "$n_O \cdot T [k m^3]$", "accomodation $\\alpha$", "test_accomodation")
+            PU.plot_single(P_s, alpha_s, "$n_O \cdot T [k m^3]$", "accommodation $\\alpha$", "test_accommodation")
 
         # Print the results
         print("     Knudsen number is %.3e" % Kn)
