@@ -11,7 +11,7 @@ Please not that, on a different machine, this module may need to be recompiled. 
 An example of call to the MCD can be found in [example_direct_call.py](example_direct_call.py).
 
 A code that times a series of MCD calls can be found in [time_mcd_call.py](time_mcd_call.py).
-This shows that loading the file for a Martian month takes around 3.5 seconds, and any sucsessive call to the MCD for the same month takes around 0.025 ms.
+This shows that loading the file for a Martian month takes around 3.5 seconds, and any successive call to the MCD for the same month takes around 0.025 ms.
 However, using a time in a different month results in different files being loaded, costing 3.5 seconds again.
 
 ## Parallel loading of the MCD modules
@@ -19,9 +19,9 @@ To get around the waiting time when calls to the MCD are made for distinct Marti
 This way, the call to the MCD can be made using the module that always has the files loaded for the same Martian month.
 Such Martian month is defined every 30 deg of solar longitude.
 
-Unortunately, this lead to the need to compile the [fmcd.so](fmcd.so) interface 13 times individually, once for each Martian month (plus an extra).
+Unfortunately, this lead to the need to compile the [fmcd.so](fmcd.so) interface 13 times individually, once for each Martian month (plus an extra).
 This is because, if the same module is loaded under different names in Python, the same object is actually loaded.
-Also, renaming the [fmcd.so](fmcd.so) does not suffise, as the name needs to be defined before the Fortran interface is compiled.
+Also, renaming the [fmcd.so](fmcd.so) does not suffice, as the name needs to be defined before the Fortran interface is compiled.
 This explains files [fmcd_1.so](fmcd_1.so) to [fmcd_13.so](fmcd_13.so).
 
 A script that explores and times this duplication of the modules can be seen in [test_parallel_mcd.py](test_parallel_mcd.py).

@@ -46,7 +46,7 @@ This lead to the results of the table below.
 | Propagator                                             | Simulation time [s] | Maximum difference in altitude [km] | Comment                                      |
 |--------------------------------------------------------|---------------------|-------------------------------------|----------------------------------------------|
 | Cowell                                                 | 10.5                | 0.65                                |                                              |
-| Encke                                                  | 11.4                | 0.66                                | Singularity for eccectricity of 0.           |
+| Encke                                                  | 11.4                | 0.66                                | Singularity for eccentricity of 0.           |
 | Gauss Keplerian                                        | 11.5                | 0.35                                | Singularity for inclination of 0 deg.        |
 | Gauss Modified Equinoctial                             | 10.1                | 0.35                                | Singularity for inclination of 0 or 180 deg. |
 | Unified State Model with Quaternions                   | 10.4                | 0.35                                |                                              |

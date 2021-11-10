@@ -15,7 +15,7 @@ module load openmpi
 cmake -LH ../cmake
 make
 ```
-The `spa_` combipled file will then be found in `build/src`.
+The `spa_` compiled file will then be found in `build/src`.
 
 This folder can be added to path using the following command:
 ```
@@ -39,7 +39,7 @@ mpirun -np 12 spa_ < in.sat
 ```
 
 In the input file, pictures can be generated at given time steps (with file extension `.ppm`).
-With ImageMagick installed, the following command can be used to tranform them to an animated `.gif` file:
+With ImageMagick installed, the following command can be used to transform them to an animated `.gif` file:
 ```
 convert image*ppm movie.gif
 ```
@@ -63,7 +63,7 @@ When all of the input files have been created, they can all be run by using the 
 bash run_all.sh
 ```
 
-The SPARTA data files decribing the geometry can be converted to ParaView by using the following command (from the [paraview/surf](paraview/surf) folder):
+The SPARTA data files describing the geometry can be converted to ParaView by using the following command (from the [paraview/surf](paraview/surf) folder):
 ```
 pvpython ../../tools/surf2paraview.py ../../setup/data/data.CS_XXXX CS_XXXX
 ```
@@ -85,7 +85,7 @@ The naming scheme has been taken as CS ABCD:
  * A: Solar panels above and below the main body
  * B: Extension of the solar panels in A (straight behind)
  * C: Solar panels on the main body
- * D: Extension of the solar panels in C (behind, at a 15deg angle from the centreline)
+ * D: Extension of the solar panels in C (behind, at a 15deg angle from the centerline)
 
 The following figure illustrates this naming scheme:
 
@@ -138,9 +138,9 @@ These can be found in the [inputs](setup/inputs), and are of the format `in.*`.
 
 It is worth noting that grid size has been capped to a maximum of (10, 10, 10), to avoid having the grid size too big compared to the geometry (satellite) size.
 
-Additionally, the `f_num` parameter has been tuned to ensure that enough simulated particules are present. At h=85km, `f_num` has been increased by a factor of 100. It has been decreased by a factor of 1E3 at h=115km, and decreased by a factor of 1E7 for h=150km.
+Additionally, the `f_num` parameter has been tuned to ensure that enough simulated particles are present. At h=85km, `f_num` has been increased by a factor of 100. It has been decreased by a factor of 1E3 at h=115km, and decreased by a factor of 1E7 for h=150km.
 
-Note that all SPARTA simulations assume that the satellite accomodation coefficient is based on the adsorption of atomic oxygen (as in [this paper](https://doi.org/10.2514/1.49330)).
+Note that all SPARTA simulations assume that the satellite accommodation coefficient is based on the adsorption of atomic oxygen (as in [this paper](https://doi.org/10.2514/1.49330)).
 
 ## Results
 
@@ -153,7 +153,7 @@ At each altitude, the dynamic pressure (in Pa) has been computed as follows:
 <img src="https://render.githubusercontent.com/render/math?math=q%20=%20\frac{1}{2}%20\cdot%20\rho%20\cdot%20V^2">
 
 For each satellite configuration, the reference surface `S` has been taken as the frontal area of the CubeSat.
-Values for these reference surfacearea can be found in the table of [this section](#satellite-configurations).
+Values for these reference surface area can be found in the table of [this section](#satellite-configurations).
 
 The drag coefficients have then been computed at each altitude by using the following equation:
 
