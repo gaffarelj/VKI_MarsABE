@@ -8,9 +8,11 @@ The [atmo_summary.py](atmo_summary.py) file has been used to plot a vertical den
 
 This script generates a second script showing the same vertical profile of the molecular species as volumetric fractions.
 
-## Mars Climate Database inclusion
+### Mars Climate Database inclusion
 
 The [test_MCD_atmosphere.py](test_MCD_atmosphere.py) script is a simulation test including the atmospheric densities and winds from the MCD.
+
+Most importantly, this shines light at the fact that, due to the high variability of the density when using the MCD, the variable step integrator takes much smaller steps, resulting in a significantly higher propagation time.
 
 ## Required environments
 
