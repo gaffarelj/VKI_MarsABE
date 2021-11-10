@@ -136,7 +136,7 @@ In the command above, grid.CS_XXXX_._YYkm_I is a file describing the grid geomet
 
 These two last commands can be run automatically by running `bash paraview_convert.sh` in the [paraview](paraview) folder.
 
-## SPARTA commands
+### SPARTA commands
 
 The list of commands below is part of the inputs that has been used to run the SPARTA simulation of the CS_0021 satellite at 85km.
 The complete list of commands used can directly be seen in the [in.CS_0021_85km](setup/inputs/in.CS_0021_85km) input file. This file contain a more detailed description of the mixture, the complete list of computes, fixes, and dumps that have been setup, and all of the refinements applied.
@@ -192,16 +192,14 @@ The documentation has been adapted from the one that is distributed with SPARTA.
 * `dump 1 grid all 150 ../results_sparta/CS_0021/vals_85km_1.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]` and `write_grid ../results_sparta/CS_0021/grid_85km_1.dat`: make a new dump and save the refined grid.
 * `run 450`: run the simulation for `450` more epochs.
 
-## Input files
-The script [comp_inputs.py](setup/comp_inputs.py) has then been used to generate the relevant input files for the SPARTA simulations.
+### Input files
+The script [comp_inputs.py](setup/comp_inputs.py) has been used to generate the relevant input files for the SPARTA simulations.
 
-These input files have been made for each satellite, for each of the satellite configurations.
+These input files have been made for each satellite, for each of the satellite configurations, as specified at the top of [comp_inputs.py](setup/comp_inputs.py).
 
 These can be found in the [inputs](setup/inputs), and are of the format `in.*`.
 
-It is worth noting that grid size has been capped to a maximum of (10, 10, 10), to avoid having the grid size too big compared to the geometry (satellite) size.
-
-Additionally, the `f_num` parameter has been tuned to ensure that enough simulated particles are present. At h=85km, `f_num` has been increased by a factor of 100. It has been decreased by a factor of 1E3 at h=115km, and decreased by a factor of 1E7 for h=150km.
+The input files make SPARTA start with a very coarse grid, and progressively refine it based on the Knudsen numbers that are computed. At each grid refinement, the number of simulated particles is increased accordingly, and so is the time step.
 
 Note that all SPARTA simulations assume that the satellite accommodation coefficient is based on the adsorption of atomic oxygen (as in [this paper](https://doi.org/10.2514/1.49330)).
 
