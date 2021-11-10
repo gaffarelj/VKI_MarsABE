@@ -24,6 +24,7 @@ class env_acceleration:
         """
         Environmental accelerations class, containing all of the acceleration settings for one body
         Inputs:
+         * body_name (str): name of the celestial body that is responsible for the acceleration
          * PM (bool): Point Mass gravitational acceleration should be included
          * SH (bool): Spherical Harmonics gravitational acceleration should be included
          * SH_do ([int]*2): degree and order up to which the Spherical Harmonics should be computed
@@ -56,7 +57,10 @@ class orbit_simulation:
         Inputs:
          * sat (utils.sat_models.satellite): satellite for which the orbits is simulation
          * central_body (str): body around which the satellite orbits
+         * sim_time (float): number of seconds for which the simulation is to be run
          * init_time (float): initial simulation time in seconds since J2000
+         * verbose (bool): optional: if False, do not let Tudat print to the terminal and hide non-critical warnings and information
+         * save_power (bool): optional: by default, the power received by the satellite is not saved. Set to True to save it
         """
         self.sat = sat
         self.central_body = central_body
@@ -74,7 +78,7 @@ class orbit_simulation:
         Create the simulation bodies.
         Inputs:
          * additional_bodies ([string]): bodies to create in addition to the central body (by default, the two most massives in the solar system)
-         * use_MCD ([bool, bool]): first boolean to indicate wether the MCD atmosphere model should be implemented. If True, the second boolean is used to indicate whether winds should also be added
+         * use_MCD ([bool, bool]): first boolean to indicate whether the MCD atmosphere model should be implemented. If True, the second boolean is used to indicate whether winds should also be added
          * preload_MCD (bool): if True, load all of the MCD files at once
          * use_GRAM (bool): if True, the GRAM 2010 atmospheric model os NASA is used for Mars
         """
@@ -116,7 +120,7 @@ class orbit_simulation:
                 body_settings.get(self.central_body).atmosphere_settings = environment_setup.atmosphere.exponential(
                     density_scale_height, density_at_zero_altitude) 
             else:
-                print("Warning, no atmosphere model not setup for %s" % self.central_body)
+                raise NotImplementedError("Warning, no atmosphere model not setup for %s" % self.central_body)
     	
         # Create the system of bodies
         self.bodies = environment_setup.create_system_of_bodies(body_settings)
@@ -152,11 +156,11 @@ class orbit_simulation:
         Define the initial state of the Satellite.
         Inputs:
          * a (float): semi-major axis of the orbit in meters
-         * h (float): altitude of the satellite periapsis above the central body, in meters
+         * h_p (float): altitude of the satellite periapsis above the central body, in meters
          * e (float): eccentricity of the orbit [0-1]
          * i (float): inclination of the orbit in radians [0-pi/2]
          * omega (float): argument of periapsis of the orbit in radians [0-pi]
-         * Omega (float): longitude of the ascending noce in radians [0-2pi]
+         * Omega (float): longitude of the ascending node in radians [0-2pi]
          * theta (float): true anomaly in radians (note: this defines where the satellite starts in its orbit, and can most of the time be ignored) [0-2pi]
         """
         # Get the semi-major axis from the periapsis altitude and eccentricity (if it is not specified)
@@ -185,7 +189,7 @@ class orbit_simulation:
         if default_config is not None:
             if len(env_accelerations) != 0 and self.verbose:
                 # If accelerations were also provided, inform that they will be overwritten
-                print("Warning: the provided environmental accelerations have been overwritten")
+                print("Warning: the provided environmental accelerations have been overwritten by the default configuration %i" % default_config)
             if default_config == 0:
                 # Central body point mass and aerodynamics
                 env_accelerations = [env_acceleration(self.central_body, PM=True, aero=True)]
@@ -222,7 +226,7 @@ class orbit_simulation:
         """
         Create the RK-DP 87 variable step integrator for the orbital simulation.
         Inputs:
-         * tolerance (float): integrator tolerance, this implicitely tunes the integration steps
+         * tolerance (float): integrator tolerance, this implicitly tunes the integration steps
          * dt ([float]*3): time step settings: 0=minimum, 1=initial, 2=maximum
          * sf ([float]*3): safety factor settings: 0=initial, 1=minimum increase factor, 2=maximum increase factor
         """
@@ -248,7 +252,7 @@ class orbit_simulation:
             maximum_factor_increase = sf[2],
             minimum_factor_increase = sf[1] )
 
-    def create_termination_settings(self, min_altitude=50e3, max_altitude=500e3, cpu_time=60*60):
+    def create_termination_settings(self, min_altitude=50e3, max_altitude=1000e3, cpu_time=60*60):
         """
         Create the termination settings; conditions for when the simulation must stop.
         Inputs:
@@ -271,7 +275,7 @@ class orbit_simulation:
         # Assemble the termination settings together (stop after one of the termination setting is reached)
         termination_settings_list = [termination_setting_min_altitude, termination_setting_max_altitude, termination_setting_time, termination_setting_cpu_time]
         self.termination_settings = propagation_setup.propagator.hybrid_termination( 
-            termination_settings_list, fulfill_single_condition = True )
+            termination_settings_list, fulfill_single_condition = True)
 
     def create_dependent_variables(self, to_save=[]):
         """
