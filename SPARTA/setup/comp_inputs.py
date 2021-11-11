@@ -16,7 +16,7 @@ particles_scales = {
 }
 refinement_factors = [2, 3, 5]          # Factor by which to scale the grid
 # List of satellite names
-sat_names = ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
+sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
 L_s = [0.589778, 0.589778, 0.589778, 0.6, 0.741421, 0.3, 0.341421, 0.541421, 0.741421]
 # List of satellite lengths
