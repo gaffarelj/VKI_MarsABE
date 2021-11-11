@@ -1,0 +1,3 @@
+dimension           3
+create_box          -0.5500 0.5500 -0.3500 0.3500 -0.3500 0.3500
+read_grid           ../../setup/results_sparta/CS_1021/grid_115km_0.dat
