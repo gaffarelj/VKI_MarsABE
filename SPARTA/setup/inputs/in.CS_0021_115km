@@ -14,7 +14,7 @@ create_grid         65 41 41
 
 balance_grid        rcb cell
 
-global              nrho 3.1513e+17 fnum 3.7386e+12 vstream -3495.8400 0.0 0.0 temp 114.1850
+global              nrho 3.1513e+17 fnum 4.9848e+11 vstream -3495.8400 0.0 0.0 temp 114.1850
 
 species             ../atmo.species CO2 N2 Ar CO O O2
 mixture             atmo CO2 frac 0.8749
@@ -66,27 +66,27 @@ write_grid          ../results_sparta/CS_0021/grid_115km_0.dat
 run                 2025
 
 timestep            3.7607e-06
-adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 2 2 2 one
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 2 2 2
 scale_particles     all 8
-global              fnum 1.8693e+12
+global              fnum 2.4924e+11
 undump              0
 dump                1 grid all 75 ../results_sparta/CS_0021/vals_115km_1.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_115km_1.dat
 run                 300
 
 timestep            1.2536e-06
-adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 3 3 3 one
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 3 3 3
 scale_particles     all 25
-global              fnum 6.2310e+11
+global              fnum 8.3080e+10
 undump              1
 dump                2 grid all 75 ../results_sparta/CS_0021/vals_115km_2.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_115km_2.dat
 run                 300
 
 timestep            2.5071e-07
-adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 5 5 5 one
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 5 5 5
 scale_particles     all 100
-global              fnum 1.2462e+11
+global              fnum 1.6616e+10
 undump              2
 dump                3 grid all 75 ../results_sparta/CS_0021/vals_115km_3.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_115km_3.dat

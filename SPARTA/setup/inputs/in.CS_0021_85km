@@ -66,7 +66,7 @@ write_grid          ../results_sparta/CS_0021/grid_85km_0.dat
 run                 2025
 
 timestep            3.7037e-06
-adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 2 2 2 one
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 2 2 2
 scale_particles     all 8
 global              fnum 2.7614e+12
 undump              0
@@ -75,7 +75,7 @@ write_grid          ../results_sparta/CS_0021/grid_85km_1.dat
 run                 300
 
 timestep            1.2346e-06
-adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 3 3 3 one
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 3 3 3
 scale_particles     all 25
 global              fnum 9.2047e+11
 undump              1
@@ -84,7 +84,7 @@ write_grid          ../results_sparta/CS_0021/grid_85km_2.dat
 run                 300
 
 timestep            2.4691e-07
-adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 5 5 5 one
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells 5 5 5
 scale_particles     all 100
 global              fnum 1.8409e+11
 undump              2
