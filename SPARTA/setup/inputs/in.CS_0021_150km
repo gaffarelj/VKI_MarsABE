@@ -65,28 +65,28 @@ dump                0 grid all 150 ../results_sparta/CS_0021/vals_150km_0.*.dat 
 write_grid          ../results_sparta/CS_0021/grid_150km_0.dat
 run                 2025
 
-adapt_grid          all refine coarsen value c_knudsen[2] 4 20 combine min thresh less more
 timestep            3.7607e-06
-scale_particles     all 10
-global              fnum 3.7001e+11
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more one cells 2 2 2
+scale_particles     all 8
+global              fnum 1.8500e+12
 undump              0
-dump                1 grid all 150 ../results_sparta/CS_0021/vals_150km_1.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
+dump                1 grid all 75 ../results_sparta/CS_0021/vals_150km_1.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_150km_1.dat
 run                 300
 
-adapt_grid          all refine coarsen value c_knudsen[2] 4 20 combine min thresh less more
-timestep            1.8803e-06
-scale_particles     all 15
-global              fnum 2.4667e+10
+timestep            1.2536e-06
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more one cells 3 3 3
+scale_particles     all 25
+global              fnum 6.1668e+11
 undump              1
-dump                2 grid all 150 ../results_sparta/CS_0021/vals_150km_2.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
+dump                2 grid all 75 ../results_sparta/CS_0021/vals_150km_2.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_150km_2.dat
 run                 300
 
-adapt_grid          all refine coarsen value c_knudsen[2] 4 100 combine min thresh less more region sat_front one cells 5 5 5
-timestep            3.7607e-07
-scale_particles     all 10
-global              fnum 2.4667e+09
+timestep            2.5071e-07
+adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more one cells 5 5 5
+scale_particles     all 100
+global              fnum 1.2334e+11
 undump              2
 dump                3 grid all 75 ../results_sparta/CS_0021/vals_150km_3.*.dat id f_n_avg f_nrho_avg f_massrho_avg f_u_avg f_T_avg c_knudsen[*]
 write_grid          ../results_sparta/CS_0021/grid_150km_3.dat

@@ -8,7 +8,8 @@ from tools import std
 
 tot_epochs = [3000, 3000, 3000]         # Number of simulation epochs for each altitude (should be multiple of 1000)
 run_fractions = [2/3, 1/10, 1/10, 1/5]  # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-particles_scale = [20, 10, 15, 10]      # Scale the number of particles by these
+particles_scale = [20, 8, 25, 100]      # Scale the number of particles by these
+refinement_factors = [2, 3, 5]          # Factor by which to scale the grid
 # List of satellite names
 sat_names = ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
@@ -45,7 +46,7 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            if True:
+            if False:
                 shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
                 os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
@@ -216,30 +217,20 @@ for j, s_name in enumerate(sat_names):
 
         new_dt = min(l_box/n_x, w_box/n_y, h_box/n_z)/cr_ps
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
-            # For the first refinements, scale the grid by 2
-            if i_refine < len(run_fractions)//2:
-                new_dt /= 2
-                refine_more = "\n"
-                coarsen_num = 20
-                dump_freq = stats_freq*2
-            # For the second half of the refinements, scale the grid by 5, raise the coarsen limit, dump twice as often
-            else:
-                new_dt /= 5
-                refine_more = " region sat_front one cells 5 5 5\n"
-                coarsen_num = 100
-                dump_freq = stats_freq
-            # Refine the grid where the grid Knudsen number is below 4, only in front of the satellite (coarsen it back when it is above 100)
-            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 4 %i combine min thresh less more%s" % (coarsen_num, refine_more)
+            new_dt /= refinement_factors[i_refine]
             # For the new dt, make sure the following condition is satisfied: u_ps*dt < dx
             input_s += "timestep            %.4e\n" % new_dt
+            # Refine the grid where the grid Knudsen number is below 4, only in front of the satellite (coarsen it back when it is above 50)
+            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more one cells %i %i %i\n" \
+                 % tuple([refinement_factors[i_refine]]*3)
             # Increase the number of particles so that the PPC stay > ~10
             input_s += "scale_particles     all %i\n" % particles_scale[i_refine+1]
-            f_num /= particles_scale[i_refine+1]
+            f_num /= refinement_factors[i_refine]
             input_s += "global              fnum %.4e\n" % f_num
             # Make dumps for the new grid
             input_s += "undump              %i\n" % i_refine
             input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
-                % (i_refine+1, dump_freq, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
+                % (i_refine+1, stats_freq, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
             input_s += "write_grid          ../results_sparta/%s/grid_%ikm_%i.dat\n" % (s_name, h, i_refine+1)
             grid_def[i_refine+1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_%i.dat\n" % (s_name, h, i_refine+1)
             # Make sure the run number is a multiple of the stats (to be compatible with the compute/fix)
