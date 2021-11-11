@@ -4,6 +4,7 @@ import pygmo
 from natsort import natsorted
 import glob
 import time
+import os
 import sys
 sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
@@ -44,7 +45,7 @@ run_opti = (input("Run the optimisation ? ([y]/n) (if no, load latest saved resu
 sizes = [60, 10, 10, 10]
 algo_idx = 0
 pop_size = sizes[algo_idx]
-n_generations = 10
+n_generations = 100
 if run_opti:    # Run a new optimisation
     # Setup Pygmo
     seed = 12345
@@ -60,6 +61,9 @@ if run_opti:    # Run a new optimisation
     algo = algo_list[algo_idx]
 
     opti_hist = []
+
+    f_name = "WT_%i-%i-%s-%s" % (thrust_model, pop_size, time.strftime("%d%m%y_%H%M%S"), seed)
+    f_path = sys.path[0] + "/optimisation/results/" + f_name
 
     # Run the optimisation
     t0 = time.time()
@@ -78,13 +82,16 @@ if run_opti:    # Run a new optimisation
         best_f.append(min(np.mean(np.fabs(f), axis=1)))
         opti_hist.append(best_f)
 
+        # Save the results
+        np.savez(f_path+"_%i"%i, inputs=WTp.FIT_INPUTS, results=np.array(WTp.FIT_RESULTS), opti_hist=np.array(opti_hist))
+        # Remove results from previous generation
+        if i > 1:
+            os.remove(f_path+"_%s.npz"%(i-1))
+        
     fit_results, fit_inputs, opti_hist = np.array(WTp.FIT_RESULTS), WTp.FIT_INPUTS, np.array(opti_hist)
 
-    # Save the results
-    np.savez(sys.path[0]+"/optimisation/results/WT_%i-%i_%i-%s_%s" % (thrust_model, pop_size, n_generations, time.strftime("%d%m%y_%H%M%S"), seed), inputs=fit_inputs, results=fit_results, opti_hist=opti_hist)
-
 else:       # Load the last saved results
-    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-%i_%i-*.npz" % (thrust_model, pop_size, n_generations)))
+    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-%i-*.npz" % (thrust_model, pop_size)))
     if len(file_list) == 0:
         raise FileNotFoundError("It appears that no optimisation for this given thrust model and optimiser settings were already run and saved.")
     last_results = np.load(file_list[-1])
