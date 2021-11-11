@@ -8,7 +8,12 @@ from tools import std
 
 tot_epochs = [3000, 3000, 3000]         # Number of simulation epochs for each altitude (should be multiple of 1000)
 run_fractions = [2/3, 1/10, 1/10, 1/5]  # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-particles_scale = [20, 8, 25, 100]      # Scale the number of particles by these
+# Scale the number of particles by these
+particles_scales = {
+    85: [20, 8, 25, 100],
+    115: [150, 8, 25, 100],
+    150: [400, 8, 25, 100]
+}
 refinement_factors = [2, 3, 5]          # Factor by which to scale the grid
 # List of satellite names
 sat_names = ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
@@ -54,6 +59,7 @@ for j, s_name in enumerate(sat_names):
     convert_STL = True
     # Loop trough conditions
     for i, h in enumerate(hs):
+        particles_scale = particles_scales[h]
         print("\n - With conditions at altitude of %i km:" % h)
         print("     Velocity is of %.2f m/s, and the species are mixed as follows:" % Vs[i])
         print("    ", fracs[i])
