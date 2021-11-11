@@ -46,7 +46,7 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            if False:
+            if True:
                 shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
                 os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
@@ -221,7 +221,7 @@ for j, s_name in enumerate(sat_names):
             # For the new dt, make sure the following condition is satisfied: u_ps*dt < dx
             input_s += "timestep            %.4e\n" % new_dt
             # Refine the grid where the grid Knudsen number is below 4, only in front of the satellite (coarsen it back when it is above 50)
-            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more one cells %i %i %i\n" \
+            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells %i %i %i one\n" \
                  % tuple([refinement_factors[i_refine]]*3)
             # Increase the number of particles so that the PPC stay > ~10
             input_s += "scale_particles     all %i\n" % particles_scale[i_refine+1]
