@@ -8,19 +8,22 @@ from tools import std
 
 tot_epochs = [3000, 3000, 3000]         # Number of simulation epochs for each altitude (should be multiple of 1000)
 run_fractions = [2/3, 1/10, 1/10, 1/5]  # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
+refinement_factors = [2, 2, 3]          # Factor by which to scale the grid
+refine_region = [False, True, True]      # When True, only refine the grid in the region where the satellite is
 # Scale the number of particles by these
 particles_scales = {
-    85: [20, 8, 25, 100],
-    115: [150, 8, 25, 100],
-    150: [400, 8, 25, 100]
+    85: [20, 20, 20, 20],
+    115: [150, 20, 20, 20],
+    150: [400, 20, 20, 20]
 }
-refinement_factors = [2, 3, 5]          # Factor by which to scale the grid
 # List of satellite names
 sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 # List of satellite reference lengths
 L_s = [0.589778, 0.589778, 0.589778, 0.6, 0.741421, 0.3, 0.341421, 0.541421, 0.741421]
 # List of satellite lengths
 L_sats = [0.6, 0.6, 0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
+# List of satellite (semi-)widths to limit the refinement region
+widths = [0.15, 0.15, 0.25, 0.25, 0.35, 0.075, 0.15, 0.25, 0.35]
 # Satellites for which to run what altitude:
 sat_run_h = {
     85: ["CS_0021", "CS_2120", "CS_3021"],
@@ -107,8 +110,8 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt_mfp                                         # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt_mfp                                      # post-shock grid dimension [m] (based on velocity)
-        grid_f = max(min(grid_f_mfp, grid_f_vel, L/25), L/250)          # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/250 to avoid initial grid too big)
-        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/25), L/250)       # Take minimum grid dimension (or L_ref/25, to avoid grid too small, L_ref/250 to avoid initial grid too big)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/40), L/250)          # Take minimum grid dimension (or L_ref/40, to avoid grid too small, L_ref/250 to avoid initial grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/40), L/250)       # Take minimum grid dimension (or L_ref/40, to avoid grid too small, L_ref/250 to avoid initial grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
         n_x = int(l_box / ((grid_f + grid_ps)/2))                       # number of grid segments along x
         n_y = int(w_box / ((grid_f + grid_ps)/2))                       # number of grid segments along y
@@ -180,7 +183,8 @@ for j, s_name in enumerate(sat_names):
         input_s += "surf_collide        1 diffuse 293.15 %.4f\n" % (alpha)
         input_s += "surf_modify         all collide 1\n"
         input_s += "\n"
-        input_s += "region              sat_front block %.4f %.4f -0.1 0.1 -0.1 0.1\n" % (sat_front-0.05, sat_front+0.15)
+        input_s += "region              sat block %.4f %.4f -%.4f %.4f -%.4f %.4f\n" % \
+            (sat_front-0.65, sat_front+0.1, widths[j], widths[j], widths[j], widths[j])
         input_s += "\n"
         input_s += "fix                 in emit/face atmo xhi zhi zlo yhi ylo\n"
         input_s += "\n"
@@ -206,7 +210,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "compute             knudsen lambda/grid f_nrho_avg f_T_avg CO2 kall\n"
         input_s += "\n"
         input_s += "stats               %i\n" % stats_freq
-        input_s += "stats_style         step cpu np nscoll nexit c_sum_force[*] c_avg_ppc\n"
+        input_s += "stats_style         step elaplong elapsed np nscoll nexit c_sum_force[*] c_avg_ppc\n"
         input_s += "\n"
         input_s += "dump                0 grid all %i ../results_sparta/%s/vals_%ikm_0.*.dat id %s f_T_avg c_knudsen[*]\n" \
             % (stats_freq*2, s_name, h,  " ".join(["f_%s_avg" % _n for _n in grid_data]))
@@ -226,12 +230,14 @@ for j, s_name in enumerate(sat_names):
             new_dt /= refinement_factors[i_refine]
             # For the new dt, make sure the following condition is satisfied: u_ps*dt < dx
             input_s += "timestep            %.4e\n" % new_dt
-            # Refine the grid where the grid Knudsen number is below 4, only in front of the satellite (coarsen it back when it is above 50)
-            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 4 50 combine min thresh less more cells %i %i %i\n" \
+            # Refine the grid where the grid Knudsen number is below 4.5, only in front of the satellite (coarsen it back when it is above 50)
+            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 4.5 50 combine min thresh less more cells %i %i %i" \
                  % tuple([refinement_factors[i_refine]]*3)
+            # If specified, only refine in the region where the satellite is
+            input_s += " region sat one\n" if refine_region[i_refine] else "\n"
             # Increase the number of particles so that the PPC stay > ~10
             input_s += "scale_particles     all %i\n" % particles_scale[i_refine+1]
-            f_num /= refinement_factors[i_refine]
+            f_num /= particles_scale[i_refine+1]
             input_s += "global              fnum %.4e\n" % f_num
             # Make dumps for the new grid
             input_s += "undump              %i\n" % i_refine
