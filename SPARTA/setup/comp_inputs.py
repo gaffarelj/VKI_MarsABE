@@ -66,10 +66,6 @@ for j, s_name in enumerate(sat_names):
         print("\n - With conditions at altitude of %i km:" % h)
         print("     Velocity is of %.2f m/s, and the species are mixed as follows:" % Vs[i])
         print("    ", fracs[i])
-        # Only run if specified
-        if s_name not in sat_run_h[h]:
-            print(" - SPARTA input file not created for %s at %ikm, as specified." % (s_name, h))
-            continue
         # Inputs
         rho = rhos[i]   # density [kg/m3]
         p = ps[i]       # pressure [Pa]
@@ -137,7 +133,12 @@ for j, s_name in enumerate(sat_names):
             PU.plot_single(P_s, alpha_s, "$n_O \cdot T [k m^3]$", "accommodation $\\alpha$", "test_accommodation")
 
         # Print the results
-        print("     Knudsen number is %.3e" % Kn)
+        print("     Knudsen number is %.5e" % Kn)
+
+        # Only run if specified
+        if s_name not in sat_run_h[h]:
+            print(" - SPARTA input file not created for %s at %ikm, as specified." % (s_name, h))
+            continue
 
         ## Save the results to an input input
         # Convert STL only once
