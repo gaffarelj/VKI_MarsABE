@@ -81,9 +81,9 @@ class thrust_model:
         # Engine is on if the atmospheric mass flow at engine inlet is above given treshold
         density_fs = self.vehicle.flight_conditions.density
         velocity_fs = self.vehicle.flight_conditions.airspeed
-        # TODO: interpolate it trough values from SPARTA at different altitudes (implement in satellite models) #################################
-        dens_ratio = 150                         
-        self.m_flow_t = dens_ratio * density_fs * velocity_fs * self.sat.S_t
+        altitude_fs = self.vehicle.flight_conditions.altitude
+        comp_ratio = self.sat.get_comp_ratio(altitude_fs)
+        self.m_flow_t = comp_ratio * density_fs * velocity_fs * self.sat.S_t
         m_flow_ok = self.m_flow_t >= self.m_treshold
         return m_flow_ok and power_ok
 
