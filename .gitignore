@@ -354,7 +354,7 @@ log.sparta
 SPARTA/setup/results_sparta/*
 Fluent
 optimisation/results/*.npz
-SPARTA/paraview/results/*.png
+#SPARTA/paraview/results/*.png
 # Paraview
 *.vtu
 *.pvtu
