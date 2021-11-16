@@ -96,21 +96,15 @@ class satellite:
 
 # Define atmosphere-breathing satellite properties
 satellites = {
-    "CS_0021": satellite("CS_0021", 2.93225, [4.54414, 5.21927, 6.93935], S_ref=0.0104, S_t=5e-4, SA_areas=[0.031058, 0.083343, 0.083343]),
-    "CS_1021": satellite("CS_1021", 3.44025, [5.29961, 5.93222, 7.18779], S_ref=0.0108, S_t=5e-4, SA_areas=[0.031058, 0.143343, 0.083343]),
-    "CS_2021": satellite("CS_2021", 3.94825, [6.28985, 6.92407, 7.52191], S_ref=0.0112, S_t=5e-4, SA_areas=[0.031058, 0.203343, 0.083343]),
-    "CS_2120": satellite("CS_2120", 3.94825, [1.57640, 1.67884, 1.24272], S_ref=0.041858285, S_t=5e-4, SA_areas=[0, 0.282426, 0.042426]),
-    "CS_3021": satellite("CS_3021", 4.45625, [1.95032, 2.13827, 2.15149], S_ref=0.042258285, S_t=5e-4, SA_areas=[0.031058, 0.263343, 0.083343])#,
-    #"CS_0020": satellite("CS_0020", 2.42425, [2.91898, 2.92598, 2.86794], S_ref=0.01, S_t=5e-4, SA_areas=[0, 0.042426, 0.042426]),
-    #"CS_1020": satellite("CS_1020", 2.93225, [1.01005, 1.02643, 0.85362], S_ref=0.041058285, S_t=5e-4, SA_areas=[0, 0.102426, 0.042426]),
-    #"CS_2020": satellite("CS_2020", 3.44025, [1.29512, 1.32335, 1.00754], S_ref=0.041458285, S_t=5e-4, SA_areas=[0, 0.162426, 0.042426]),
-    #"CS_3020": satellite("CS_3020", 4.45625, [6.02714, 6.19718, 4.49018], S_ref=0.0108, S_t=5e-4, SA_areas=[0, 0.222426, 0.042426]),
+    "CS_0021": satellite("CS_0021", 2.93225, [1.27701, 1.80399, 1.66659], S_ref=0.0104, S_t=5e-4, SA_areas=[0.031058, 0.083343, 0.083343]),
+    "CS_1021": satellite("CS_1021", 3.44025, [1.34633, 1.89739, 1.76123], S_ref=0.0108, S_t=5e-4, SA_areas=[0.031058, 0.143343, 0.083343]),
+    "CS_2021": satellite("CS_2021", 3.94825, [1.0, 1.0, 1.0], S_ref=0.0112, S_t=5e-4, SA_areas=[0.031058, 0.203343, 0.083343]),
+    "CS_2120": satellite("CS_2120", 3.94825, [1.0, 1.0, 1.0], S_ref=0.041858285, S_t=5e-4, SA_areas=[0, 0.282426, 0.042426]),
+    "CS_3021": satellite("CS_3021", 4.45625, [1.0, 1.0, 1.0], S_ref=0.042258285, S_t=5e-4, SA_areas=[0.031058, 0.263343, 0.083343])
 }
 
-# Define the same satellites, but with mass difference to account for the lack of air-breathing inlet, and the addition of a Xenon propellant tank
+# Define the same satellites, but with mass difference to account for the lack of atmosphere-breathing inlet, and the addition of a Xenon propellant tank
 satellites_with_tank = satellites.copy()
-mass_diff_dry = 0.22
-mass_diff_wet = 0.43
 for name, sat in satellites_with_tank.items():
-    sat.dry_mass -= mass_diff_dry
-    sat.wet_mass += mass_diff_wet
+    sat.dry_mass -= 0.22
+    sat.wet_mass += 0.43
