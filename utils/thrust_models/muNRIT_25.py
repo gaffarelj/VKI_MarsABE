@@ -25,20 +25,18 @@ muNRIT25_m = np.array(muNRIT25_m) * ( 5/3*1e-8 * p*M / (Z*R*T) )    # Mass flow 
 def from_power(power):
     if power < min(muNRIT25_P) or power > max(muNRIT25_P):
         raise ValueError("The power value (%s) should be in the following range: %s ; %s" % (power, min(muNRIT25_P), max(muNRIT25_P)))
-    closest_idx = np.argsort(abs(muNRIT25_P - power))[:2]
-    thrust = np.interp(power, muNRIT25_P[closest_idx], muNRIT25_T[closest_idx])
-    m_flow = np.interp(power, muNRIT25_P[closest_idx], muNRIT25_m[closest_idx])
-    Isp = np.interp(power, muNRIT25_P[closest_idx], muNRIT25_I[closest_idx])
+    thrust = np.interp(power, muNRIT25_P, muNRIT25_T)
+    m_flow = np.interp(power, muNRIT25_P, muNRIT25_m)
+    Isp = np.interp(power, muNRIT25_P, muNRIT25_I)
     return thrust, m_flow, Isp
 
 # Thrust that can be reached for the given mass flow
 def from_m_flow(m_flow):
     if m_flow < min(muNRIT25_m) or m_flow > max(muNRIT25_m):
         raise ValueError("The power value (%s) should be in the following range: %s ; %s" % (m_flow, min(muNRIT25_m), max(muNRIT25_m)))
-    closest_idx = np.argsort(abs(muNRIT25_m - m_flow))[:2]
-    thrust = np.interp(m_flow, muNRIT25_m[closest_idx], muNRIT25_T[closest_idx])
-    power = np.interp(m_flow, muNRIT25_m[closest_idx], muNRIT25_P[closest_idx])
-    Isp = np.interp(m_flow, muNRIT25_m[closest_idx], muNRIT25_I[closest_idx])
+    thrust = np.interp(m_flow, muNRIT25_m, muNRIT25_T)
+    power = np.interp(m_flow, muNRIT25_m, muNRIT25_P)
+    Isp = np.interp(m_flow, muNRIT25_m, muNRIT25_I)
     return thrust, power, Isp
 
 # Thrust that can be reached for the given combination of mass flow and power

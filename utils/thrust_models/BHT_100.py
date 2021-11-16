@@ -22,8 +22,7 @@ BHT_100_I = np.array(BHT_100_I)
 def from_power(power):
     if power < min(BHT_100_P) or power > max(BHT_100_P):
         raise ValueError("The power value (%s) should be in the following range: %s ; %s" % (power, min(BHT_100_P), max(BHT_100_P)))
-    closest_idx = np.argsort(abs(BHT_100_P - power))[:2]
-    thrust = np.interp(power, BHT_100_P[closest_idx], BHT_100_T[closest_idx])
-    m_flow = np.interp(power, BHT_100_P[closest_idx], BHT_100_m[closest_idx])
-    Isp = np.interp(power, BHT_100_P[closest_idx], BHT_100_I[closest_idx])
+    thrust = np.interp(power, BHT_100_P, BHT_100_T)
+    m_flow = np.interp(power, BHT_100_P, BHT_100_m)
+    Isp = np.interp(power, BHT_100_P, BHT_100_I)
     return thrust, m_flow, Isp
