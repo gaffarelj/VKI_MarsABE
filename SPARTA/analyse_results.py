@@ -6,7 +6,7 @@ from tools import plot_utilities as PU
 
 # Define the altitudes and satellite names for which there is results to analyse
 hs = [85, 115, 150]
-sat_names = ["CS_0020", "CS_0021", "CS_1020", "CS_1021", "CS_2020", "CS_2021", "CS_2120", "CS_3020", "CS_3021"]
+sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"]#, "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
 
 # Loop trough the satellite names and the altitudes
 for s_name in sat_names:
