@@ -27,7 +27,7 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     sim_days = 5
     OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True)
     # Create the simulation bodies, and use the MCD
-    OS.create_bodies(use_MCD=[False, False])
+    OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
     # Create the initial state of the satellite
     a = OS.R_cb + (h_a+h_p)/2
     e = 1 - (OS.R_cb + min(h_p, h_a)) / a       # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
@@ -55,7 +55,7 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     # Compute the simulation performance parameters
     mean_P, decay, mean_h, mean_T_D = np.mean(power_hist), h_p_s[0] - h_p_s[-1], np.mean(altitudes), np.mean(thrusts_norm)/np.mean(drags_norm)
 
-    # Give a penality in the decay if the simulation stopped earlier and the decay was not properly registered
+    # Give a penalty in the decay if the simulation stopped earlier and the decay was not properly registered
     if times[-1] - times[0] < (sim_days-1)*constants.JULIAN_DAY and decay < 50e3:
         decay = 300e3
 
