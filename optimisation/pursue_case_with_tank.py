@@ -34,6 +34,10 @@ OS.create_propagator(prop_mass=True)
 # Simulate the satellite in orbit
 times, states, _ = OS.simulate()
 
+# Save results to CSV
+results = np.array([times, states[:,0], states[:,1], states[:,2]]).T
+np.savetxt("orbit.csv", results, delimiter=',', header="time, X, Y, Z")
+
 # Plot results
 PU.plot_multiple([times/3600]*2, [OS.get_dep_var("h"), OS.get_dep_var("h_p")], "Time [hr]", "Altitude [km]", "SHOW", legends=["Satellite", "Periapsis"])
 PU.plot_single(times/3600, np.linalg.norm(OS.get_dep_var("F_T"), axis=1), "Time [hr]", "Thrust [N]", "SHOW", scatter=True)
