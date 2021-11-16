@@ -33,7 +33,11 @@ for s_name in sat_names:
                 reading_results = True
 
         results = np.asarray(results, dtype=float)
-        times, fx, fy, fz, ppc = results[:,0], -results[:,-4], -results[:,-3], -results[:,-2], results[:,-1]
+        try:
+            times, fx, fy, fz, ppc = results[:,0], -results[:,-4], -results[:,-3], -results[:,-2], results[:,-1]
+        except IndexError:
+            print("Warning, it seems that the simulation for %s at %skm was not run properly." % (s_name, h))
+            continue
 
         # Plot the force in each direction
         PU.plot_single(times, fx, "Timestep number [-]", "$F_x$ [N]", "SPARTA/fx_%s_%skm" % (s_name, h))
