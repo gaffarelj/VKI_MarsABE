@@ -6,15 +6,15 @@ import shutil
 from tools import plot_utilities as PU
 from tools import std
 
-tot_epochs = [3000, 3000, 3000]     # Number of simulation epochs for each altitude (should be multiple of 1000)
-run_fractions = [20/30, 4/30, 6/30] # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
-refinement_factors = [2, 4]         # Factor by which to scale the grid
-refine_region = [False, True]       # When True, only refine the grid in the region where the satellite is
+tot_epochs = [1500, 1500, 1500]             # Number of simulation epochs for each altitude (should be multiple of 1000)
+run_fractions = [15/30, 5/30, 4/30, 6/30]   # Epochs at which to switch from initial run [0] to refinements [1 to -2] to final refinement and run [-1]
+refinement_factors = [2, 2, 2]              # Factor by which to scale the grid
+refine_region = [False, True, True]         # When True, only refine the grid in the region where the satellite is
 # Scale the number of particles by these
 particles_scales = {
-    85: [20, 10, 5],
-    115: [150, 10, 5],
-    150: [400, 10, 5]
+    85: [20, 5, 10, 5, 5],
+    115: [500, 5, 10, 5, 5],
+    150: [1500, 5, 10, 5, 5]
 }
 # List of satellite names
 sat_names = ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021", "CS_0020", "CS_1020", "CS_2020", "CS_3020"]
@@ -26,9 +26,9 @@ L_sats = [0.6, 0.6, 0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
 widths = [0.15, 0.15, 0.25, 0.25, 0.35, 0.075, 0.15, 0.25, 0.35]
 # Satellites for which to run what altitude:
 sat_run_h = {
-    85: ["CS_0021"],#, "CS_2120", "CS_3021"],
-    115: ["CS_0021"],#, "CS_1021", "CS_2021", "CS_2120", "CS_3021"],
-    150: ["CS_0021"]#, "CS_1021", "CS_2021", "CS_2120", "CS_3021"]
+    85: ["CS_0021", "CS_2120", "CS_3021"],
+    115: ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"],
+    150: ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"]
 }
 
 # Define conditions at different orbital altitudes
@@ -110,8 +110,8 @@ for j, s_name in enumerate(sat_names):
         grid_ps_mfp = lambda_ps / 5                                     # post-shock grid dimension [m] (based on mean free path)
         grid_f_vel = u_s*dt_mfp                                         # grid dimension before shock [m] (based on velocity)
         grid_ps_vel = cr_ps*dt_mfp                                      # post-shock grid dimension [m] (based on velocity)
-        grid_f = max(min(grid_f_mfp, grid_f_vel, L/65), L/250)          # Take minimum on (or L_ref/65, to avoid grid too small, L_ref/250 to grid dimensiavoid initial grid too big)
-        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/65), L/250)       # Take minimum grid dimension (or L_ref/65, to avoid grid too small, L_ref/250 to avoid initial grid too big)
+        grid_f = max(min(grid_f_mfp, grid_f_vel, L/30), L/250)          # Take minimum on (or L_ref/30, to avoid grid too small, L_ref/250 to grid dimensiavoid initial grid too big)
+        grid_ps = max(min(grid_ps_mfp, grid_ps_vel, L/30), L/250)       # Take minimum grid dimension (or L_ref/30, to avoid grid too small, L_ref/250 to avoid initial grid too big)
         n_real = (nrho + nrho_ps) / 2 * h_box * l_box * w_box           # real number of particles
         n_x = int(l_box / ((grid_f + grid_ps)/2))                       # number of grid segments along x
         n_y = int(w_box / ((grid_f + grid_ps)/2))                       # number of grid segments along y
@@ -160,7 +160,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "dimension           3\n"
         grid_def = "dimension           3\n"
         input_s += "\n"
-        input_s += "global              gridcut 1e-3 comm/sort yes surfmax 10000 splitmax 100\n"
+        input_s += "global              gridcut 0.1 comm/sort yes surfmax 10000 splitmax 1000\n"
         input_s += "\n"
         input_s += "boundary            o o o\n"
         input_s += "create_box          -%.4f %.4f -%.4f %.4f -%.4f %.4f\n" % (l_box/2, l_box/2, w_box/2, w_box/2, h_box/2, h_box/2)
@@ -168,7 +168,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "create_grid         %i %i %i\n" % (np.ceil(n_x), np.ceil(n_y), np.ceil(n_z))
         input_s += "\n"
-        input_s += "balance_grid        rcb cell\n"
+        input_s += "balance_grid        rcb part\n"
         input_s += "\n"
 
         input_s += "global              nrho %.4e fnum %.4e vstream -%.4f 0.0 0.0 temp %.4f\n" % (nrho, f_num, u_s, T)
@@ -192,7 +192,7 @@ for j, s_name in enumerate(sat_names):
         input_s += "\n"
         input_s += "compute             forces surf all all fx fy fz\n"
         stats_freq = tot_epochs[i]*min(run_fractions)/4
-        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (1, stats_freq/3, stats_freq)
+        input_s += "fix                 avg ave/surf all %i %i %i c_forces[*] ave running\n" % (1, stats_freq*2/3, stats_freq)
         input_s += "compute             sum_force reduce sum f_avg[*]\n"
         input_s += "\n"
 
@@ -200,12 +200,12 @@ for j, s_name in enumerate(sat_names):
         grid_data = ["n", "nrho", "massrho", "u"]
         for g_d in grid_data:
             input_s += "compute             %s grid all all %s\n" % (g_d, g_d)
-            input_s += "fix                 %s_avg ave/grid all %i %i %i c_%s[*]\n" % (g_d, 1, stats_freq/3, stats_freq, g_d)
+            input_s += "fix                 %s_avg ave/grid all %i %i %i c_%s[*]\n" % (g_d, 1, stats_freq*2/3, stats_freq, g_d)
             input_s += "\n"
         input_s += "compute             avg_ppc reduce ave f_n_avg\n"
         input_s += "\n"
         input_s += "compute             T thermal/grid all all temp\n"
-        input_s += "fix                 T_avg ave/grid all %i %i %i c_T[*]\n" % (1, stats_freq/3, stats_freq)
+        input_s += "fix                 T_avg ave/grid all %i %i %i c_T[*]\n" % (1, stats_freq*2/3, stats_freq)
         input_s += "\n"
         input_s += "compute             knudsen lambda/grid f_nrho_avg f_T_avg CO2 kall\n"
         input_s += "\n"
@@ -227,11 +227,12 @@ for j, s_name in enumerate(sat_names):
 
         new_dt = min(l_box/n_x, w_box/n_y, h_box/n_z)/cr_ps
         for i_refine, epoch_frac in enumerate(run_fractions[1:]):
+            input_s += "print \"Refinement level %s\"\n" % (i_refine+1)
             new_dt /= refinement_factors[i_refine]
             # For the new dt, make sure the following condition is satisfied: u_ps*dt < dx
             input_s += "timestep            %.4e\n" % new_dt
-            # Refine the grid where the grid Knudsen number is below 4.5, only in front of the satellite (coarsen it back when it is above 50)
-            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 4.5 50 combine min thresh less more cells %i %i %i" \
+            # Refine the grid where the grid Knudsen number is below 5, only in front of the satellite (coarsen it back when it is above 50)
+            input_s += "adapt_grid          all refine coarsen value c_knudsen[2] 5 50 combine min thresh less more cells %i %i %i" \
                  % tuple([refinement_factors[i_refine]]*3)
             # If specified, only refine in the region where the satellite is
             input_s += " region sat one\n" if refine_region[i_refine] else "\n"
@@ -243,6 +244,9 @@ for j, s_name in enumerate(sat_names):
             input_s += "undump              %i\n" % i_refine
             input_s += "dump                %i grid all %i ../results_sparta/%s/vals_%ikm_%i.*.dat id %s f_T_avg c_knudsen[*]\n" \
                 % (i_refine+1, stats_freq, s_name, h, i_refine+1, " ".join(["f_%s_avg" % _n for _n in grid_data]))
+            # Balance the grid bewteen the processors
+            input_s += "balance_grid        rcb part\n"
+            input_s += "\n"
             input_s += "write_grid          ../results_sparta/%s/grid_%ikm_%i.dat\n" % (s_name, h, i_refine+1)
             grid_def[i_refine+1] += "read_grid           ../../setup/results_sparta/%s/grid_%skm_%i.dat\n" % (s_name, h, i_refine+1)
             # Make sure the run number is a multiple of the stats (to be compatible with the compute/fix)
@@ -260,7 +264,7 @@ for j, s_name in enumerate(sat_names):
             paraview_grid += "echo 'Converting results of %s at %skm (refinement %i) to ParaView...'\n" % (s_name, h, i_r)
             paraview_grid += "pvpython ../../tools/grid2paraview_original.py def/grid.%s_%skm_%i vals_%s_%skm_%i -r ../../setup/results_sparta/%s/vals_%skm_%i.*.dat \n" % \
                 (s_name, h, i_r, s_name, h, i_r, s_name, h, i_r)
-        
+
         # Write SPARTA inputs to input
         with open(sys.path[0] + "/SPARTA/setup/inputs/in.%s_%skm" % (s_name, h), "w") as input_f:
             input_f.write(input_s)
