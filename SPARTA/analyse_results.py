@@ -44,7 +44,7 @@ for s_name in sat_names:
         PU.plot_single(times, fy, "Timestep number [-]", "$F_y$ [N]", "SPARTA/fy_%s_%skm" % (s_name, h))
         PU.plot_single(times, fz, "Timestep number [-]", "$F_y$ [N]", "SPARTA/fz_%s_%skm" % (s_name, h))
         # Print the drag by averaging the force in the x-direction for the last few steps of the simulation
-        print("Drag = %.5e N for %s at %.1fkm" % (np.mean(fx[-3:]), s_name, h))
+        print("Drag = %.5e N for %s at %.1fkm (%i epochs)" % (np.mean(fx[-3:]), s_name, h, times[-1]))
 
         # Plot the number of particles over time
         PU.plot_single(times, ppc, "Timestep number [-]", "Mean number of particles per cell [-]", "SPARTA/npart_%s_%skm" % (s_name, h))
