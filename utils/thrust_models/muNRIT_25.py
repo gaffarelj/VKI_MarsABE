@@ -4,7 +4,7 @@ while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 import numpy as np
 
-# Lists containing the characteristics of the muNRIT 2.5 Grid Ion thruster (Power [W], mass flow [sccm], Thrust [microN], Isp [s])
+# Lists containing the characteristics of the muNRIT 2.5 Radiofrequency Ion thruster (Power [W], mass flow [sccm], Thrust [microN], Isp [s])
 muNRIT25_T = [50, 100, 200, 300, 400, 500, 575]
 muNRIT25_P = [13.1, 15.2, 19.2, 21.6, 27, 31.2, 34.4]
 muNRIT25_I = [363, 713, 1236, 1735, 2194, 2609, 2861]

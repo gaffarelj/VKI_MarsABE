@@ -15,7 +15,7 @@ from tools import plot_utilities as PU
 
 ## Select the thrust model
 # 1 = BHT-100 Hall thruster (on when power > 107 W)
-# 2 = μNRIT 2.5 Grid ion thruster (on when power > 13.1 W)
+# 2 = μNRIT 2.5 Radiofrequency ion thruster (on when power > 13.1 W)
 thrust_model = 2
 
 print("Optimisation with thrust model %i (and using a propellant tank)." % thrust_model)
