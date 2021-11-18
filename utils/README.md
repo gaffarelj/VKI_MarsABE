@@ -232,7 +232,7 @@ This thrust, mass flow, and Isp estimation based on power is done in the [BHT_10
 This model assumes that the satellite has a propellant tank. The mass of the satellite should then also be propagated, and the engine will not turn on anymore when there is no propellant left.
 
 #### Model with id `2`
-The thrust is based on the [μNRIT2.5](http://electricrocket.org/IEPC/IEPC-2011-013.pdf) grid ion thruster developed by Astrium (that became part of Airbus Defence and Space at the end of 2013).
+The thrust is based on the [μNRIT2.5](http://electricrocket.org/IEPC/IEPC-2011-013.pdf) radiofrequency ion thruster developed by Astrium (that became part of Airbus Defence and Space at the end of 2013).
 
 This thrust model also assumes that the satellite has a propellant tank, and its mass should thus also be propagated.
 
@@ -242,7 +242,7 @@ As for the previous model, the thrust, mass flow, and Isp, are estimated based o
 This is done in the [muNRIT_25.py](thrust_models/muNRIT_25.py) file.
 
 #### Model with id `3`
-This model is also based on the μNRIT2.5 grid ion thruster.
+This model is also based on the μNRIT2.5 radiofrequency ion thruster.
 However, it is now assumed that no propellant tank is used, and that the thrust is generated using the atmosphere as propellant.
 
 The atmospheric mass flow at the engine inlet it thus computed, and the thrust will be turned on only if this mass flow is above 1.456e-8 kg/s, and the power above 13.1 W.

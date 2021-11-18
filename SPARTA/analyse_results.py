@@ -33,14 +33,18 @@ for s_name in sat_names:
                 reading_results = True
 
         results = np.asarray(results, dtype=float)
-        times, fx, fy, fz, ppc = results[:,0], -results[:,-4], -results[:,-3], -results[:,-2], results[:,-1]
+        try:
+            times, fx, fy, fz, ppc = results[:,0], -results[:,-4], -results[:,-3], -results[:,-2], results[:,-1]
+        except IndexError:
+            print("Warning, it seems that the simulation for %s at %skm was not run properly." % (s_name, h))
+            continue
 
         # Plot the force in each direction
         PU.plot_single(times, fx, "Timestep number [-]", "$F_x$ [N]", "SPARTA/fx_%s_%skm" % (s_name, h))
         PU.plot_single(times, fy, "Timestep number [-]", "$F_y$ [N]", "SPARTA/fy_%s_%skm" % (s_name, h))
         PU.plot_single(times, fz, "Timestep number [-]", "$F_y$ [N]", "SPARTA/fz_%s_%skm" % (s_name, h))
         # Print the drag by averaging the force in the x-direction for the last few steps of the simulation
-        print("Drag = %.5e N for %s at %.1fkm" % (np.mean(fx[-3:]), s_name, h))
+        print("Drag = %.5e N for %s at %.1fkm (%i epochs)" % (np.mean(fx[-3:]), s_name, h, times[-1]))
 
         # Plot the number of particles over time
         PU.plot_single(times, ppc, "Timestep number [-]", "Mean number of particles per cell [-]", "SPARTA/npart_%s_%skm" % (s_name, h))
