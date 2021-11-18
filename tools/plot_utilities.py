@@ -18,11 +18,13 @@ def comp_pareto(X, Y, front_sign=[1, 1]):
 
 def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, \
     equal_ax=False, add_front=False, front_sign=[1, 1], z_data=None, z_label="", marker="o", cmap="rainbow", \
-    cticks=None, clabels=None):
+    cticks=None, clabels=None, fig=None, ax=None):
     """
     Simple plot
     """
-    fig, ax = plt.subplots()
+    # Setup a new figure
+    if None in [fig, ax]:
+        fig, ax = plt.subplots()
     sys.path = [p for p in sys.path if p != ""]
     # Plot
     if scatter:
@@ -67,11 +69,13 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
     plt.close()
 
 def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, colors=None, xlog=False,\
-     ylog=False, ylim=None, xlim=None, legend_loc=0, lstyle="solid"):
+     ylog=False, ylim=None, xlim=None, legend_loc=0, lstyle="solid", fig=None, ax=None):
     """
     Plot multiple lines
     """
-    fig, ax = plt.subplots()
+    # Setup a new figure
+    if None in [fig, ax]:
+        fig, ax = plt.subplots()
     sys.path = [p for p in sys.path if p != ""]
     if type(lstyle) != list:
         lstyle = [lstyle] * len(x_datas)
@@ -112,16 +116,18 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     plt.close()
 
 
-def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, diff_x=False):
+def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, diff_x=False, fig=None, ax1=None):
     """
     Plot with two y axis. Inputs should be self-explanatory.
     """
+    # Setup a new figure
+    if None in [fig, ax1]:
+        fig, ax1 = plt.subplots()
     # Check if the x_data is the same for both y or not
     if diff_x:
         x_data_1, x_data_2 = x_data[0], x_data[1]
     else:
         x_data_1, x_data_2 = x_data, x_data
-    fig, ax1 = plt.subplots()
     sys.path = [p for p in sys.path if p != ""]
     # Set the color of the left y axis
     color = "tab:red"
@@ -153,8 +159,10 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
         plt.savefig(sys.path[0]+"/figures/%s.pdf" % fname)
     plt.close()
 
-def plot_4d(x, y, z, h, labels, fname):
-    fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+def plot_4d(x, y, z, h, labels, fname, fig=None, ax=None):
+    # Setup a new figure
+    if None in [fig, ax]:
+        fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
     sys.path = [p for p in sys.path if p != ""]
     grid_x, grid_y = np.mgrid[min(x):max(x):200j, min(y):max(y):200j]
     grid_z = griddata((x, y), z, (grid_x, grid_y), method='nearest')
