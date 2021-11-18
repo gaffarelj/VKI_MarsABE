@@ -23,8 +23,8 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
             return FIT_RESULTS[idx]
 
     ## Setup the simulation
-    # Create the orbital simulation instance, setup to simulate 5 days
-    sim_days = 5
+    # Create the orbital simulation instance, setup to simulate 10 days
+    sim_days = 10
     OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
@@ -38,7 +38,8 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     OS.create_integrator()
     OS.create_termination_settings()
     OS.create_dependent_variables(to_save=["h_p", "h", "D", "F_T"])
-    OS.create_propagator(prop_mass=True)
+    prop_mass = (thrust_model != 3)
+    OS.create_propagator(prop_mass=prop_mass)
 
     # Simulate the satellite in orbit
     times, _, _ = OS.simulate()
@@ -123,8 +124,9 @@ class WT_problem:
         h_p_0, h_a_0, i_0, omega_0, Omega_0, sat_index = design_variables
 
         # Select the satellite
-        sat_name = list(SM.satellites_with_tank.keys())[int(sat_index)]
-        satellite = SM.satellites_with_tank[sat_name]
+        sats = SM.satellites if self.thrust_model == 3 else SM.satellites_with_tank
+        sat_name = list(sats.keys())[int(sat_index)]
+        satellite = sats[sat_name]
 
         # Compute the fitnesses, and the simulation performance parameters
         power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model)

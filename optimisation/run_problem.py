@@ -9,16 +9,22 @@ import sys
 sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
-from optimisation import with_tank_problem as WTp
+from optimisation import drag_comp_problem as DCp
 from utils import sat_models as SM
 from tools import plot_utilities as PU
 
 ## Select the thrust model
-# 1 = BHT-100 Hall thruster (on when power > 107 W)
-# 2 = μNRIT 2.5 Radiofrequency ion thruster (on when power > 13.1 W)
-thrust_model = 2
+print("The following thrust models can be used:")
+print(" 1: BHT-100 Hall thruster (on when power > 107 W)")
+print(" 2: μNRIT 2.5 Radiofrequency ion thruster with Xenon tank (on when power > 13.1 W)")
+print(" 3: μNRIT 2.5 Radiofrequency ion thruster with atmosphere-breathing inlet (on when power > 13.1 W and engine inlet mass flow > 1.456e-8 kg/s)")
 
-print("Optimisation with thrust model %i (and using a propellant tank)." % thrust_model)
+thrust_model = None
+while thrust_model not in [1, 2, 3]:
+    try:
+        thrust_model = int(input("Thrust model selection [1, 2, 3]: "))
+    except ValueError:
+        thrust_model = None
 
 # Setup the design variables range
 min_h_p, max_h_p = 85e3, 150e3
@@ -36,7 +42,7 @@ design_var_range = (
 # Setup the optimisation problem
 fitness_weights = [1, 1, 1]
 fitness_names = ["Mean power", "Periapsis decay", "Mean altitude"]
-current_HT_problem = WTp.WT_problem(design_var_range, fitness_weights, thrust_model=thrust_model, verbose=False)
+current_HT_problem = DCp.WT_problem(design_var_range, fitness_weights, thrust_model=thrust_model, verbose=False)
 problem = pygmo.problem(current_HT_problem)
 
 # Select whether to run the optimisation or load the latest result file
@@ -83,12 +89,12 @@ if run_opti:    # Run a new optimisation
         opti_hist.append(best_f)
 
         # Save the results
-        np.savez(f_path+"_%i"%i, inputs=WTp.FIT_INPUTS, results=np.array(WTp.FIT_RESULTS), opti_hist=np.array(opti_hist))
+        np.savez(f_path+"_%i"%i, inputs=DCp.FIT_INPUTS, results=np.array(DCp.FIT_RESULTS), opti_hist=np.array(opti_hist))
         # Remove results from previous generation
         if i > 1:
             os.remove(f_path+"_%s.npz"%(i-1))
         
-    fit_results, fit_inputs, opti_hist = np.array(WTp.FIT_RESULTS), WTp.FIT_INPUTS, np.array(opti_hist)
+    fit_results, fit_inputs, opti_hist = np.array(DCp.FIT_RESULTS), DCp.FIT_INPUTS, np.array(opti_hist)
 
 else:       # Load the last saved results
     file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-%i-*.npz" % (thrust_model, pop_size)))
