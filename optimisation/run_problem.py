@@ -87,6 +87,7 @@ if run_opti:    # Run a new optimisation
         best_f = [min(f[:,i]) for i in range(len(fitness_weights))]
         best_f.append(min(np.mean(np.fabs(f), axis=1)))
         opti_hist.append(best_f)
+        print(" -> best fitness is", best_f)
 
         # Save the results
         np.savez(f_path+"_%i"%i, inputs=DCp.FIT_INPUTS, results=np.array(DCp.FIT_RESULTS), opti_hist=np.array(opti_hist))
