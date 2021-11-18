@@ -205,7 +205,9 @@ Note that all SPARTA simulations assume that the satellite accommodation coeffic
 
 ## Results
 
-Running SPARTA for the different altitudes, the force in each direction has been saved in `.gz` files in the [results folder](results).
+Running SPARTA for the different altitudes, the force in each direction has been saved in `.dat` files in the [results folder](results).
+
+The satellites that do not have solar panels extended in their back have not been run, since they are deemed too unstable. These are the followings: `CS 0020, CS 1020, CS 2020, CS 3020`.
 
 Then, [analyse_results.py](analyse_results.py) has been used to compute the drag force from all of the simulations.
 
@@ -213,43 +215,37 @@ At each altitude, the dynamic pressure (in Pa) has been computed as follows:
 
 <img src="https://render.githubusercontent.com/render/math?math=q%20=%20\frac{1}{2}%20\cdot%20\rho%20\cdot%20V^2">
 
+For each altitude, the Mach number has also been computed, using the formula below with molecular values of CO2.
+
+<img src="https://render.githubusercontent.com/render/math?math=M%20=%20\frac{V}{c}%20=%20\frac{V}{\sqrt{\gamma%20\cdot%20R/M%20\cdot%20T}}=%20\frac{V}{\sqrt{1.3%20\cdot%208314/44%20\cdot%20T}}">
+
+The compression ratio between the free stream and the end of the atmosphere inlet is also reported in the table below.
+
 For each satellite configuration, the reference surface `S` has been taken as the frontal area of the CubeSat.
 Values for these reference surface area can be found in the table of [this section](#satellite-configurations).
 
 The drag coefficients have then been computed at each altitude by using the following equation:
 
-<img src="https://render.githubusercontent.com/render/math?math=C_D%20=%20\frac{D}{q%20\cdot%20S}=100%20\cdot%20\frac{D}{q}">
+<img src="https://render.githubusercontent.com/render/math?math=C_D%20=%20\frac{D}{q%20\cdot%20S_{ref}}">
 
 Later on, when using these drag coefficients, the same reference surface must be used.
 
 This leads to the drag coefficients of the table below, with the Knudsen numbers included as well:
 
-| Satellite name | Altitude [km] | Knudsen number [-] | Drag [N]    | Drag coefficient [-] |
-|----------------|---------------|--------------------|-------------|----------------------|
-| CS 0020        | 85            | 1.842E-01          | 4.845E-01   | 2.91898              |
-| CS 0020        | 115           | 3.555E-01          | 2.450E-01   | 2.92598              |
-| CS 0020        | 150           | 1.491E+03          | 5.269E-05   | 2.86794              |
-| CS 1020        | 85            | 9.370E-02          | 7.845E-01   | 4.54414              |
-| CS 1020        | 115           | 1.808E-01          | 4.545E-01   | 5.21927              |
-| CS 1020        | 150           | 7.583E+02          | 1.326E-04   | 6.93935              |
-| CS 0021        | 85            | 1.619E-01          | 6.884E-01   | 1.01005              |
-| CS 0021        | 115           | 3.124E-01          | 3.529E-01   | 1.02643              |
-| CS 0021        | 150           | 1.310E+03          | 6.439E-05   | 0.85362              |
-| CS 2020        | 85            | 9.370E-02          | 9.501E-01   | 5.29961              |
-| CS 2020        | 115           | 1.808E-01          | 5.365E-01   | 5.93222              |
-| CS 2020        | 150           | 7.583E+02          | 1.426E-04   | 7.18779              |
-| CS 1021        | 85            | 1.021E-01          | 8.913E-01   | 1.29512              |
-| CS 1021        | 115           | 1.970E-01          | 4.594E-01   | 1.32335              |
-| CS 1021        | 150           | 8.260E+02          | 7.674E-05   | 1.00754              |
-| CS 3020        | 85            | 9.370E-02          | 1.169E+00   | 6.28985              |
-| CS 3020        | 115           | 1.808E-01          | 6.493E-01   | 6.92407              |
-| CS 3020        | 150           | 7.583E+02          | 1.548E-04   | 7.52191              |
-| CS 2021        | 85            | 9.210E-02          | 1.095E+00   | 1.57640              |
-| CS 2021        | 115           | 1.778E-01          | 5.884E-01   | 1.67884              |
-| CS 2021        | 150           | 7.453E+02          | 9.557E-05   | 1.24272              |
-| CS 2120        | 85            | 7.453E-02          | 1.081E+00   | 6.02714              |
-| CS 2120        | 115           | 1.438E-01          | 5.604E-01   | 6.19718              |
-| CS 2120        | 150           | 6.032E+02          | 8.909E-05   | 4.49018              |
-| CS 3021        | 85            | 7.453E-02          | 1.368E+00   | 1.95032              |
-| CS 3021        | 115           | 1.438E-01          | 7.566E-01   | 2.13827              |
-| CS 3021        | 150           | 6.032E+02          | 1.670E-04   | 2.15149              |
+| Satellite name | Altitude [km] | Knudsen number [-] | Dynamic pressure [Pa] | Mach number [-] | Compression ratio [-] | Drag [N]    | Drag coefficient [-] |
+|----------------|---------------|--------------------|-----------------------|-----------------|-----------------------|-------------|----------------------|
+| CS 0021        | 85            | 1.96934E-01        | 7.8837E+00            | 18.9145         | 37.82965              | 4.13356e-01 | 1.277012             |
+| CS 0021        | 115           | 1.10556E+01        | 1.3540E-01            | 20.8736         | 50.49326              | 1.00289e-02 | 1.803986             |
+| CS 0021        | 150           | 1.17386E+03        | 1.1749E-03            | 16.8886         | 60.37834              | 8.03958e-05 | 1.666586             |
+| CS 1021        | 85            | 1.96934E-01        | 7.8837E+00            | 18.9145         | 35.10988              | 4.80367E-01 | 1.469716             |
+| CS 1021        | 115           | 1.10556E+01        | 1.3540E-01            | 20.8736         | 50.17104              | 1.06509e-02 | 1.897386             |
+| CS 1021        | 150           | 1.17386E+03        | 1.1749E-03            | 16.8886         | 60.29815              | 8.57891e-05 | 1.761229             |
+| CS 2021        | 85            | 1.96934E-01        | 7.8837E+00            | 18.9145         | 35.27233              | 5.68135E-01 | 1.721637             |
+| CS 2021        | 115           | 1.10556E+01        | 1.3540E-01            | 20.8736         | 49.77842              | 1.13702e-02 | 2.006168             |
+| CS 2021        | 150           | 1.17386E+03        | 1.1749E-03            | 16.8886         | 59.51885              | 9.20775e-05 | 1.872265             |
+| CS 2120        | 85            | 1.93579E-01        | 7.8837E+00            | 18.9145         | 36.17590              | 4.91818E-01 | 5.776334             |
+| CS 2120        | 115           | 1.08673E+01        | 1.3540E-01            | 20.8736         | 50.10605              | 5.83676E-03 | 3.991432             |
+| CS 2120        | 150           | 1.15386E+03        | 1.1749E-03            | 16.8886         | 58.88298              | 5.32386E-05 | 4.195638             |
+| CS 3021        | 85            | 1.56655E-01        | 7.8837E+00            | 18.9145         | 42.28136              | 6.52884E-01 | 1.959728             |
+| CS 3021        | 115           | 8.79440E+00        | 1.3540E-01            | 20.8736         | 58.14033              | 1.22516E-02 | 2.141222             |
+| CS 3021        | 150           | 9.33769E+02        | 1.1749E-03            | 16.8886         | 64.84591              | 9.96816E-05 | 2.007698             |
