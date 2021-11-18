@@ -1,3 +1,7 @@
+import sys
+sys.path = [p for p in sys.path if p != ""]
+while sys.path[0].split("/")[-1] != "VKI_MarsABE":
+    sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from tudatpy.kernel.math import interpolators
 import numpy as np
 
@@ -113,3 +117,14 @@ satellites_with_tank = satellites.copy()
 for name, sat in satellites_with_tank.items():
     sat.dry_mass -= 0.22
     sat.wet_mass += 0.43
+
+# Plot satellite the CD vs altitude
+if False:
+    from matplotlib import pyplot as plt
+    plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})
+    for s_name, sat in satellites.items():
+        plt.plot(np.array(sat.Cd_h)/1e3, sat.Cd_list, label=s_name, linestyle="dotted", marker="o")
+    plt.xlabel("Altitude [km]"), plt.ylabel("Drag coefficient [-]")
+    plt.xticks([85, 115, 150])
+    plt.legend(), plt.grid(), plt.tight_layout()
+    plt.savefig(sys.path[0]+"/figures/sat_Cd_h.pdf")
