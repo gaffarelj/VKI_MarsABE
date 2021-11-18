@@ -26,9 +26,9 @@ L_sats = [0.6, 0.6, 0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
 widths = [0.15, 0.15, 0.25, 0.25, 0.35, 0.075, 0.15, 0.25, 0.35]
 # Satellites for which to run what altitude:
 sat_run_h = {
-    85: ["CS_0021", "CS_2120", "CS_3021"],
-    115: ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"],
-    150: ["CS_0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"]
+    85: ["CS 0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"],
+    115: ["CS 0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"],
+    150: ["CS 0021", "CS_1021", "CS_2021", "CS_2120", "CS_3021"]
 }
 
 # Define conditions at different orbital altitudes
@@ -54,7 +54,7 @@ for j, s_name in enumerate(sat_names):
     except (FileExistsError, OSError):
         try:
             # Un/comment the two following lines to always remove the previous results when new input files are made
-            if True:
+            if False:
                 shutil.rmtree(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
                 os.mkdir(sys.path[0]+"/SPARTA/setup/results_sparta/"+s_name+"/")
         except (PermissionError, OSError):
