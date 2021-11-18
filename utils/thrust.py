@@ -36,6 +36,7 @@ class thrust_model:
         self.solar_constant = solar_constant
         self.thrust_mod = thrust_mod
         self.m_treshold = 0
+        self.ionisation_eff = 1 # Ionisation efficiency
         # Select the thrust model (and associated operating conditions)
         if thrust_mod == 0:
             self.power_treshold = [10, 100]
@@ -46,6 +47,7 @@ class thrust_model:
         elif thrust_mod == 3:
             self.power_treshold = [13.1, 34.4]
             self.m_treshold = 1.456e-8
+            self.ionisation_eff = 0.25
     
     def magnitude(self, time):
         # If there is no more propellant, return 0
@@ -65,7 +67,7 @@ class thrust_model:
             return self.thrust
         elif self.thrust_mod == 3:
             self.thrust, _power, self.m_flow, self.Isp = muNRIT_25.from_P_m(self.power, self.m_flow_t)
-            return self.thrust
+            return self.thrust * self.ionisation_eff
         raise NotImplementedError("The thrust model %i has not been implemented." % self.thrust_mod)
 
     def specific_impulse(self, time):
