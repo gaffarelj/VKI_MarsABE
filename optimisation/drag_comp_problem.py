@@ -138,7 +138,7 @@ class WT_problem:
                 (mean_P, decay/1e3, mean_h/1e3, mean_T_D))
 
         # Assemble and return the cost
-        cost = np.array(self.fitness_weights) * np.array([power_f, decay_f, h_f]) # Mean power, periapsis decay, mean altitude
+        cost = np.array(self.fitness_weights) * np.array([power_f, decay_f, h_f, D_T_f]) # Mean power, periapsis decay, mean altitude, mean Drag/Thrust
         if self.verbose:
             print(" -> cost is", cost)
         return cost
