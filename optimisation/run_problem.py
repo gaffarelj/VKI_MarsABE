@@ -56,7 +56,7 @@ if run_opti:    # Run a new optimisation
     # Setup Pygmo
     seed = 12345
     algo_list = [
-        pygmo.algorithm(pygmo.nsga2(seed=seed)), # seems best
+        pygmo.algorithm(pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.001, eta_m=1)), # seems best
         pygmo.algorithm(pygmo.moead(seed=seed, neighbours=5)),
         pygmo.algorithm(pygmo.nspso(seed=seed)),
         pygmo.algorithm(pygmo.ihs(seed=seed)) # maybe, but only 1 pop improved by generation (-> increase gen number)
