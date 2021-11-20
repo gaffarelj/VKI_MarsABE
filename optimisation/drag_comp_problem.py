@@ -75,11 +75,7 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     else:
         h_f = 0.75 + 0.25 * (mean_h - h_scale[1]) / (h_scale[2] - h_scale[1])
     # Min Drag/Thrust ratio
-    if np.mean(thrusts) == 0:
-        D_T_f = 1
-    else:
-        D_T_f = 1 / mean_T_D
-        D_T_f = 1 - (1/(D_T_f + 1)) # scale from [0,inf) to [0, 1]
+    D_T_f = 1 / (mean_T_D + 1)
 
     fit_result = power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D
 
@@ -169,13 +165,6 @@ if test_fitness_comp:
         h_fs.append(h_f)
     PU.plot_single(mean_hs/1e3, h_fs, "Mean altitude [km]", "Altitude fitness [-]", "optimisation/altitude_scale")
     # Plot mean T/D vs T/D fitness
-    mean_T_Ds = np.arange(0, 5, 0.01)
-    D_T_fs = []
-    for mean_T_D in mean_T_Ds:
-        if mean_T_D == 0:
-            D_T_f = 1
-        else:
-            D_T_f = 1 / mean_T_D
-            D_T_f = 1 - (1/(D_T_f + 1))
-        D_T_fs.append(D_T_f)
+    mean_T_Ds = np.arange(0, 50, 0.01)
+    D_T_fs = 1 / (mean_T_Ds + 1)
     PU.plot_single(mean_T_Ds, D_T_fs, "Mean T/D [km]", "T/D fitness [-]", "optimisation/TD_scale")
