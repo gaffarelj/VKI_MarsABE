@@ -37,6 +37,11 @@ Explanation on how to install SPARTA, as well as a much higher level of detail a
 ### Figures
 The [figures folder](figures) simply contains all of the plots that have been generated to support the research. These are both in PDF format, or in HTML when they are interactive.
 
+### Optimisation
+The [optimisation](optimisation) folder contains the files use to run the optimisation problem as to find an optimum orbit and satellite configuration for the given mission.
+
+More information is given about this folder in [its own README](optimisation/README.md).
+
 ### Setup selection
 The [setup selection](setup_selection) folder first contains the [integrators_propagators folder](setup_selection/integrators_propagators) with scripts made to select an integrator and propagator, and their respective settings.
 A baseline is made, and an combination of integrator and propagator that results in a fast simulation but low error is selected.
