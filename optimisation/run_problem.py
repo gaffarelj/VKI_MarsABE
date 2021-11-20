@@ -30,7 +30,6 @@ plots_path = "optimisation/ABE/" if thrust_model == 3 else "optimisation/with_ta
 # Setup the design variables range
 min_h_p, max_h_p = 85e3, 150e3
 min_h_a, max_h_a = 85e3, 500e3
-min_e, max_e = 0, 0.1
 min_i, max_i = 0, np.pi/2
 min_omega, max_omega = 0, np.pi
 min_Omega, max_Omega = 0, 2*np.pi
