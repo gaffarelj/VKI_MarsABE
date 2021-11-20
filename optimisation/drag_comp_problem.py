@@ -142,3 +142,40 @@ class WT_problem:
         if self.verbose:
             print(" -> cost is", cost)
         return cost
+
+test_fitness_comp = False
+if test_fitness_comp:
+    from tools import plot_utilities as PU
+    # Plot mean power vs power fitness
+    mean_Ps = np.arange(0, 35, 0.1)
+    power_fs = []
+    for mean_P in mean_Ps:
+        power_scale = 35
+        power_f = ( (power_scale-mean_P) / power_scale )
+        power_fs.append(power_f)
+    PU.plot_single(mean_Ps, power_fs, "Mean power [W]", "Power fitness [-]", "optimisation/power_scale")
+    # Plot decay vs decay fitness
+    decay = np.arange(-150e3, 150e3, 10)
+    PU.plot_single(decay/1e3, decay/100e3, "Decay [km]", "Decay fitness [-]", "optimisation/decay_scale")
+    # Plot mean altitude vs altitude fitness
+    mean_hs = np.arange(50e3, 650e3, 10)
+    h_fs = []
+    for mean_h in mean_hs:
+        h_scale = [50e3, 500e3, 1e6]
+        if mean_h <= h_scale[1]:
+            h_f = (mean_h - h_scale[0]) / (h_scale[1] - h_scale[0]) * 0.75
+        else:
+            h_f = 0.75 + 0.25 * (mean_h - h_scale[1]) / (h_scale[2] - h_scale[1])
+        h_fs.append(h_f)
+    PU.plot_single(mean_hs/1e3, h_fs, "Mean altitude [km]", "Altitude fitness [-]", "optimisation/altitude_scale")
+    # Plot mean T/D vs T/D fitness
+    mean_T_Ds = np.arange(0, 5, 0.01)
+    D_T_fs = []
+    for mean_T_D in mean_T_Ds:
+        if mean_T_D == 0:
+            D_T_f = 1
+        else:
+            D_T_f = 1 / mean_T_D
+            D_T_f = 1 - (1/(D_T_f + 1))
+        D_T_fs.append(D_T_f)
+    PU.plot_single(mean_T_Ds, D_T_fs, "Mean T/D [km]", "T/D fitness [-]", "optimisation/TD_scale")
