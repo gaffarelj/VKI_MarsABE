@@ -139,7 +139,7 @@ for zoomed in [False]:#, True]:
         idx_remove = np.where(fit_results[:,-3] > 100e3)
         prefix = ""
     # Remove at selected indexes
-    obj_power, obj_decay, obj_h, obj_DT = np.delete(fit_results[:,-4], idx_remove), np.delete(fit_results[:,-3], idx_remove), np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
+    obj_power, obj_decay, obj_h, obj_TD = np.delete(fit_results[:,-4], idx_remove), np.delete(fit_results[:,-3], idx_remove), np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
     s_names = np.delete(fit_inputs[:,0], idx_remove)
     # Select color as a function of the satellite
     s_numbers = np.arange(0, len(satellites), 1)
@@ -152,12 +152,12 @@ for zoomed in [False]:#, True]:
         scatter=True, add_front=True, front_sign=[-1,1])
     PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hd"+prefix, \
         scatter=True, add_front=True)
-    PU.plot_single(obj_h/1e3, obj_DT, "Mean altitude [km]", "Mean Drag/Thrust [-]", plots_path+"Pareto_hT"+prefix, \
-        scatter=True, add_front=True)
-    PU.plot_single(obj_power, obj_DT, "Mean Power [W]", "Mean Drag/Thrust [-]", plots_path+"Pareto_PT"+prefix, \
+    PU.plot_single(obj_h/1e3, obj_TD, "Mean altitude [km]", "Mean Thrust/Drag [-]", plots_path+"Pareto_hT"+prefix, \
+        scatter=True, add_front=True, front_sign=[1,-1])
+    PU.plot_single(obj_power, obj_TD, "Mean Power [W]", "Mean Thrust/Drag [-]", plots_path+"Pareto_PT"+prefix, \
+        scatter=True, add_front=True, front_sign=[-1,-1])
+    PU.plot_single(obj_TD, obj_decay/1e3, "Mean Thrust/Drag [-]", "Periapsis decay [km]", plots_path+"Pareto_Td"+prefix, \
         scatter=True, add_front=True, front_sign=[-1,1])
-    PU.plot_single(obj_DT, obj_decay/1e3, "Mean Drag/Thrust [-]", "Periapsis decay [km]", plots_path+"Pareto_Td"+prefix, \
-        scatter=True, add_front=True)
     # Plot decay vs mean altitude with power in the colormap
     power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
                     'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
@@ -174,7 +174,7 @@ for zoomed in [False]:#, True]:
             clabels=list(satellites.keys()), NB=(norm, bounds))
     # Plot decay vs mean altitude with D/T in the colormap
     PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdT"+prefix, \
-        scatter=True, add_front=True, z_data=np.clip(obj_DT, 0, 10), z_label="Mean Drag/Thrust [-]", cmap="rainbow")
+        scatter=True, add_front=True, z_data=np.clip(obj_TD, 0, 10), z_label="Mean Thrust/Drag [-]", cmap="rainbow")
 
 idx_remove = np.where(fit_results[:,-3] >= 100e3)
 # Make a Panda dataframe from the results
@@ -182,7 +182,7 @@ import pandas as pd
 import plotly.express as px
 s_pd = pd.Series(np.delete(fit_results[:,-3], idx_remove), name="Periapsis decay")
 s_mh = pd.Series(np.delete(fit_results[:,-2], idx_remove), name="Mean altitude")
-s_mTD = pd.Series(np.delete(fit_results[:,-1], idx_remove), name="Mean D/T")
+s_mTD = pd.Series(np.delete(fit_results[:,-1], idx_remove), name="Mean T/D")
 s_mp = pd.Series(np.delete(fit_results[:,-4], idx_remove), name="Mean power")
 s_sn = pd.Series(np.delete(fit_inputs[:,0], idx_remove), name="Satellite")
 s_i_hp = pd.Series(np.delete(fit_inputs[:,1], idx_remove), name="Initial h_p")
@@ -193,5 +193,5 @@ s_i_Omega = pd.Series(np.delete(fit_inputs[:,5], idx_remove), name="Initial Omeg
 df = pd.concat([s_pd, s_mh, s_mTD, s_mp, s_sn, s_i_hp, s_i_ha, s_i_i, s_i_omega, s_i_Omega], axis=1)
 # Make interactive plot
 fig = px.scatter(df, x="Mean altitude", y="Periapsis decay", hover_name="Satellite", \
-    hover_data=["Mean D/T", "Mean power", "Initial h_p", "Initial h_a", "Initial i", "Initial omega", "Initial Omega"])
+    hover_data=["Mean T/D", "Mean power", "Initial h_p", "Initial h_a", "Initial i", "Initial omega", "Initial Omega"])
 fig.write_html(sys.path[0]+"/figures/"+plots_path+"interactive_pareto.html")
