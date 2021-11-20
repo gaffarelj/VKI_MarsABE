@@ -213,11 +213,11 @@ Then, [analyse_results.py](analyse_results.py) has been used to compute the drag
 
 At each altitude, the dynamic pressure (in Pa) has been computed as follows:
 
-<img src="https://latex.codecogs.com/png.latex?\bg_white q = \frac{1}{2} \cdot \rho \cdot V^2">
+<img src="https://latex.codecogs.com/png.latex?\bg_white%20q%20%3D%20%5Cfrac%7B1%7D%7B2%7D%20%5Ccdot%20%5Crho%20%5Ccdot%20V%5E2">
 
 For each altitude, the Mach number has also been computed, using the formula below with molecular values of CO2.
 
-<img src="https://latex.codecogs.com/png.latex?\bg_white M = \frac{V}{c} = \frac{V}{\sqrt{\gamma \cdot R/M \cdot T}}= \frac{V}{\sqrt{1.3 \cdot 8314/44 \cdot T}}">
+<img src="https://latex.codecogs.com/png.latex?\bg_white%20M%20%3D%20%5Cfrac%7BV%7D%7Bc%7D%20%3D%20%5Cfrac%7BV%7D%7B%5Csqrt%7B%5Cgamma%20%5Ccdot%20R%2FM%20%5Ccdot%20T%7D%7D%3D%20%5Cfrac%7BV%7D%7B%5Csqrt%7B1.3%20%5Ccdot%208314%2F44%20%5Ccdot%20T%7D%7D">
 
 The compression ratio between the free stream and the end of the atmosphere inlet is also reported in the table below.
 
@@ -226,7 +226,7 @@ Values for these reference surface area can be found in the table of [this secti
 
 The drag coefficients have then been computed at each altitude by using the following equation:
 
-<img src="https://latex.codecogs.com/png.latex?\bg_white C_D = \frac{D}{q \cdot S_{ref}}">
+<img src="https://latex.codecogs.com/png.latex?\bg_white%20C_D%20%3D%20%5Cfrac%7BD%7D%7Bq%20%5Ccdot%20S_%7Bref%7D%7D">
 
 Later on, when using these drag coefficients, the same reference surface must be used.
 
