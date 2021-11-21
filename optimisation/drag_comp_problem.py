@@ -53,6 +53,9 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     thrusts = OS.get_dep_var("F_T")
     thrusts_norm = np.fabs(np.linalg.norm(thrusts, axis=1))
 
+    # Remove the orbital simulation variable to save memory
+    del OS
+
     # Compute the simulation performance parameters
     mean_P, decay, mean_h, mean_T_D = np.mean(power_hist), h_p_s[0] - h_p_s[-1], np.mean(altitudes), np.mean(thrusts_norm)/np.mean(drags_norm)
 
