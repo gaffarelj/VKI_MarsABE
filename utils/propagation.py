@@ -72,6 +72,8 @@ class orbit_simulation:
         self.solar_irradiances = dict()
         # Power dict
         self.power_dict = dict()
+        # Battery capacity dict
+        self.battery_capacity = dict()
 
     def create_bodies(self, additional_bodies=["Sun", "Jupiter"], use_MCD=[False, False], preload_MCD=False, save_MCD_vals=False, use_GRAM=False):
         """
@@ -272,8 +274,12 @@ class orbit_simulation:
         termination_setting_time = propagation_setup.propagator.time_termination(self.end_time)
         # Create a CPU time termination setting (stop after x minutes of CPU time)
         termination_setting_cpu_time = propagation_setup.propagator.cpu_time_termination(cpu_time)
+        # Create a fake termination setting to update the battery capacity after each step from the integrator
+        battery_model = battery(self)
+        termination_battery = propagation_setup.propagator.custom_termination(battery_model.update)
+
         # Assemble the termination settings together (stop after one of the termination setting is reached)
-        termination_settings_list = [termination_setting_min_altitude, termination_setting_max_altitude, termination_setting_time, termination_setting_cpu_time]
+        termination_settings_list = [termination_setting_min_altitude, termination_setting_max_altitude, termination_setting_time, termination_setting_cpu_time, termination_battery]
         self.termination_settings = propagation_setup.propagator.hybrid_termination( 
             termination_settings_list, fulfill_single_condition = True)
 
@@ -442,6 +448,47 @@ class orbit_simulation:
         if dv.shape[1] == 1:
             return dv[:,0]
         return dv
+
+# Class to keep track of the charge of the battery
+class battery():
+
+    def __init__(self, OS):
+        self.last_update_time = None
+        self.OS = OS # orbital simulation
+
+    def update(self, time):
+        # Update the battery capacity
+        if self.last_update_time is None:
+            self.last_update_time = time
+        else:
+            # Compute the time since the last step
+            dt = time - self.last_update_time
+            self.last_update_time = time
+            dt_hr = dt / 3600
+            # Put extra power into the battery
+            if self.OS.sat.power_to_battery > 0:
+                # Convert power (W) to capacity for the battery (Whr)
+                capacity_to_battery = self.OS.sat.power_to_battery * dt_hr * self.OS.sat.power_frac_battery * self.OS.sat.battery_eff
+                if capacity_to_battery > 0:
+                    self.OS.sat.battery_capacity += capacity_to_battery
+                    #print("+", capacity_to_battery)
+                # Make sure that the battery is never charged over its maximum
+                self.OS.sat.battery_capacity = min(self.OS.sat.battery_capacity, self.OS.sat.battery_total_capacity)
+            # Remove charge used from the battery
+            if len(T.capacity_taken) != 0:
+                # Scale the capacity used by the actual time it was used for, and use the mean data for all sub-steps
+                capacity_used = np.mean(np.array(T.capacity_taken) / np.array(T.dt_capacity) * dt_hr)
+                #print("-", capacity_used)#, input()
+                # Reset the lists containing the charge used and the associated time at the sub-steps
+                T.capacity_taken, T.dt_capacity = [], []
+                self.OS.sat.battery_capacity -= capacity_used
+                # Make sure the battery is never charge to a negative level
+                self.OS.sat.battery_capacity = max(self.OS.sat.battery_capacity, 0)
+            #print("=", self.OS.sat.battery_capacity)
+        if self.OS.save_power:
+            self.OS.battery_capacity[time] = self.OS.sat.battery_capacity
+        # Return False (called from termination settings; never terminate based on this function)
+        return False
 
 test = False
 if test:

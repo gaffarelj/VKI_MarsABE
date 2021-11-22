@@ -12,9 +12,13 @@ from utils.thrust_models import muNRIT_25
 # Astronomical Unit distance in [m]
 AU = 149597890e3
 
+# List to save values of battery capacity used, and time for which the battery was used
+capacity_taken = []
+dt_capacity = []
+
 class thrust_model:
 
-    def __init__(self, orbit_sim, thrust_mod=0, solar_constant=1366, I_sp=800):
+    def __init__(self, orbit_sim, thrust_mod=0, solar_constant=1366, I_sp=800, use_battery=False):
         """
         Satellite thrust model
         Inputs:
@@ -37,6 +41,8 @@ class thrust_model:
         self.thrust_mod = thrust_mod
         self.m_treshold = 0
         self.ionisation_eff = 1 # Ionisation efficiency
+        self.use_battery = use_battery
+        self.last_thrust_call = None
         # Select the thrust model (and associated operating conditions)
         if thrust_mod == 0:
             self.power_treshold = [10, 100]
@@ -50,6 +56,7 @@ class thrust_model:
             self.ionisation_eff = 0.25
     
     def magnitude(self, time):
+        global capacity_taken
         # If there is no more propellant, return 0
         if self.sat.dry_mass is not None and self.vehicle.mass <= self.sat.dry_mass:
             return 0
@@ -60,15 +67,37 @@ class thrust_model:
         elif self.thrust_mod == 1:
             # If there is more than a certain power available, keep it for the other systems (thus use of min())
             self.thrust, self.m_flow, self.I_sp = BHT_100.from_power(min(self.power, self.power_treshold[1]))
-            return self.thrust
+            if self.thrust == 0:
+                thrust, power_use = 0, 0
+            else:
+                thrust, power_use = self.thrust, self.power
         # Return thrust from μNRIT 2.5 thruster, based on power
         elif self.thrust_mod == 2:
             self.thrust, self.m_flow, self.I_sp = muNRIT_25.from_power(min(self.power, self.power_treshold[1]))
-            return self.thrust
+            if self.thrust == 0:
+                thrust, power_use = 0, 0
+            else:
+                thrust, power_use = self.thrust, self.power
         elif self.thrust_mod == 3:
-            self.thrust, _power, self.m_flow, self.Isp = muNRIT_25.from_P_m(self.power, self.m_flow_t)
-            return self.thrust * self.ionisation_eff
-        raise NotImplementedError("The thrust model %i has not been implemented." % self.thrust_mod)
+            self.thrust, power, self.m_flow, self.Isp = muNRIT_25.from_P_m(self.power, self.m_flow_t)
+            if self.thrust == 0:
+                thrust, power_use = 0, 0
+            else:
+                thrust, power_use = self.thrust * self.ionisation_eff, power
+        else:
+            raise NotImplementedError("The thrust model %i has not been implemented." % self.thrust_mod)
+            
+        if self.use_battery:
+            # Save the extra power that can be put into the battery or the energy taken from the battery
+            if self.power_is_from_battery:
+                # Scale the battery capacity used by the actual power use
+                capacity_taken[-1] = power_use/self.power * capacity_taken[-1]
+                self.sat.power_to_battery = 0
+            else:
+                # Extra power from the solar panel is available power minus power used for thrust
+                self.sat.power_to_battery = max(self.power - power_use, 0)
+
+        return thrust
 
     def specific_impulse(self, time):
         # Return the specific impulse
@@ -78,8 +107,9 @@ class thrust_model:
         """
         Define whether the engine is on or not
         """
-        # Engine is on if the solar irradiance is above a given treshold
-        power_ok = self.power_available(time) > self.power_treshold[0]
+        # Save the time of the first call to thrust
+        if self.last_thrust_call is None:
+            self.last_thrust_call = time
         # Engine is on if the atmospheric mass flow at engine inlet is above given treshold
         density_fs = self.vehicle.flight_conditions.density
         velocity_fs = self.vehicle.flight_conditions.airspeed
@@ -87,12 +117,17 @@ class thrust_model:
         comp_ratio = self.sat.get_comp_ratio(altitude_fs)
         self.m_flow_t = comp_ratio * density_fs * velocity_fs * self.sat.S_t
         m_flow_ok = self.m_flow_t >= self.m_treshold
+        if not m_flow_ok:
+            return False
+        # Engine is on if the solar irradiance is above a given treshold
+        power_ok = self.power_available(time) > self.power_treshold[0]
         return m_flow_ok and power_ok
 
     def power_available(self, time):
         """
         Compute the maximum available power from the solar panels
         """
+        global dt_capacity, capacity_taken
         # Compute the solar irradiance (including shadowing of Mars)
         self.solar_irradiance(time)
         # Extract the state of the satellite and of the Sun
@@ -100,9 +135,23 @@ class thrust_model:
         sun_state = self.sun.state
         # Compute the power available from the solar panels
         self.power = MG.sat_power(sat_state, sun_state, self.irradiance, [self.sat.area_x, self.sat.area_y, self.sat.area_z]) * self.sat.SA_eff * self.sat.EPS_eff
-        # If specified, save the power
+        # If specified, save the (solar) power
         if self.os_sim.save_power:
             self.os_sim.power_dict[time] = self.power
+        if self.use_battery:
+            self.power_is_from_battery = False
+            # Compute the power available from the battery if there is no power from the SA and the battery is charged enough
+            if self.power == 0 and self.sat.battery_capacity > self.sat.battery_total_capacity * self.sat.keep_battery_frac:
+                # Compute the time during which the battery would be used
+                dt = time - self.last_thrust_call
+                dt_hr = dt / 3600
+                # Compute the maximum battery capacity that would be used
+                capacity_to_use = self.power_treshold[1]*dt_hr
+                # Use the battery if it has enough capacity (and if the time that it would be used is reasonable)
+                if capacity_to_use > 0 and self.sat.battery_capacity > capacity_to_use and dt_hr < 0.005:
+                    dt_capacity.append(dt_hr), capacity_taken.append(capacity_to_use)
+                    self.power = self.power_treshold[1] # Set the available power to the maximum one that the thrust would use
+        self.last_thrust_call = time
         return self.power
 
     def solar_irradiance(self, time):

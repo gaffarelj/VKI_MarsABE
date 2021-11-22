@@ -8,7 +8,8 @@ import numpy as np
 
 class satellite:
     def __init__(self, name, mass, Cd, prop_mass=0, S_ref=0.01, Cd_h=[85e3, 115e3, 150e3], \
-        SA_areas=[0, 0, 0], SA_frac=0.7042, SA_eff=0.29, EPS_eff=0.89, S_t=0, comp_ratio=1, verbose=False):
+        SA_areas=[0, 0, 0], SA_frac=0.7042, SA_eff=0.29, EPS_eff=0.89, S_t=0, comp_ratio=1, \
+        battery_total=0, battery_eff=0.9, power_frac_battery=0.85, keep_battery_frac=0.3, verbose=False):
         """
         Satellite class, containing all relevant information for all analysed satellites configurations
         Inputs:
@@ -23,22 +24,38 @@ class satellite:
          * EPS_eff (float): efficiency of the Electrical Power System
          * S_t (float): end of ABE inlet area (throat)
          * comp_ratio (float OR [float]*N): compression ratio between the free stream density and the throat density; either fixed value or depending on the altitude from CD_h
+         * battery_total (float): total battery capacity in Wh
+         * battery_eff (float): battery efficiency
+         * power_frac_battery (float): fraction of the power to put to the battery
+         * keep_battery_frac (float): keep this fraction of the battery charged
         """
-        # Save the satellite properties
+        # Satellite name
         self.name = name
+        # Solar panel areas
         self.area_x = SA_areas[0]*SA_frac
         self.area_y = SA_areas[1]*SA_frac
         self.area_z = SA_areas[2]*SA_frac
+        # Satellite mass
         self.wet_mass = mass
         self.dry_mass = mass - prop_mass
+        # Satellite drag
         self.Cd_list = Cd
         self.Cd_h = Cd_h
+        self.h_warning = [verbose, verbose]
         self.S_ref = S_ref
+        # Efficiencies (solar array, eps, and battery)
         self.SA_eff = SA_eff
         self.EPS_eff = EPS_eff
-        self.h_warning = [verbose, verbose]
+        self.battery_eff = battery_eff
+        # Atmosphere inlet properties
         self.S_t = S_t
         self.comp_ratio_list = comp_ratio
+        # Battery parameters
+        self.battery_total_capacity = battery_total
+        self.power_frac_battery = power_frac_battery
+        self.keep_battery_frac = keep_battery_frac
+        self.battery_capacity = 0
+        self.power_to_battery = 0
         
         if type(self.Cd_list) == list:
             # Create a cubic spline interpolator, capped at the boundaries
@@ -100,16 +117,16 @@ class satellite:
 
 # Define atmosphere-breathing satellite properties
 satellites = {
-    "CS_0021": satellite("CS_0021", 2.93225, [1.277012, 1.803986, 1.666586], S_ref=0.0104, S_t=5e-4, \
-        SA_areas=[0.031058, 0.083343, 0.083343], comp_ratio=[37.82965, 50.49326, 60.37834]),
-    "CS_1021": satellite("CS_1021", 3.44025, [1.469716, 1.897386, 1.761229], S_ref=0.0108, S_t=5e-4, \
-        SA_areas=[0.031058, 0.143343, 0.083343], comp_ratio=[35.10988, 50.17104, 60.29815]),
-    "CS_2021": satellite("CS_2021", 3.94825, [1.721637, 2.006168, 1.872265], S_ref=0.0112, S_t=5e-4, \
-        SA_areas=[0.031058, 0.203343, 0.083343], comp_ratio=[35.27233, 49.77842, 59.51885]),
-    "CS_2120": satellite("CS_2120", 3.94825, [5.776334, 3.991432, 4.195638], S_ref=0.041858285, S_t=5e-4, \
-        SA_areas=[0, 0.282426, 0.042426], comp_ratio=[36.17590, 50.10605, 58.88298]),
-    "CS_3021": satellite("CS_3021", 4.45625, [1.959728, 2.141222, 2.007698], S_ref=0.042258285, S_t=5e-4, \
-        SA_areas=[0.031058, 0.263343, 0.083343], comp_ratio=[42.28136, 58.14033, 64.84591])
+    "CS_0021": satellite("CS_0021", 3.15225, [1.277012, 1.803986, 1.666586], S_ref=0.0104, S_t=5e-4, \
+        SA_areas=[0.031058, 0.083343, 0.083343], comp_ratio=[37.82965, 50.49326, 60.37834], battery_total=45),
+    "CS_1021": satellite("CS_1021", 3.66025, [1.469716, 1.897386, 1.761229], S_ref=0.0108, S_t=5e-4, \
+        SA_areas=[0.031058, 0.143343, 0.083343], comp_ratio=[35.10988, 50.17104, 60.29815], battery_total=45),
+    "CS_2021": satellite("CS_2021", 4.16825, [1.721637, 2.006168, 1.872265], S_ref=0.0112, S_t=5e-4, \
+        SA_areas=[0.031058, 0.203343, 0.083343], comp_ratio=[35.27233, 49.77842, 59.51885], battery_total=45),
+    "CS_2120": satellite("CS_2120", 4.67625, [5.776334, 3.991432, 4.195638], S_ref=0.041858285, S_t=5e-4, \
+        SA_areas=[0, 0.282426, 0.042426], comp_ratio=[36.17590, 50.10605, 58.88298], battery_total=45),
+    "CS_3021": satellite("CS_3021", 4.67625, [1.959728, 2.141222, 2.007698], S_ref=0.042258285, S_t=5e-4, \
+        SA_areas=[0.031058, 0.263343, 0.083343], comp_ratio=[42.28136, 58.14033, 64.84591], battery_total=45)
 }
 
 # Define the same satellites, but with mass difference to account for the lack of atmosphere-breathing inlet, and the addition of a Xenon propellant tank
