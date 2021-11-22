@@ -18,13 +18,14 @@ dt_capacity = []
 
 class thrust_model:
 
-    def __init__(self, orbit_sim, thrust_mod=0, solar_constant=1366, I_sp=800, use_battery=False):
+    def __init__(self, orbit_sim, thrust_mod=None, solar_constant=1366, I_sp=800, use_battery=False):
         """
         Satellite thrust model
         Inputs:
          * orbit_sim (utils.propagation.orbit_simulation): orbit_sim class of the satellite orbit
          * thrust_mod (int): thrust model to use
-           * 0: constant thrust of 1 mN when power above 10 N and at any density
+           * None: no thrust
+           * 0: constant thrust of 1 mN when power above 10 W and at any density
            * 1: thrust based on the BHT-100 hall thrusters (with tank), interpolated from power, on when power above 107 W, at any density
            * 2: thrust based on the μNRIT2.5 radiofrequency ion thruster (with tank), interpolated from power, on when power above 13.1 W, at any density
            * 3: thrust based on the μNRIT2.5 radiofrequency ion thruster (without tank), interpolated from power and mass flow, on when power above 13.1 W or mass flow at engine above 1.45E-08 kg/s
@@ -107,6 +108,8 @@ class thrust_model:
         """
         Define whether the engine is on or not
         """
+        if self.thrust_mod is None:
+            return False
         # Save the time of the first call to thrust
         if self.last_thrust_call is None:
             self.last_thrust_call = time

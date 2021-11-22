@@ -214,8 +214,7 @@ class orbit_simulation:
             self.accelerations[env_a.body_name] = env_a.a
         # Add the thrust as an acceleration
         self.thrust_model = thrust
-        if thrust is not None:
-            self.accelerations[self.sat.name] =  [T.thrust_settings(self, thrust)]
+        self.accelerations[self.sat.name] =  [T.thrust_settings(self, self.thrust_model)]
         # Create the acceleration models
         self.acceleration_models = propagation_setup.create_acceleration_models(
             self.bodies,
