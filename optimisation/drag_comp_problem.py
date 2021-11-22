@@ -86,7 +86,8 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
 
     return fit_result
 
-class WT_problem:
+# Drag Compensation problem
+class DC_problem:
 
     def __init__(self, design_var_range, fitness_weights, thrust_model=1, verbose=False):
         self.design_var_range = design_var_range
@@ -167,4 +168,4 @@ if test_fitness_comp:
     # Plot mean T/D vs T/D fitness
     mean_T_Ds = np.arange(0, 50, 0.01)
     D_T_fs = 1 / (mean_T_Ds + 1)
-    PU.plot_single(mean_T_Ds, D_T_fs, "Mean T/D [km]", "T/D fitness [-]", "optimisation/TD_scale")
+    PU.plot_single(mean_T_Ds, D_T_fs, "Mean T/D [-]", "T/D fitness [-]", "optimisation/TD_scale")

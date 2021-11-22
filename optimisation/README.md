@@ -79,20 +79,20 @@ The file [drag_comp_problem.py](drag_comp_problem.py) defines the problem of dra
 This file first defines a function, `comp_fitness()`, that takes the design variables and the thrust model as inputs. A thrust model equal to `2` means that a fuel tank is used, and the mass propagated. A thrust model equal to `3` uses the same thruster but with the atmosphere-breathing inlet.
 Then, the orbital simulation is run using [propagation.py](../utils/propagation.py), and the scaled fitness values are computed based on the results.
 
-Then, the `WT_problem()` class contains the problem definition, understood by Pygmo.
+Then, the `DC_problem()` class contains the problem definition, understood by Pygmo.
 
-In its initialisation (`WT_problem.__init__()`), the design variables are inputs, as well as the thrust model, and whether to print information during the runs or not (the verbose).
+In its initialisation (`DC_problem.__init__()`), the design variables are inputs, as well as the thrust model, and whether to print information during the runs or not (the verbose).
 
-The `WT_problem.get_bounds()` function returns the bounds in which each design variable can vary.
-`WT_problem.get_nobj()` returns the number of objectives for the optimisation. `WT_problem.get_nix()` returns the integer dimension of the problem. Set to 1, it means that one of the design variables (the index of the satellite configuration), needs to be an integer.
+The `DC_problem.get_bounds()` function returns the bounds in which each design variable can vary.
+`DC_problem.get_nobj()` returns the number of objectives for the optimisation. `DC_problem.get_nix()` returns the integer dimension of the problem. Set to 1, it means that one of the design variables (the index of the satellite configuration), needs to be an integer.
 
-Finally, `WT_problem.fitness()` returns the fitness values for given design variables. It mostly calls the `comp_fitness()` that is defined at the top of the file, and that runs the orbital simulation and computes the fitnesses.
+Finally, `DC_problem.fitness()` returns the fitness values for given design variables. It mostly calls the `comp_fitness()` that is defined at the top of the file, and that runs the orbital simulation and computes the fitnesses.
 
 ### Run problem
 
 Running the drag compensation problem described above can be done using the [run_problem.py](run_problem.py) file.
 
-In this file, the option of which thrust model to use is first offered. Then, the range of the design variables is setup, and the `WT_problem` defined.
+In this file, the option of which thrust model to use is first offered. Then, the range of the design variables is setup, and the `DC_problem` defined.
 
 Follows the selection of the optimiser, selected to be best as the Non-dominated Sorting Genetic Algorithm, with a population of 60 (the number of design variables by a factor 10).
 
@@ -119,7 +119,7 @@ The results from the optimisation problem can be analysed in various ways.
 
 First, as stated above, the population is saved between each generation during the optimisation.
 
-More concretely, a numpy `npz` file is created containing all of the distinct population member ever created, with their associated design variables and objective scores. This file can be accessed in the [results](results) folder, and the file is named as `WT_1-2-3-4`:
+More concretely, a numpy `npz` file is created containing all of the distinct population member ever created, with their associated design variables and objective scores. This file can be accessed in the [results](results) folder, and the file is named as `DC_1-2-3-4`:
  1. Thrust model (typically `2` or `3`).
  2. Population size (typically `60`).
  3. Time at which the optimisation starts (in the following format: `DMY_HMS`).
@@ -127,6 +127,12 @@ More concretely, a numpy `npz` file is created containing all of the distinct po
 
 This is done between each generation rather than at the end so that the precious time taken to generated this increasingly better population is not wasted in case the script is stopped before completion.
 To save space, avoid data redundancy, and avoid confusion, the data file from the previous generation is erased after the data from the newest generation is saved.
+
+The following result files are shared on GitHub:
+ * DC_2-60-191121_200912-12345_66.npz: 66 generations of the Drag Compensation problem with a propellant tank, using a mutation probability of 0.001 and a mutation distribution index of 1.
+ * DC_3-60-181121_170702-12345_100.npz: 100 generations of the Drag Compensation problem with the atmosphere breathing inlet, using the default Pygmo parameters.
+ * DC_2-60-201121_164720-12345_XX.npz: XX generations of the Drag Compensation problem with a propellant tank, using a mutation probability of 0.001 and a mutation distribution index of 1, running the orbital propagations for 100 days.
+ * DC_3-60-201121_161011-12345_XX.npz: XX generations of the Drag Compensation problem with the atmosphere breathing inlet, using a mutation probability of 0.001 and a mutation distribution index of 1, running the orbital propagations for 100 days.
 
 ### Pareto fronts
 

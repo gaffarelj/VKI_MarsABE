@@ -42,7 +42,7 @@ design_var_range = (
 # Setup the optimisation problem
 fitness_weights = [1, 1, 1, 1]
 fitness_names = ["Mean power", "Periapsis decay", "Mean altitude", "Mean Drag/Thrust"]
-current_HT_problem = DCp.WT_problem(design_var_range, fitness_weights, thrust_model=thrust_model, verbose=False)
+current_HT_problem = DCp.DC_problem(design_var_range, fitness_weights, thrust_model=thrust_model, verbose=False)
 problem = pygmo.problem(current_HT_problem)
 
 # Select whether to run the optimisation or load the latest result file
@@ -68,7 +68,7 @@ if run_opti:    # Run a new optimisation
 
     opti_hist = []
 
-    f_name = "WT_%i-%i-%s-%s" % (thrust_model, pop_size, time.strftime("%d%m%y_%H%M%S"), seed)
+    f_name = "DC_%i-%i-%s-%s" % (thrust_model, pop_size, time.strftime("%d%m%y_%H%M%S"), seed)
     f_path = sys.path[0] + "/optimisation/results/" + f_name
 
     # Run the optimisation
@@ -98,7 +98,7 @@ if run_opti:    # Run a new optimisation
     fit_results, fit_inputs, opti_hist = np.array(DCp.FIT_RESULTS), DCp.FIT_INPUTS, np.array(opti_hist)
 
 else:       # Load the last saved results
-    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/WT_%i-%i-*.npz" % (thrust_model, pop_size)))
+    file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/DC_%i-%i-*.npz" % (thrust_model, pop_size)))
     if len(file_list) == 0:
         raise FileNotFoundError("It appears that no optimisation for this given thrust model and optimiser settings were already run and saved.")
     last_results = np.load(file_list[-1])
