@@ -18,7 +18,7 @@ dt_capacity = []
 
 class thrust_model:
 
-    def __init__(self, orbit_sim, thrust_mod=None, solar_constant=1366, I_sp=800, use_battery=False):
+    def __init__(self, orbit_sim, thrust_mod=None, solar_constant=1366, I_sp=800, use_battery=True):
         """
         Satellite thrust model
         Inputs:
