@@ -4,6 +4,8 @@ This folder contain the utilities that are directly related to the orbital simul
 ## Propagation
 The [propagation.py](propagation.py) module offers an interface to simulate the orbit of a satellite, working on top of the Tudat(Py) interface.
 
+*⚠️ An important thing to keep in mind is that, given the way that the satellite models, thrust, and propagation were setup, a propagation that uses no thrust model will not compute the solar irradiance, solar power, and battery capacity. This is because these energy models are only computed when the thrust magnitude is computed. If power is to be used for something else than thrust in the numerical model, it is then recommended to create a new `power.py` utility script that takes care of calling the satellite model, and that is called by the integration, so that the power is computed at the correct times and the battery set to correct charge levels.*
+
 ### Orbit simulation
 First, [propagation.py](propagation.py) contains a `orbit_simulation` class that can be used to setup and simulate a satellite orbit.
 
@@ -155,6 +157,13 @@ In this example, `acceleration_Mars_on_sat` and `acceleration_Sun_on_sat` will t
 
 All of the acceleration models in these lists are defined using Tudat(Py).
 
+### Battery
+Finally, [propagation.py](propagation.py) contains a `battery` class that most importantly contains the `battery.update()` function.
+
+This function is called by the 'fake' battery termination setting, making sure that this function is called at each full step during the integration.
+
+This `battery.update()` function automatically computes the time since the last integrator step, and extracts the battery charge used by the thruster from the battery, as well as the power from the solar array that is used to charge the battery. This function thus takes care of keeping the battery charge level up-to-date.
+
 ## Satellite models
 All of the parameters related to the satellite itself have been compiled in the `satellite` class of [sat_models.py](sat_models.py) file.
 
@@ -171,9 +180,13 @@ This class can be initialized with the following inputs, of which only the three
  * `SA_frac`: fraction of the solar panel areas that actually collects solar radiation, defaulted to 0.7042.
  * `SA_eff`: solar panel efficiency, defaulted to 0.29.
  * `EPS_eff`: Electric Power System efficiency, defaulted to 0.89.
- * `S_t`: area of the throat at the end of the air-breathing inlet in m2.
- * `comp_ratio`: ratio between the free-stream density and the density at the end of the air-breathing inlet.
-
+ * `S_t`: area of the throat at the end of the air-breathing inlet in m2, defaulted to 0 (no inlet).
+ * `comp_ratio`: ratio between the free-stream density and the density at the end of the air-breathing inlet, defaulted to 1 (no compression).
+ * `battery_total`: total capacity of the battery in Wh, defaulted to 0 (no battery).
+ * `battery_eff`: global efficiency of the battery (used to scale the power that is put in it, not out of it).
+ * `power_frac_battery`: fraction of the power to actually put in the battery (the remainder is estimated to be used by other sub-systems).
+ * `keep_battery_frac`: fraction of the battery that is to never be used, and be kept as a reserve, defaulted to 0.3.
+ * 
 The [sat_models.py](sat_models.py) script also contains two dictionaries of pre-defined satellites: `satellites` and `satellites_with_tank`.
 
 ## Thrust
@@ -192,14 +205,15 @@ The thrust direction is always set to be parallel with the velocity vector of th
 
 Finally, the `thrust_settings()` function takes two inputs:
  * `propagation`: the propagation class from which the thrust will be used. When calling thrust from within the propagation class, `self` should thus be used.
- * `thrust_mod`: index of the thrust model to use (see [below](#thrust-models)).
+ * `thrust_mod`: index of the thrust model to use (see [below](#thrust-models)). 
 
 ### Thrust class
 The thrust class, called `thrust_model()` in [thrust.py](thrust.py), can be initialized with the following inputs:
  * `orbit_sim`: orbital simulation class (from [propagation.py](propagation.py)) that is used to simulate the orbit of the satellite.
- * `thrust_mod`: index of the thrust model to use (see [thrust models below](#thrust-models)). By default, thrust model `0` is used.
+ * `thrust_mod`: index of the thrust model to use (see [thrust models below](#thrust-models)). By default, thrust model `0` is used. If `None` is used, the thrust is always turned off.
  * `solar_constant`: value for the solar constant. By default, it is of 1366 W/m2, but can be changed in case of higher or lower solar activity.
  * `I_sp`: default specific impulse of the motor, in seconds. By default, value of 800 seconds.
+ * `use_battery`: boolean which, if True, specifies that the battery of the satellite can be used.
 
 The `thrust_model()` class then has a `is_thrust_on()` function that takes only the `time` as an input.
 
@@ -251,3 +265,8 @@ The thrust is then estimated based on the minimum one that can be reached accord
 This is also done in the [muNRIT_25.py](thrust_models/muNRIT_25.py) file.
 
 Note: a better model than taking the minimum should be implemented later.
+
+### Battery
+As specified, the thrust class takes a `use_battery` input. If set to `True`, the thrust class will look for power in the battery when the solar power is equal to 0. On the opposite, if the solar power exceeds the power used by the thruster, the extra power will be used to charge the battery.
+
+Both of these actions will update the routine from the `propagation` class to make sure that the battery is appropriately charged or discharged.
