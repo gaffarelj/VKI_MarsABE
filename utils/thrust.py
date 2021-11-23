@@ -58,7 +58,7 @@ class thrust_model:
     def magnitude(self, time):
         global capacity_taken
         # If there is no more propellant, return 0
-        if self.sat.dry_mass is not None and self.vehicle.mass <= self.sat.dry_mass:
+        if self.sat.dry_mass is not None and self.vehicle.mass < self.sat.dry_mass:
             return 0
         # Return a constant thrust magnitude
         if self.thrust_mod == 0:
@@ -119,8 +119,6 @@ class thrust_model:
         comp_ratio = self.sat.get_comp_ratio(altitude_fs)
         self.m_flow_t = comp_ratio * density_fs * velocity_fs * self.sat.S_t
         m_flow_ok = self.m_flow_t >= self.m_treshold
-        if not m_flow_ok:
-            return False
         # Engine is on if the solar irradiance is above a given treshold
         power_ok = self.power_available(time) > self.power_treshold[0]
         return m_flow_ok and power_ok
