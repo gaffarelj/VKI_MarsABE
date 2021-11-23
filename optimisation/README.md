@@ -76,17 +76,19 @@ Multiple files are present in this folder, relating to the optimisation problem 
 
 The file [drag_comp_problem.py](drag_comp_problem.py) defines the problem of drag compensation in very low Mars orbit.
 
-This file first defines a function, `comp_fitness()`, that takes the design variables and the thrust model as inputs. A thrust model equal to `2` means that a fuel tank is used, and the mass propagated. A thrust model equal to `3` uses the same thruster but with the atmosphere-breathing inlet.
-Then, the orbital simulation is run using [propagation.py](../utils/propagation.py), and the scaled fitness values are computed based on the results.
-
-Then, the `DC_problem()` class contains the problem definition, understood by Pygmo.
+The `DC_problem()` class contains the problem definition, understood by Pygmo.
 
 In its initialisation (`DC_problem.__init__()`), the design variables are inputs, as well as the thrust model, and whether to print information during the runs or not (the verbose).
 
 The `DC_problem.get_bounds()` function returns the bounds in which each design variable can vary.
 `DC_problem.get_nobj()` returns the number of objectives for the optimisation. `DC_problem.get_nix()` returns the integer dimension of the problem. Set to 1, it means that one of the design variables (the index of the satellite configuration), needs to be an integer.
 
-Finally, `DC_problem.fitness()` returns the fitness values for given design variables. It mostly calls the `comp_fitness()` that is defined at the top of the file, and that runs the orbital simulation and computes the fitnesses.
+Finally, `DC_problem.batch_fitness()` returns the fitness values for given design variables **of an entire population** at once (thus **in batch**). It mostly calls the `comp_fitness` module as defined in the subsection below. This fitness computation is called in parallel for each of the population individuals, so that the orbital simulations do not have to wait for each other to complete. This makes use of the `multiprocessing` module included in Python, and only works when running on Linux.
+
+### Compute fitness
+
+The [comp_fitness.py](comp_fitness.py) file defines a function, `comp_fitness()`, that takes the design variables, the thrust model, the atmosphere ionisation efficiency, and the battery usage as inputs. A thrust model equal to `2` means that a fuel tank is used, and the mass propagated. A thrust model equal to `3` uses the same thruster but with the atmosphere-breathing inlet, with the thrust scaled by the ionisation efficiency variable.
+Then, the orbital simulation is run using [propagation.py](../utils/propagation.py), and the scaled fitness values are computed based on the results.
 
 ### Run problem
 
