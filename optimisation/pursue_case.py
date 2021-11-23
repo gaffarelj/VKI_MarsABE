@@ -9,15 +9,18 @@ from utils import propagation as P
 from utils import sat_models as SM
 from tools import plot_utilities as PU
 
-use_tank = True
+use_tank = False
 use_problem_module = False
+
+## Propagation main parameters
+# With this set of parameters, the satellite reenters after 150 days when using the ABE  (160 days with the battery, 80 days without anything)
+# This config uses thrust only when the satellite starts dipping in the atmosphere, and manages to bring it back up
+s_name, use_tank = "CS_2021", False
+h_p, h_a = 137015.7038854, 208853.817262
+i, omega, Omega = 1.42566047, 0.76761797586, 2.19917889074
+
 satellites = SM.satellites_with_tank if use_tank else SM.satellites
 thrust_model = 2 if use_tank else 3
-
-# Propagation main parameters
-s_name = "CS_2021"
-h_p, h_a = 115127.202, 155619.38
-i, omega, Omega = 1.1571467, 0.8484065, 0.4792579
 
 if use_problem_module:
     from optimisation import drag_comp_problem as DCp
@@ -25,8 +28,8 @@ if use_problem_module:
     print("Mean power of %.2f W; decay of %.2f km; mean altitude of %.2f km; mean T/D of %.2f" % (mean_P, decay/1e3, mean_h/1e3, mean_T_D))
     print("fitness: power=%.2f; decay=%.2f; altitude=%.2f; T/D=%.2f" % (power_f, decay_f, h_f, D_T_f))
 else:
-    # Create the orbital simulation instance, setup to simulate 10 days
-    OS = P.orbit_simulation(satellites[s_name], "Mars", 10*constants.JULIAN_DAY, save_power=True, verbose=True)
+    # Create the orbital simulation instance
+    OS = P.orbit_simulation(satellites[s_name], "Mars", 650*constants.JULIAN_DAY, save_power=True, verbose=True)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
     # Create the initial state of the satellite
@@ -46,12 +49,20 @@ else:
 
     # Save results to CSV
     results = np.array([times, states[:,0], states[:,1], states[:,2]]).T
-    np.savetxt(sys.path[0]+"/optimisation/results/orbit_%s.csv" % "tank" if use_tank else "ABE", results, delimiter=',', header="time, X, Y, Z")
+    np.savetxt(sys.path[0]+"/optimisation/results/orbit.csv", results, delimiter=',', header="time, X, Y, Z")
 
-    # Plot results
-    PU.plot_multiple([times/3600]*2, [OS.get_dep_var("h"), OS.get_dep_var("h_p")], "Time [hr]", "Altitude [km]", "SHOW", legends=["Satellite", "Periapsis"])
+    ## Plot results
+    # Battery capacity
+    battery_times = np.array(list(OS.battery_capacity.keys()))
+    battery_times_hr = (battery_times-battery_times[0])/3600
+    battery_capacity = list(OS.battery_capacity.values())
+    PU.plot_single(battery_times_hr, battery_capacity, "Time [hr]", "Battery capacity [Whr]", "SHOW")
+
+    # Altitude and thrust
+    PU.plot_multiple([times/3600]*2, [np.array(OS.get_dep_var("h"))/1e3, np.array(OS.get_dep_var("h_p"))/1e3], "Time [hr]", "Altitude [km]", "SHOW", legends=["Satellite", "Periapsis"])
     PU.plot_single(times/3600, np.linalg.norm(OS.get_dep_var("F_T"), axis=1), "Time [hr]", "Thrust [N]", "SHOW", scatter=True)
 
+    # Print infos
     h_p_s = OS.get_dep_var("h_p")
     print("Periapsis decay:", h_p_s[0] - h_p_s[-1])
     power_hist = list(OS.power_dict.values())
