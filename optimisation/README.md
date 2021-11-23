@@ -119,20 +119,17 @@ The results from the optimisation problem can be analysed in various ways.
 
 First, as stated above, the population is saved between each generation during the optimisation.
 
-More concretely, a numpy `npz` file is created containing all of the distinct population member ever created, with their associated design variables and objective scores. This file can be accessed in the [results](results) folder, and the file is named as `DC_1-2-3-4`:
+More concretely, a numpy `npz` file is created containing all of the distinct population member ever created, with their associated design variables and objective scores. This file can be accessed in the [results](results) folder, and the file is named as `DC_1-2-3_4-5_6-7`:
  1. Thrust model (typically `2` or `3`).
- 2. Population size (typically `60`).
- 3. Time at which the optimisation starts (in the following format: `DMY_HMS`).
- 4. Seed used for the optimisation (usually `12345`).
+ 2. Indication of the use of battery (`X` = no battery, `V` = battery).
+ 3. Ionisation efficiency of the atmosphere (float between 0 and 1, only used if the thrust model is `3`).
+ 4. Population size (typically `60`).
+ 5. Seed used for the optimisation (usually `12345`).
+ 6. Time at which the optimisation starts (in the following format: `DMYHMS`).
+ 7. Generation number that was saved (this is the last generation that was fully run before the process was stopped).
 
 This is done between each generation rather than at the end so that the precious time taken to generated this increasingly better population is not wasted in case the script is stopped before completion.
 To save space, avoid data redundancy, and avoid confusion, the data file from the previous generation is erased after the data from the newest generation is saved.
-
-The following result files are shared on GitHub:
- * DC_2-60-191121_200912-12345_66.npz: 66 generations of the Drag Compensation problem with a propellant tank, using a mutation probability of 0.001 and a mutation distribution index of 1.
- * DC_3-60-181121_170702-12345_100.npz: 100 generations of the Drag Compensation problem with the atmosphere breathing inlet, using the default Pygmo parameters.
- * DC_2-60-201121_164720-12345_XX.npz: XX generations of the Drag Compensation problem with a propellant tank, using a mutation probability of 0.001 and a mutation distribution index of 1, running the orbital propagations for 100 days.
- * DC_3-60-201121_161011-12345_XX.npz: XX generations of the Drag Compensation problem with the atmosphere breathing inlet, using a mutation probability of 0.001 and a mutation distribution index of 1, running the orbital propagations for 100 days.
 
 ### Pareto fronts
 

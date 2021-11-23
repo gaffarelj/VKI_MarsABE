@@ -61,22 +61,22 @@ if __name__ == "__main__":
     # Select whether to run the optimisation or load the latest result file
     run_opti = (input("Run the optimisation ? ([y]/n) (if no, load latest saved results): ").lower().strip() in ["", "y"])
     # Configure population size and number of generations
-    pop_size = 8
-    n_generations = 100
+    pop_size = 60
+    n_generations = 50
+    seed = 12345
+    # Setup file save path
+    f_name = "DC_%i-%s-%.2f_%i-%s_%s" % (thrust_model, "V" if use_battery else "X", ionisation_efficiency, \
+        pop_size, seed, time.strftime("%d%m%y_%H%M%S"))
+    f_path = sys.path[0] + "/optimisation/results/" + f_name
     if run_opti:        # Run a new optimisation
-
-        # Setup Pygmo
-        seed = 12345
         opti_hist = []
-        f_name = "DC_%i-%i-%s-%s" % (thrust_model, pop_size, time.strftime("%d%m%y_%H%M%S"), seed)
-        f_path = sys.path[0] + "/optimisation/results/" + f_name
         print("Generating starting population (of size %i)..." % pop_size)
 
         current_problem = DCp.DC_problem(design_var_range, fitness_weights, thrust_model=thrust_model, \
             ionisation_efficiency=ionisation_efficiency, use_battery=use_battery, verbose=False)
         problem = pygmo.problem(current_problem)
         pop = pygmo.population(problem, size=pop_size, seed=seed, b=pygmo.default_bfe())
-        algo = pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.001, eta_m=1)
+        algo = pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.005, eta_m=10)
         algo.set_bfe(pygmo.bfe())
         algo = pygmo.algorithm(algo)
 
@@ -99,17 +99,21 @@ if __name__ == "__main__":
             print(" -> best fitness is", best_f)
 
             # Save the results
-            np.savez(f_path+"_%i"%i, inputs=DCp.FIT_INPUTS, results=np.array(DCp.FIT_RESULTS), opti_hist=np.array(opti_hist))
+            np.savez(f_path+"-%i"%i, inputs=DCp.FIT_INPUTS, results=np.array(DCp.FIT_RESULTS), opti_hist=np.array(opti_hist))
             # Remove results from previous generation
             if i > 1:
-                os.remove(f_path+"_%s.npz"%(i-1))
+                os.remove(f_path+"-%s.npz"%(i-1))
             
         fit_results, fit_inputs, opti_hist = np.array(DCp.FIT_RESULTS), DCp.FIT_INPUTS, np.array(opti_hist)
 
     else:       # Load the last saved results
-        file_list = natsorted(glob.glob(sys.path[0]+"/optimisation/results/DC_%i-%i-*.npz" % (thrust_model, pop_size)))
+        file_list = natsorted(glob.glob("-".join(f_path.split("-")[:-1]) + "*.npz"))
+        print("-".join(f_path.split("-")[:-1]))
+        print(file_list)
         if len(file_list) == 0:
-            raise FileNotFoundError("It appears that no optimisation for this given thrust model and optimiser settings were already run and saved.")
+            raise FileNotFoundError("It appears that no optimisation was already run to at least 1 generation with the following parameters:\n"+\
+                " * thrust model = %i\n * use of battery = %s\n * ionisation efficiency = %.2f\n * population size = %i" % \
+                    (thrust_model, "V" if use_battery else "X", ionisation_efficiency, pop_size))
         last_results = np.load(file_list[-1])
         fit_inputs = last_results["inputs"]
         fit_results = last_results["results"]

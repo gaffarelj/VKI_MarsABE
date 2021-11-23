@@ -11,7 +11,7 @@ from tudatpy.kernel import constants
 def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, use_battery):
     ## Setup the simulation
     # Create the orbital simulation instance, setup to simulate 100 days
-    sim_days = 1
+    sim_days = 100
     OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
