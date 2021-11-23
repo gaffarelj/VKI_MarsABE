@@ -1,3 +1,4 @@
+import copy
 import sys
 sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
@@ -123,7 +124,7 @@ satellites = {
 }
 
 # Define the same satellites, but with mass difference to account for the lack of atmosphere-breathing inlet, and the addition of a Xenon propellant tank
-satellites_with_tank = satellites.copy()
+satellites_with_tank = copy.deepcopy(satellites)
 for name, sat in satellites_with_tank.items():
     sat.dry_mass -= 0.22
     sat.wet_mass += 0.43
