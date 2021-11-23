@@ -18,7 +18,7 @@ def comp_pareto(X, Y, front_sign=[1, 1]):
 
 def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, \
     equal_ax=False, add_front=False, front_sign=[1, 1], z_data=None, z_label="", marker="o", cmap="rainbow", \
-    cticks=None, clabels=None, fig=None, ax=None, NB=None):
+    cticks=None, clabels=None, fig=None, ax=None, NB=None, title=None):
     """
     Simple plot
     """
@@ -51,6 +51,9 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
         ax.step(x, y, where='post', color=(0.35, 0.7, 0.5))
     # Set labels
     ax.set_xlabel(x_label), ax.set_ylabel(y_label)
+    # Add title
+    if title is not None:
+        ax.set_title(title)
     # Save space
     fig.tight_layout()
     ax.grid()
@@ -73,7 +76,7 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
     plt.close()
 
 def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, colors=None, xlog=False,\
-     ylog=False, ylim=None, xlim=None, legend_loc=0, lstyle="solid", fig=None, ax=None):
+     ylog=False, ylim=None, xlim=None, legend_loc=0, lstyle="solid", fig=None, ax=None, title=None):
     """
     Plot multiple lines
     """
@@ -106,6 +109,9 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
         ax.set_ylim(ylim)
     if xlim is not None:
         ax.set_xlim(xlim)
+    # Add title
+    if title is not None:
+        ax.set_title(title)
     # Save space
     fig.tight_layout()
     # Show the plot
@@ -120,7 +126,7 @@ def plot_multiple(x_datas, y_datas, x_label, y_label, fname, legends=None, color
     plt.close()
 
 
-def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, diff_x=False, fig=None, ax1=None):
+def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, diff_x=False, fig=None, ax1=None, title=None):
     """
     Plot with two y axis. Inputs should be self-explanatory.
     """
@@ -150,6 +156,9 @@ def plot_dual(x_data, y_data_1, y_data_2, x_label, y_label_1, y_label_2, fname, 
     # Plot the data on the right axis
     ax2.plot(x_data_2, y_data_2, color=color)
     ax2.tick_params(axis="y", labelcolor=color)
+    # Add title
+    if title is not None:
+        ax2.set_title(title)
     # Save space
     fig.tight_layout()
     # Show the plot
