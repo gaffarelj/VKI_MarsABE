@@ -214,6 +214,7 @@ The thrust class, called `thrust_model()` in [thrust.py](thrust.py), can be init
  * `solar_constant`: value for the solar constant. By default, it is of 1366 W/m2, but can be changed in case of higher or lower solar activity.
  * `I_sp`: default specific impulse of the motor, in seconds. By default, value of 800 seconds.
  * `use_battery`: boolean which, if True, specifies that the battery of the satellite can be used.
+ * `ionisation_eff`: ionisation efficiency of the atmosphere (when using the atmosphere breathing engine). Recommended between 1% and 50%.
 
 The `thrust_model()` class then has a `is_thrust_on()` function that takes only the `time` as an input.
 

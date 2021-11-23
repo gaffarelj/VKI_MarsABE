@@ -18,14 +18,28 @@ print("The following thrust models can be used:")
 print(" 1: BHT-100 Hall thruster (on when power > 107 W)")
 print(" 2: μNRIT 2.5 Radiofrequency ion thruster with Xenon tank (on when power > 13.1 W)")
 print(" 3: μNRIT 2.5 Radiofrequency ion thruster with atmosphere-breathing inlet (on when power > 13.1 W and engine inlet mass flow > 1.456e-8 kg/s)")
-thrust_model = None
-while thrust_model not in [1, 2, 3]:
-    try:
-        thrust_model = int(input("Thrust model selection [1, 2, 3]: "))
-    except ValueError:
-        thrust_model = None
-satellites = SM.satellites if thrust_model == 3 else SM.satellites_with_tank
-plots_path = "optimisation/ABE/" if thrust_model == 3 else "optimisation/with_tank/"
+
+def ask_choice(q, r, t):
+    choice = None
+    while choice is None:
+        try:
+            choice = t(input(q))
+            if choice < r[0] or choice > r[1]:
+                choice = None
+        except ValueError:
+            choice = None
+    return choice
+
+thrust_model = ask_choice("Thrust model selection [1, 2, 3]: ", [1, 3], int)
+use_battery = (input("Use the battery ? ([y]/n): ").lower().strip() in ["", "y"])
+if thrust_model == 3:
+    satellites = SM.satellites
+    plots_path = "optimisation/ABE/"
+    ionisation_efficiency = ask_choice("Ionisation efficiency (in ]0, 1[): ", [0, 1], float)
+else:
+    satellites = SM.satellites_with_tank
+    plots_path = "optimisation/with_tank/"
+    ionisation_efficiency = 1
 
 # Setup the design variables range
 min_h_p, max_h_p = 85e3, 150e3
@@ -42,8 +56,9 @@ design_var_range = (
 # Setup the optimisation problem
 fitness_weights = [1, 1, 1, 1]
 fitness_names = ["Mean power", "Periapsis decay", "Mean altitude", "Mean Drag/Thrust"]
-current_HT_problem = DCp.DC_problem(design_var_range, fitness_weights, thrust_model=thrust_model, verbose=False)
-problem = pygmo.problem(current_HT_problem)
+current_problem = DCp.DC_problem(design_var_range, fitness_weights, thrust_model=thrust_model, \
+    ionisation_efficiency=ionisation_efficiency, use_battery=use_battery, verbose=True)
+problem = pygmo.problem(current_problem)
 
 # Select whether to run the optimisation or load the latest result file
 run_opti = (input("Run the optimisation ? ([y]/n) (if no, load latest saved results): ").lower().strip() in ["", "y"])

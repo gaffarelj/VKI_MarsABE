@@ -179,7 +179,7 @@ class orbit_simulation:
             true_anomaly = theta
         )
 
-    def create_accelerations(self, env_accelerations=[], default_config=None, thrust=None):
+    def create_accelerations(self, env_accelerations=[], default_config=None, thrust=None, ionisation_eff=1, use_battery=True):
         """
         Create the accelerations for the simulated orbit.
         Inputs:
@@ -214,7 +214,8 @@ class orbit_simulation:
             self.accelerations[env_a.body_name] = env_a.a
         # Add the thrust as an acceleration
         self.thrust_model = thrust
-        self.accelerations[self.sat.name] =  [T.thrust_settings(self, self.thrust_model)]
+        self.accelerations[self.sat.name] =  [T.thrust_settings(self, self.thrust_model, \
+            ionisation_eff=ionisation_eff, use_battery=use_battery)]
         # Create the acceleration models
         self.acceleration_models = propagation_setup.create_acceleration_models(
             self.bodies,

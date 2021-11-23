@@ -18,7 +18,7 @@ dt_capacity = []
 
 class thrust_model:
 
-    def __init__(self, orbit_sim, thrust_mod=None, solar_constant=1366, I_sp=800, use_battery=True):
+    def __init__(self, orbit_sim, thrust_mod=None, solar_constant=1366, I_sp=800, use_battery=True, ionisation_eff=1):
         """
         Satellite thrust model
         Inputs:
@@ -40,8 +40,8 @@ class thrust_model:
         self.I_sp = I_sp
         self.solar_constant = solar_constant
         self.thrust_mod = thrust_mod
+        self.ionisation_eff = ionisation_eff # Ionisation efficiency
         self.m_treshold = 0
-        self.ionisation_eff = 1 # Ionisation efficiency
         self.use_battery = use_battery
         self.last_thrust_call = None
         # Select the thrust model (and associated operating conditions)
@@ -54,7 +54,6 @@ class thrust_model:
         elif thrust_mod == 3:
             self.power_treshold = [13.1, 34.4]
             self.m_treshold = 1.456e-8
-            self.ionisation_eff = 0.25
     
     def magnitude(self, time):
         global capacity_taken
@@ -178,9 +177,9 @@ class thrust_model:
             self.os_sim.solar_irradiances[time] = self.irradiance
         return self.irradiance
 
-def thrust_settings(propagation, thrust_mod):
+def thrust_settings(propagation, thrust_mod, ionisation_eff=1, use_battery=True):
     # Define the thrust guidance function
-    thrust_guidance = thrust_model(propagation, thrust_mod)
+    thrust_guidance = thrust_model(propagation, thrust_mod, ionisation_eff=ionisation_eff, use_battery=use_battery)
     # Define the thrust settings (direction and magnitude)
     thrust_direction_s = propagation_setup.thrust.thrust_direction_from_state_guidance(
         central_body=propagation.central_body, is_colinear_with_velocity=True, direction_is_opposite_to_vector=False)

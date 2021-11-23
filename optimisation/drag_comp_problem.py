@@ -10,7 +10,7 @@ from tudatpy.kernel import constants
 
 FIT_INPUTS, FIT_HASHS, FIT_RESULTS = [], [], []
 
-def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
+def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, use_battery):
     # Save the inputs in a list, and compute their hash
     fit_input = [sat.name, h_p, h_a, i, omega, Omega]
     fit_hash = hash(frozenset(fit_input))
@@ -23,8 +23,8 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
             return FIT_RESULTS[idx]
 
     ## Setup the simulation
-    # Create the orbital simulation instance, setup to simulate 10 days
-    sim_days = 100
+    # Create the orbital simulation instance, setup to simulate 100 days
+    sim_days = 1
     OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
@@ -33,7 +33,7 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
     e = 1 - (OS.R_cb + min(h_p, h_a)) / a       # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
     OS.create_initial_state(a=a, e=e, i=i, omega=omega, Omega=Omega)
     # Load the accelerations from default config 1: Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
-    OS.create_accelerations(default_config=1, thrust=thrust_model)
+    OS.create_accelerations(default_config=1, thrust=thrust_model, ionisation_eff=ionisation_eff, use_battery=use_battery)
     # Create the integrator, termination settings, dependent variables, and propagator
     OS.create_integrator()
     OS.create_termination_settings()
@@ -92,11 +92,13 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model):
 # Drag Compensation problem
 class DC_problem:
 
-    def __init__(self, design_var_range, fitness_weights, thrust_model=1, verbose=False):
+    def __init__(self, design_var_range, fitness_weights, thrust_model=1, ionisation_efficiency=1, use_battery=True, verbose=False):
         self.design_var_range = design_var_range
         self.fitness_weights = fitness_weights
         self.verbose = verbose
         self.thrust_model = thrust_model
+        self.ionisation_eff = ionisation_efficiency
+        self.use_battery = use_battery
 
     def get_bounds(self):
         """
@@ -114,7 +116,7 @@ class DC_problem:
 
     def get_nix(self):
         return 1
-
+        
     def fitness(self, design_variables):
         """
         *** Pygmo-related function ***
@@ -129,7 +131,8 @@ class DC_problem:
         satellite = sats[sat_name]
 
         # Compute the fitnesses, and the simulation performance parameters
-        power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model)
+        power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = \
+            comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model, self.ionisation_eff, self.use_battery)
         
         if self.verbose:
             print("Satellite %s starts from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d" % \
