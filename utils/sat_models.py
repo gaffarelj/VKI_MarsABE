@@ -2,7 +2,7 @@ import sys
 sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
-from tudatpy.kernel.math import interpolators
+from scipy.interpolate import CubicSpline as CS
 import numpy as np
 
 
@@ -58,18 +58,13 @@ class satellite:
         self.power_to_battery = 0
         
         if type(self.Cd_list) == list:
-            # Create a cubic spline interpolator, capped at the boundaries
-            interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.throw_exception_at_boundary)
-            drag_dict = dict(zip(self.Cd_h, self.Cd_list))
-            # Setup the drag interpolator
-            self.drag_interpolator = interpolators.create_one_dimensional_scalar_interpolator(drag_dict, interpolator_settings)
+            # Create a cubic spline interpolator, without extrapolation
+            self.drag_interpolator = CS(self.Cd_h, self.Cd_list, extrapolate=False)
 
         if type(self.comp_ratio_list) == list:
-            # Create a cubic spline interpolator, capped at the boundaries
-            interpolator_settings = interpolators.cubic_spline_interpolation(boundary_interpolation=interpolators.throw_exception_at_boundary)
-            comp_ratio_dict = dict(zip(self.Cd_h, self.comp_ratio_list))
-            # Setup the drag interpolator
-            self.comp_ratio_interpolator = interpolators.create_one_dimensional_scalar_interpolator(comp_ratio_dict, interpolator_settings)
+            pass
+            # Create a cubic spline interpolator, without extrapolation
+            self.comp_ratio_interpolator = CS(self.Cd_h, self.comp_ratio_list, extrapolate=False)
 
     def __str__(self):
         # Return the satellite represented as a string
@@ -98,9 +93,8 @@ class satellite:
             else:
                 self.h_warning[1] = False
         # If the interpolated Cd is out of the boundaries, take the average
-        try:
-            Cd = self.drag_interpolator.interpolate(h)
-        except RuntimeError:
+        Cd = self.drag_interpolator(h)
+        if np.isnan(Cd):
             Cd = np.mean(self.Cd_list)
         return Cd
 
@@ -109,9 +103,8 @@ class satellite:
             return self.comp_ratio_list
         # Return the interpolated drag coefficient at the given altitude h [m]
         # If the interpolated Cd is out of the boundaries, take the average
-        try:
-            comp_ratio = self.comp_ratio_interpolator.interpolate(h)
-        except RuntimeError:
+        comp_ratio = self.comp_ratio_interpolator(h)
+        if np.isnan(comp_ratio):
             comp_ratio = np.mean(self.comp_ratio_list)
         return comp_ratio
 

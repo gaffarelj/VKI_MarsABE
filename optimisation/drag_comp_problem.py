@@ -5,89 +5,10 @@ while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 from utils import sat_models as SM
 from utils import propagation as P
-from tudatpy.kernel import constants
+from optimisation import comp_fitness as CF
+import multiprocessing as MP
 
-
-FIT_INPUTS, FIT_HASHS, FIT_RESULTS = [], [], []
-
-def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, use_battery):
-    # Save the inputs in a list, and compute their hash
-    fit_input = [sat.name, h_p, h_a, i, omega, Omega]
-    fit_hash = hash(frozenset(fit_input))
-    # Search if the fitness was already computed for these inputs
-    if fit_hash in FIT_HASHS:
-        idx = FIT_HASHS.index(fit_hash)
-        # Double check that the inputs were the same, not just the hash
-        if FIT_INPUTS[idx] == fit_input:
-            # Return the cached fitness
-            return FIT_RESULTS[idx]
-
-    ## Setup the simulation
-    # Create the orbital simulation instance, setup to simulate 100 days
-    sim_days = 1
-    OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True)
-    # Create the simulation bodies, and use the MCD
-    OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
-    # Create the initial state of the satellite
-    a = OS.R_cb + (h_a+h_p)/2
-    e = 1 - (OS.R_cb + min(h_p, h_a)) / a       # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
-    OS.create_initial_state(a=a, e=e, i=i, omega=omega, Omega=Omega)
-    # Load the accelerations from default config 1: Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
-    OS.create_accelerations(default_config=1, thrust=thrust_model, ionisation_eff=ionisation_eff, use_battery=use_battery)
-    # Create the integrator, termination settings, dependent variables, and propagator
-    OS.create_integrator()
-    OS.create_termination_settings()
-    OS.create_dependent_variables(to_save=["h_p", "h", "D", "F_T"])
-    prop_mass = (thrust_model != 3)
-    OS.create_propagator(prop_mass=prop_mass)
-
-    # Simulate the satellite in orbit
-    times, _, _ = OS.simulate()
-
-    # Extract the results from the simulation
-    power_hist = list(OS.power_dict.values())
-    h_p_s = OS.get_dep_var("h_p")
-    altitudes = OS.get_dep_var("h")
-    drags = OS.get_dep_var("D")
-    drags_norm = np.fabs(np.linalg.norm(drags, axis=1))
-    thrusts = OS.get_dep_var("F_T")
-    thrusts_norm = np.fabs(np.linalg.norm(thrusts, axis=1))
-
-    # Remove the orbital simulation variable to save memory
-    del OS
-
-    # Compute the simulation performance parameters
-    mean_P, decay, mean_h, mean_T_D = np.mean(power_hist), h_p_s[0] - h_p_s[-1], np.mean(altitudes), np.mean(thrusts_norm)/np.mean(drags_norm)
-
-    # Give a penalty in the decay if the simulation stopped earlier and the decay was not properly registered
-    if times[-1] - times[0] < (sim_days-1)*constants.JULIAN_DAY and decay < 50e3:
-        decay = 300e3
-
-    ## Compute the fitness (=cost); scaling is used because, ideally, all cost values would be in the same range (0-1 for instance)
-    # Max mean power; lots of power = smaller value = better (use maximum observed value as scale)
-    power_scale = 35
-    power_f = ( (power_scale-mean_P) / power_scale )
-    if np.mean(power_hist) > power_scale:
-        print("Warning, mean power of %.3f W was above scaling value of %.3f W" % (np.mean(power_hist), power_scale))
-    # Min decay; if final altitude < 50km, fitness=1 (re-entered atmosphere); else: scale with maximum 100km
-    decay_f = 1 if h_p_s[-1] <= 50e3 else decay/100e3
-    # Min mean altitude
-    h_scale = [50e3, 500e3, 1e6]
-    if mean_h <= h_scale[1]:
-        h_f = (mean_h - h_scale[0]) / (h_scale[1] - h_scale[0]) * 0.75
-    else:
-        h_f = 0.75 + 0.25 * (mean_h - h_scale[1]) / (h_scale[2] - h_scale[1])
-    # Min Drag/Thrust ratio
-    D_T_f = 1 / (mean_T_D + 1)
-
-    fit_result = power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D
-
-    # Save the inputs and results to the cache list
-    FIT_INPUTS.append(fit_input)
-    FIT_RESULTS.append(list(fit_result))
-    FIT_HASHS.append(fit_hash)
-
-    return fit_result
+FIT_INPUTS, FIT_RESULTS = [], []
 
 # Drag Compensation problem
 class DC_problem:
@@ -116,12 +37,48 @@ class DC_problem:
 
     def get_nix(self):
         return 1
+
+    def batch_fitness(self, dvs):
+        """
+        *** Pygmo-related function ***
+        Return the batch fitness of the given 1D list of Design Variables. This is the cost function, that Pygmo will minimise.
+        """
+        global FIT_INPUTS, FIT_RESULTS
+        inputs, fitnesses = [], []
+        # Reshape the design variables and go trough them
+        design_variables = np.reshape(dvs, (len(dvs)//6, 6))
+        sats = SM.satellites if self.thrust_model == 3 else SM.satellites_with_tank
+        for dv in design_variables:
+            # Extract from design variable
+            h_p_0, h_a_0, i_0, omega_0, Omega_0, sat_index = dv
+
+            # Select the satellite
+            sat_name = list(sats.keys())[int(sat_index)]
+            satellite = sats[sat_name]
+
+            # Construct the input
+            inputs.append([satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model, self.ionisation_eff, self.use_battery])
+            FIT_INPUTS.append([satellite.name, h_p_0, h_a_0, i_0, omega_0, Omega_0])
         
+        # Get the fitness by running the orbital simulations in parallel (use half the number of processors available)
+        with MP.get_context("spawn").Pool(processes=MP.cpu_count()//2) as pool:
+            outputs = pool.starmap(CF.comp_fitness, inputs)
+
+        # Save the entire output and return the 1D list of fitnesses
+        for output in outputs:
+            FIT_RESULTS.append(list(output))
+            power_f, decay_f, h_f, D_T_f, *_ = output
+            fitnesses.append(power_f), fitnesses.append(decay_f), fitnesses.append(h_f), fitnesses.append(D_T_f)
+        
+        return fitnesses
+
     def fitness(self, design_variables):
         """
+        NOT IN USE ANYMORE
         *** Pygmo-related function ***
         Return the fitness of the given problem. This is the cost function, that Pygmo will minimise.
         """
+        print(0, design_variables), input()
         # Extract the individual design variables
         h_p_0, h_a_0, i_0, omega_0, Omega_0, sat_index = design_variables
 
@@ -132,7 +89,7 @@ class DC_problem:
 
         # Compute the fitnesses, and the simulation performance parameters
         power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D  = \
-            comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model, self.ionisation_eff, self.use_battery)
+            CF.comp_fitness(satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model, self.ionisation_eff, self.use_battery)
         
         if self.verbose:
             print("Satellite %s starts from h_p=%3d, h_a=%.2f, i=%2d, omega=%3d, Omega=%.3d" % \
