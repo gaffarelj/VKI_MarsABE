@@ -52,7 +52,7 @@ class env_acceleration:
 
 class orbit_simulation:
     
-    def __init__(self, sat, central_body, sim_time, init_time=TC.MCD_to_Tudat(2459942), verbose=False, save_power=False):
+    def __init__(self, sat, central_body, sim_time, init_time=TC.MCD_to_Tudat(2459942), verbose=False, save_power=False, save_thrust=False):
         """
         Orbital simulation class, containing all the code required for setup, and simulation run.
         Inputs:
@@ -69,12 +69,16 @@ class orbit_simulation:
         self.end_time = init_time + sim_time
         self.verbose = verbose
         self.save_power = save_power
+        self.save_thrust = save_thrust
         # Solar irradiance dict
         self.solar_irradiances = dict()
         # Power dict
         self.power_dict = dict()
         # Battery capacity dict
         self.battery_capacity = dict()
+        # Thrust/drag dict
+        self.thrusts = dict()
+        self.drags = dict()
 
     def create_bodies(self, additional_bodies=["Sun", "Jupiter"], use_MCD=[False, False], preload_MCD=False, save_MCD_vals=False, use_GRAM=False):
         """

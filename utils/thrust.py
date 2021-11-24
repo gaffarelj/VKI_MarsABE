@@ -96,7 +96,8 @@ class thrust_model:
             else:
                 # Extra power from the solar panel is available power minus power used for thrust
                 self.sat.power_to_battery = max(self.power - power_use, 0)
-
+        if self.os_sim.save_thrust:
+            self.os_sim.thrusts[time] = thrust
         return thrust
 
     def specific_impulse(self, time):
@@ -117,10 +118,17 @@ class thrust_model:
         velocity_fs = self.vehicle.flight_conditions.airspeed
         altitude_fs = self.vehicle.flight_conditions.altitude
         comp_ratio = self.sat.get_comp_ratio(altitude_fs)
+        cd = self.sat.get_cd(altitude_fs)
         self.m_flow_t = comp_ratio * density_fs * velocity_fs * self.sat.S_t
         m_flow_ok = self.m_flow_t >= self.m_treshold
         # Engine is on if the solar irradiance is above a given treshold
         power_ok = self.power_available(time) > self.power_treshold[0]
+        if not m_flow_ok and power_ok and self.use_battery:
+            # Charge the battery
+            self.sat.power_to_battery = self.power
+        if not (m_flow_ok and power_ok) and self.os_sim.save_thrust:
+            self.os_sim.thrusts[time] = 0
+        self.os_sim.drags[time] = 0.5*density_fs*velocity_fs**2*cd*self.sat.S_ref
         return m_flow_ok and power_ok
 
     def power_available(self, time):
@@ -147,9 +155,10 @@ class thrust_model:
                 dt_hr = dt / 3600
                 # Compute the maximum battery capacity that would be used
                 capacity_to_use = self.power_treshold[1]*dt_hr
-                # Use the battery if it has enough capacity (and if the time that it would be used is reasonable)
-                if capacity_to_use > 0 and self.sat.battery_capacity > capacity_to_use and dt_hr < 0.005:
+                # Use the battery if it has enough capacity
+                if capacity_to_use > 0 and self.sat.battery_capacity > capacity_to_use:
                     dt_capacity.append(dt_hr), capacity_taken.append(capacity_to_use)
+                    self.power_is_from_battery = True
                     self.power = self.power_treshold[1] # Set the available power to the maximum one that the thrust would use
         self.last_thrust_call = time
         return self.power

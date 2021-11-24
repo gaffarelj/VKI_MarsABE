@@ -12,7 +12,7 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, u
     ## Setup the simulation
     # Create the orbital simulation instance, setup to simulate 100 days
     sim_days = 100
-    OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True)
+    OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True, save_thrust=True)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
     # Create the initial state of the satellite
@@ -24,7 +24,7 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, u
     # Create the integrator, termination settings, dependent variables, and propagator
     OS.create_integrator()
     OS.create_termination_settings()
-    OS.create_dependent_variables(to_save=["h_p", "h", "D", "F_T"])
+    OS.create_dependent_variables(to_save=["h_p", "h"])
     prop_mass = (thrust_model != 3)
     OS.create_propagator(prop_mass=prop_mass)
 
@@ -35,16 +35,15 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, u
     power_hist = list(OS.power_dict.values())
     h_p_s = OS.get_dep_var("h_p")
     altitudes = OS.get_dep_var("h")
-    drags = OS.get_dep_var("D")
-    drags_norm = np.fabs(np.linalg.norm(drags, axis=1))
-    thrusts = OS.get_dep_var("F_T")
-    thrusts_norm = np.fabs(np.linalg.norm(thrusts, axis=1))
+    
+    drags = np.array(list(OS.drags.values()))
+    thrusts = np.array(list(OS.thrusts.values()))
 
     # Remove the orbital simulation variable to save memory
     del OS
 
     # Compute the simulation performance parameters
-    mean_P, decay, mean_h, mean_T_D = np.mean(power_hist), h_p_s[0] - h_p_s[-1], np.mean(altitudes), np.mean(thrusts_norm)/np.mean(drags_norm)
+    mean_P, decay, mean_h, mean_T_D = np.mean(power_hist), h_p_s[0] - h_p_s[-1], np.mean(altitudes), np.mean(thrusts/drags)
 
     # Give a penalty in the decay if the simulation stopped earlier and the decay was not properly registered
     if times[-1] - times[0] < (sim_days-1)*constants.JULIAN_DAY and decay < 50e3:
