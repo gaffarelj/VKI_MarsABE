@@ -35,12 +35,11 @@ if __name__ == "__main__":
     use_battery = (input("Use the battery ? ([y]/n): ").lower().strip() in ["", "y"])
     if thrust_model == 3:
         satellites = SM.satellites
-        plots_path = "optimisation/ABE/"
         ionisation_efficiency = ask_choice("Ionisation efficiency (in ]0, 1[): ", [0, 1], float)
     else:
         satellites = SM.satellites_with_tank
-        plots_path = "optimisation/with_tank/"
         ionisation_efficiency = 1
+    plots_path = "optimisation/DC_%i-%s-%.2f_" % (thrust_model, "V" if use_battery else "X", ionisation_efficiency)
 
     # Setup the design variables range
     min_h_p, max_h_p = 85e3, 150e3
