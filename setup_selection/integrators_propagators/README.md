@@ -81,7 +81,19 @@ Lastly, the same process has been repeated, but adding the Martian spherical har
 | Unified State Model with Modified Rodrigues Parameters | 9.36                | 0.787                              |
 | Unified State Model with Exponential Map               | 9.22                | 0.781                              |
 
-The current recommendation is then to use the Gauss Modified Equinoctial propagator. However, if CPU time is not an issue, the Unified State Model with Quaternions propagator leads to the most accurate results.
+Finally, the same process has been repeated again with the addition of the thrust model that has been developed to use the Martian atmosphere, and turn on under specific conditions. This results in the following table:
+
+| Propagator                                             | Simulation time [s] | Maximum difference in altitude [m] |
+|--------------------------------------------------------|---------------------|------------------------------------|
+| Cowell                                                 | 2.94                | 138.409                            |
+| Encke                                                  | 3.53                | 73.794                             |
+| Gauss Keplerian                                        | 0.78 (singularity)  | Invalid                            |
+| Gauss Modified Equinoctial                             | 1.88                | 6.922                              |
+| Unified State Model with Quaternions                   | 7.60                | 18.129                             |
+| Unified State Model with Modified Rodrigues Parameters | 7.69                | 19.023                             |
+| Unified State Model with Exponential Map               | 8.25                | 19.278                             |
+
+The current recommendation is then to use the Gauss Modified Equinoctial propagator.
 
 ## Overall 
 Finally, [1_year_best_combo.py](1_year_best_combo.py) explores finer tuning of the integrator, using the suggested propagator.
@@ -98,8 +110,6 @@ The settings that resulted from this study are thus the followings:
     * An initial step size of 150s
     * A minimum and maximum factor increase of 0.25 and 3.0
     * A safety factor of 0.85
-* An Encke propagator (that propagates the difference with a Keplerian orbit)
+* An Gauss Modified Equinoctial propagator
 
-This leads to a simulation time of around 5 seconds, with a deviation from the benchmark of a maximum of 3.239 meters in altitude after 20 days of simulation.
-
-These settings may be tweaked again later on when accelerations such as drag or thrust are changed.
+This leads to a simulation time of around 1.88 seconds, with a deviation from the benchmark of a maximum of 6.922 meters in altitude after 20 days of simulation.

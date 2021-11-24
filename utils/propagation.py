@@ -1,3 +1,4 @@
+from os import cpu_count
 import numpy as np
 import time
 from GRAM.call_GRAM import GRAM_atmo
@@ -371,11 +372,11 @@ class orbit_simulation:
                 # Increment the index by the size of the dependent variable
                 idx += size
 
-    def create_propagator(self, propagator=propagation_setup.propagator.encke, prop_mass=False):
+    def create_propagator(self, propagator=propagation_setup.propagator.gauss_modified_equinoctial, prop_mass=False):
         """
         Create the simulation propagator.
         Inputs:
-         * propagator: type of propagator to use (Encke is advised; it propagates the difference with a Keplerian orbit)
+         * propagator: type of propagator to use (Gauss Modified Equinoctial is advised)
          * prop_mass (bool): whether or not to propagate the satellite mass based on thrust or not
         """
         # Define the translational propagator settings
@@ -409,11 +410,11 @@ class orbit_simulation:
                 print("Warning: the mass of the satellite should be propagated when the thrust model %i is used" % self.thrust_model)
             self.propagator_settings = translation_propagator_settings
 
-    def simulate(self):
+    def simulate(self, return_cpu_time=False):
         # If the verbose is set to True, time the simulation run
         if self.verbose:
             print("Starting simulation...")
-            t0 = time.time()
+        t0 = time.time()
 
         # Run the simulation
         if self.verbose:
@@ -435,9 +436,12 @@ class orbit_simulation:
         self.dep_vars = np.vstack(list(dynamics_simulator.dependent_variable_history.values()))
 
         # If the verbose is set to True, show simulation run time
+        cpu_time = time.time() - t0
         if self.verbose:
-            cpu_time = time.time() - t0
             print("Simulation took %.2f seconds." % cpu_time)
+
+        if return_cpu_time:
+            return self.sim_times, self.states, self.dep_vars, cpu_time
 
         return self.sim_times, self.states, self.dep_vars
 
