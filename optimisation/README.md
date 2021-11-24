@@ -2,6 +2,8 @@
 
 This folder contains the files used to run the optimisation aiming at finding the best combination of satellite configuration and orbit to compensate for drag in very low Martian orbit.
 
+The optimisation has been run for the thrust model `2` and `3`, with and without including the use of a battery, and with ionisation efficiencies of `1%`, `10%`, `25%`, and `50%` when the thrust model `3` has been used.
+
 ## Optimisation setup
 
 The optimisation setup is mainly composed of the optimisation objectives, the design variables, and the constraints.
