@@ -6,9 +6,7 @@ Study of the feasibility of using air-breathing engines for satellite altitude m
 This repository is organised in folders, each containing distinct modules, classes, and scripts, that can be used separatly, or in combination with each other.
 
 ### Global Reference Atmospheric Model for Mars (Mars GRAM 2010)
-The [GRAM](GRAM) folder contains a single Python script, [call_GRAM.py](GRAM/call_GRAM.py), that can be used to query the atmospheric density of Mars as a function of altitude, latitude, and time. These density are extrapolated based on the data from Mars GRAM 2010, by NASA.
-
-The variable `file_path` at the beginning of the Python file refers to the path of the `tpdmsy11.txt` data file that is distributed with Mars GRAM 2010. It can be requested to NASA by filling the form specified at [this page](https://software.nasa.gov/software/MFS-33158-1).
+The [GRAM](GRAM) folder contains a single Python script, [call_GRAM.py](GRAM/call_GRAM.py), that can be used to query the atmospheric density of Mars using data from Mars GRAM 2010, by NASA. More details about this is given in the [GRAM README](GRAM/README.md).
 
 ### Mars Climate Database (MCD)
 The [MCD](MCD) folder contains the MCD Fortran interface that has been compiled in Python, as well as a class written to load this interface in parallel for each Martian month. This makes calls to the MCD thousands of times faster.
