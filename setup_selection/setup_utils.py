@@ -230,8 +230,8 @@ def compare_to_baseline(time_l, altitudes, baseline_f="rk_4_baseline", trunc_end
         interp_times = interp_times[trunc_length:-trunc_length]
 
     interpolator_settings = interpolators.lagrange_interpolation(8, boundary_interpolation=interpolators.use_boundary_value)
-    first_interpolator = interpolators.create_one_dimensional_interpolator(dict(zip(time_l, altitudes)), interpolator_settings)
-    second_interpolator = interpolators.create_one_dimensional_interpolator(dict(zip(baseline_t, baseline_h)), interpolator_settings)
+    first_interpolator = interpolators.create_one_dimensional_scalar_interpolator(dict(zip(time_l, altitudes)), interpolator_settings)
+    second_interpolator = interpolators.create_one_dimensional_scalar_interpolator(dict(zip(baseline_t, baseline_h)), interpolator_settings)
     # Calculate the difference between the first and second model at specific epochs
     model_difference = {t: second_interpolator.interpolate(t)- first_interpolator.interpolate(t) 
                         for t in interp_times}
