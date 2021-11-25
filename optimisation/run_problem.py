@@ -25,20 +25,28 @@ if __name__ == "__main__":
         while choice is None:
             try:
                 choice = t(input(q))
-                if choice < r[0] or choice > r[1]:
-                    choice = None
+                if r == "yn":
+                    if choice.lower().strip() == "y":
+                        return True
+                    elif choice.lower().strip() == "n":
+                        return False
+                    else:
+                        choice = None
+                else:
+                    if choice < r[0] or choice > r[1]:
+                        choice = None
             except ValueError:
                 choice = None
         return choice
 
     thrust_model = ask_choice("Thrust model selection [1, 2, 3]: ", [1, 3], int)
-    use_battery = (input("Use the battery ? ([y]/n): ").lower().strip() in ["", "y"])
     if thrust_model == 3:
         satellites = SM.satellites
         ionisation_efficiency = ask_choice("Ionisation efficiency (in ]0, 1[): ", [0, 1], float)
     else:
         satellites = SM.satellites_with_tank
         ionisation_efficiency = 1
+    use_battery = ask_choice("Use the battery ? (y/n): ", "yn", str)
     plots_path = "optimisation/DC_%i-%s-%.2f_" % (thrust_model, "V" if use_battery else "X", ionisation_efficiency)
 
     # Setup the design variables range
@@ -58,7 +66,7 @@ if __name__ == "__main__":
     fitness_names = ["Mean power", "Periapsis decay", "Mean altitude", "Mean Drag/Thrust"]
 
     # Select whether to run the optimisation or load the latest result file
-    run_opti = (input("Run the optimisation ? ([y]/n) (if no, load latest saved results): ").lower().strip() in ["", "y"])
+    run_opti = ask_choice("Run the optimisation (y) or load latest results (n)? (y/n) : ", "yn", str)
     # Configure population size and number of generations
     pop_size = 60
     n_generations = 50
@@ -105,8 +113,6 @@ if __name__ == "__main__":
 
 # Load the last saved results
 file_list = natsorted(glob.glob("-".join(f_path.split("-")[:-1]) + "*.npz"))
-print("-".join(f_path.split("-")[:-1]))
-print(file_list)
 if len(file_list) == 0:
     raise FileNotFoundError("It appears that no optimisation was already run to at least 1 generation with the following parameters:\n"+\
         " * thrust model = %i\n * use of battery = %s\n * ionisation efficiency = %.2f\n * population size = %i" % \
@@ -123,14 +129,12 @@ fit_inputs = np.concatenate([s_names, fit_inputs], axis=1, dtype=object)
 idx_best = np.where(np.sum(fit_results[:,:len(fitness_weights)], axis=1) == np.min(np.sum(fit_results[:,:len(fitness_weights)], axis=1)))[0][0]
 optimum_input, optimum_result = fit_inputs[idx_best], fit_results[idx_best]
 
-# Print the results
-print("Optimum (when summing the fitness): %s \n  with initial state: h_p=%.2f km, h_a=%.2f km, i=%.2f, omega=%.2f, Omega=%.2f" % \
-    (satellites[optimum_input[0]], min(optimum_input[1:3])/1e3, max(optimum_input[1:3])/1e3, \
-        np.rad2deg(optimum_input[3]), np.rad2deg(optimum_input[4]), np.rad2deg(optimum_input[5])))
-print("Resulting optimum fitness:", optimum_result[:len(fitness_weights)]*np.array(fitness_weights))
-print("Resulting characteristics: mean power=%.2f W, total decay=%.2f km, mean altitude=%3d km, mean T/D=%.2f" % \
-    (optimum_result[-4], optimum_result[-3]/1e3, optimum_result[-2]/1e3, optimum_result[-1]))
 print("Explored %i different possibilities." % len(fit_inputs))
+
+power_f, decay_f, h_f, D_T_f = fit_results[:,:4].T
+pareto_opt = PU.pareto_optimums([power_f, decay_f, h_f, D_T_f])
+print("There are %i Pareto optimum solutions across all four objectives." % np.sum(pareto_opt))
+print("Saving various Pareto plots...")
 
 plots_title = "Thrust model %i, %s use of the battery" % (thrust_model, "with" if use_battery else "without")
 if thrust_model == 3:
@@ -193,19 +197,37 @@ idx_remove = np.where(fit_results[:,-3] >= 100e3)
 # Make a Panda dataframe from the results
 import pandas as pd
 import plotly.express as px
-s_pd = pd.Series(np.delete(fit_results[:,-3], idx_remove), name="Periapsis decay")
-s_mh = pd.Series(np.delete(fit_results[:,-2], idx_remove), name="Mean altitude")
-s_mTD = pd.Series(np.delete(fit_results[:,-1], idx_remove), name="Mean T/D")
-s_mp = pd.Series(np.delete(fit_results[:,-4], idx_remove), name="Mean power")
+s_pd = pd.Series(np.delete(fit_results[:,-3], idx_remove)/1e3, name="Periapsis decay [km]")
+s_mh = pd.Series(np.delete(fit_results[:,-2], idx_remove)/1e3, name="Mean altitude [km]")
+s_mTD = pd.Series(np.delete(fit_results[:,-1], idx_remove), name="Mean T/D [-]")
+s_mp = pd.Series(np.delete(fit_results[:,-4], idx_remove), name="Mean power [W]")
 s_sn = pd.Series(np.delete(fit_inputs[:,0], idx_remove), name="Satellite")
-s_i_hp = pd.Series(np.delete(fit_inputs[:,1], idx_remove), name="Initial h_p")
-s_i_ha = pd.Series(np.delete(fit_inputs[:,2], idx_remove), name="Initial h_a")
-s_i_i = pd.Series(np.delete(fit_inputs[:,3], idx_remove), name="Initial i")
-s_i_omega = pd.Series(np.delete(fit_inputs[:,4], idx_remove), name="Initial omega")
-s_i_Omega = pd.Series(np.delete(fit_inputs[:,5], idx_remove), name="Initial Omega")
-df = pd.concat([s_pd, s_mh, s_mTD, s_mp, s_sn, s_i_hp, s_i_ha, s_i_i, s_i_omega, s_i_Omega], axis=1)
+s_i_hp = pd.Series(np.delete(fit_inputs[:,1], idx_remove)/1e3, name="Initial h_p [km]")
+s_i_ha = pd.Series(np.delete(fit_inputs[:,2], idx_remove)/1e3, name="Initial h_a [km]")
+s_i_i = pd.Series(np.delete(fit_inputs[:,3], idx_remove)*180/np.pi, name="Initial i [deg]")
+s_i_omega = pd.Series(np.delete(fit_inputs[:,4], idx_remove)*180/np.pi, name="Initial omega [deg]")
+s_i_Omega = pd.Series(np.delete(fit_inputs[:,5], idx_remove)*180/np.pi, name="Initial Omega [deg]")
+s_pareto_opt = pd.Series(np.delete(pareto_opt, idx_remove), name="Pareto optimum")
+s_f_P = pd.Series(np.delete(power_f, idx_remove), name="Power fitness [-]")
+s_f_D = pd.Series(np.delete(decay_f, idx_remove), name="Periapsis decay fitness [-]")
+s_f_H = pd.Series(np.delete(h_f, idx_remove), name="Altitude fitness [-]")
+s_f_TD = pd.Series(np.delete(D_T_f, idx_remove), name="T/D fitness [-]")
+df = pd.concat([s_pd, s_mh, s_mTD, s_mp, s_sn, s_i_hp, s_i_ha, s_i_i, s_i_omega, s_i_Omega, s_pareto_opt, s_f_P, s_f_D, s_f_H, s_f_TD], axis=1)
 # Make interactive plot
-fig = px.scatter(df, x="Mean altitude", y="Periapsis decay", hover_name="Satellite", \
-    hover_data=["Mean T/D", "Mean power", "Initial h_p", "Initial h_a", "Initial i", \
-        "Initial omega", "Initial Omega"], title=plots_title)
+fig = px.scatter(df, hover_data={
+    "Initial h_p [km]": ":.7f",
+    "Initial h_a [km]": ":.7f",
+    "Initial i [deg]": ":.7f",
+    "Initial omega [deg]": ":.7f",
+    "Initial Omega [deg]": ":.7f",
+    "Mean power [W]": ":.3f",
+    "Periapsis decay [km]": ":.3f",
+    "Mean altitude [km]": ":.3f",
+    "Mean T/D [-]": ":.5f",
+    "Power fitness [-]": ":.5f",
+    "Periapsis decay fitness [-]": ":.5f",
+    "Altitude fitness [-]": ":.5f",
+    "T/D fitness [-]": ":.5f"}, \
+    x="Mean altitude [km]", y="Periapsis decay [km]", hover_name="Satellite", \
+    title=plots_title, color="Pareto optimum", color_discrete_map={True: "#2e7d32", False: "#b71c1c"})
 fig.write_html(sys.path[0]+"/figures/"+plots_path+"interactive_pareto.html")
