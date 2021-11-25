@@ -7,6 +7,15 @@ sys.path = [p for p in sys.path if p != ""]
 while sys.path[0].split("/")[-1] != "VKI_MarsABE":
     sys.path.insert(0,"/".join(sys.path[0].split("/")[:-1]))
 
+
+def pareto_optimums(points):
+    points = np.asarray(points).T
+    pareto_optimal = np.ones(points.shape[0], dtype=bool)
+    for i, c in enumerate(points):
+        if pareto_optimal[i]:
+            pareto_optimal[pareto_optimal] = np.any(points[pareto_optimal]<=c, axis=1)
+    return pareto_optimal
+
 def comp_pareto(X, Y, front_sign=[1, 1]):
     sl = sorted([[X[i]*front_sign[0], Y[i]*front_sign[1]] for i in range(len(X))])
     pf = [sl[0]]
