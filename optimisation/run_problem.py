@@ -13,31 +13,51 @@ from optimisation import drag_comp_problem as DCp
 from utils import sat_models as SM
 from tools import plot_utilities as PU
 
+
+def ask_choice(q, r, t):
+    # Ask user the question `q`, the input has to be in range `r`, and be of the type `t`
+    choice = None
+    while choice is None:
+        try:
+            choice = t(input(q))
+            if r == "yn":
+                if choice.lower().strip() == "y":
+                    return True
+                elif choice.lower().strip() == "n":
+                    return False
+                else:
+                    choice = None
+            else:
+                if choice < r[0] or choice > r[1]:
+                    choice = None
+        except ValueError:
+            choice = None
+    return choice
+
+def get_saved_res(raise_error=True):
+    # Return the last saved results for the current set of problem parameters
+    file_list = natsorted(glob.glob("-".join(f_path.split("-")[:-1]) + "*.npz"))
+    if len(file_list) == 0:
+        error = "It appears that no optimisation was already run to at least 1 generation with the following parameters:\n"+\
+            " * thrust model = %i\n * use of battery = %s\n * ionisation efficiency = %.2f\n * population size = %i" % \
+                (thrust_model, "V" if use_battery else "X", ionisation_efficiency, pop_size)
+        if raise_error:
+            raise FileNotFoundError(error)
+        else:
+            print(error)
+            return None, None, None, None
+    last_results = np.load(file_list[-1])
+    fit_inputs = last_results["inputs"]
+    fit_results = last_results["results"]
+    opti_hist = last_results["opti_hist"]
+    return fit_inputs, fit_results, opti_hist, file_list[-1]
+
 if __name__ == "__main__":
     ## Select the thrust model
     print("The following thrust models can be used:")
     print(" 1: BHT-100 Hall thruster (on when power > 107 W)")
     print(" 2: μNRIT 2.5 Radiofrequency ion thruster with Xenon tank (on when power > 13.1 W)")
     print(" 3: μNRIT 2.5 Radiofrequency ion thruster with atmosphere-breathing inlet (on when power > 13.1 W and engine inlet mass flow > 1.456e-8 kg/s)")
-
-    def ask_choice(q, r, t):
-        choice = None
-        while choice is None:
-            try:
-                choice = t(input(q))
-                if r == "yn":
-                    if choice.lower().strip() == "y":
-                        return True
-                    elif choice.lower().strip() == "n":
-                        return False
-                    else:
-                        choice = None
-                else:
-                    if choice < r[0] or choice > r[1]:
-                        choice = None
-            except ValueError:
-                choice = None
-        return choice
 
     thrust_model = ask_choice("Thrust model selection [1, 2, 3]: ", [1, 3], int)
     if thrust_model == 3:
@@ -76,20 +96,42 @@ if __name__ == "__main__":
         pop_size, seed, time.strftime("%d%m%y_%H%M%S"))
     f_path = sys.path[0] + "/optimisation/results/" + f_name
     if run_opti:        # Run a new optimisation
-        opti_hist = []
-        print("Generating starting population (of size %i)..." % pop_size)
-
         current_problem = DCp.DC_problem(design_var_range, fitness_weights, thrust_model=thrust_model, \
             ionisation_efficiency=ionisation_efficiency, use_battery=use_battery, verbose=False)
         problem = pygmo.problem(current_problem)
-        pop = pygmo.population(problem, size=pop_size, seed=seed, b=pygmo.default_bfe())
+        # Load the last saved generation with the same parameters
+        fit_inputs, fit_results, opti_hist, last_g_file = get_saved_res(raise_error=False)
+        pop = None
+        if fit_inputs is not None:
+            # If results from a previous run could be found...
+            last_inputs, last_results = fit_inputs[-pop_size:], fit_results[-pop_size:]
+            n_gen = fit_inputs.shape[0]//pop_size
+            start_from_last = ask_choice("Start from the last saved population, after %i generations? (y/n) : " % (n_gen-1), "yn", str)
+            if start_from_last:
+                # Populate the Pygmo population with results from last run
+                pop = pygmo.population(problem, size=0, seed=seed, b=pygmo.default_bfe())
+                for i in range(pop_size):
+                    _in = last_inputs[i]
+                    dv = [float(_in[1]), float(_in[2]), \
+                        float(_in[3]), float(_in[4]), float(_in[5]), list(satellites.keys()).index(_in[0])]
+                    _fit = last_results[i]
+                    fits = [float(_fit[0]), float(_fit[1]), float(_fit[2]), float(_fit[3])]
+                    pop.push_back(dv, fits)
+                DCp.FIT_INPUTS = fit_inputs.tolist()
+                DCp.FIT_RESULTS = fit_results.tolist()
+                opti_hist = opti_hist.tolist()
+        if pop is None:
+            n_gen = 1
+            opti_hist = []
+            print("Generating starting population (of size %i)..." % pop_size)
+            pop = pygmo.population(problem, size=pop_size, seed=seed, b=pygmo.default_bfe())
         algo = pygmo.nsga2(seed=seed, cr=0.95, eta_c=10, m=0.005, eta_m=10)
         algo.set_bfe(pygmo.bfe())
         algo = pygmo.algorithm(algo)
 
         # Run the optimisation
         t0 = time.time()
-        for i in range(1,n_generations+1):
+        for i in range(n_gen,n_generations+1):
             print("Running generation %2d / %2d" % (i, n_generations))
             # Evolve the population
             pop = algo.evolve(pop)
@@ -109,18 +151,14 @@ if __name__ == "__main__":
             np.savez(f_path+"-%i"%i, inputs=DCp.FIT_INPUTS, results=np.array(DCp.FIT_RESULTS), opti_hist=np.array(opti_hist))
             # Remove results from previous generation
             if i > 1:
-                os.remove(f_path+"-%s.npz"%(i-1))
+                if last_g_file is None:
+                    os.remove(f_path+"-%s.npz"%(i-1))
+                else:
+                    os.remove(last_g_file)
+                    last_g_file = None
 
     # Load the last saved results
-    file_list = natsorted(glob.glob("-".join(f_path.split("-")[:-1]) + "*.npz"))
-    if len(file_list) == 0:
-        raise FileNotFoundError("It appears that no optimisation was already run to at least 1 generation with the following parameters:\n"+\
-            " * thrust model = %i\n * use of battery = %s\n * ionisation efficiency = %.2f\n * population size = %i" % \
-                (thrust_model, "V" if use_battery else "X", ionisation_efficiency, pop_size))
-    last_results = np.load(file_list[-1])
-    fit_inputs = last_results["inputs"]
-    fit_results = last_results["results"]
-    opti_hist = last_results["opti_hist"]
+    fit_inputs, fit_results, opti_hist, _ = get_saved_res()
     s_names = fit_inputs[:,0].reshape((len(fit_inputs),1))
     fit_inputs = np.array(fit_inputs[:,1:], dtype=float)
     fit_inputs = np.concatenate([s_names, fit_inputs], axis=1, dtype=object)
