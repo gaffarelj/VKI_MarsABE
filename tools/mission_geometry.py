@@ -57,12 +57,16 @@ def sat_power(sat_state, sun_state, sun_irradiance, sat_area, test=False):
     # Compute the heading of the sat w.r.t. Mars, from its velocity
     sat_heading = np.pi/2 if sat_vel[0] == 0 else np.arctan(sat_vel[1]/sat_vel[0])
     # Compute the heading of the Sun w.r.t. Mars from its position
-    sun_heading = 0 if sun_state[1] == 0 else np.arctan(-sun_state[0]/sun_state[1])
-    heading = sat_heading - sun_heading
+    sun_heading = np.pi/2 if sun_state[0] == 0 else np.arctan(sun_state[1]/sun_state[0])
+    heading = sat_heading - sun_heading # heading = yaw
     # Compute the angle from x-y plane of the satellite
-    dive_angle = np.arctan(sat_vel[2]/np.sqrt(sat_vel[0]**2 + sat_vel[1]**2))
-    # Compute scaling factor in each plane
-    power_scale = [np.fabs(np.sin(heading) * np.cos(dive_angle)), np.fabs(np.cos(heading) * np.cos(dive_angle)), np.fabs(np.sin(dive_angle))]
+    dive_angle = np.arctan(sat_vel[2]/np.sqrt(sat_vel[0]**2 + sat_vel[1]**2)) # dive angle = pitch
+    # Assume roll fixed at 45deg
+    roll, pitch, yaw = np.deg2rad(45), dive_angle, heading
+    ps_x = max(0, np.cos(pitch)*np.cos(yaw)) # Max(0) and not fabs because no solar panel from the back
+    ps_y = np.fabs(np.cos(roll)*np.sin(yaw) + np.sin(roll)*np.cos(yaw)*np.sin(pitch))
+    ps_z = np.fabs(np.sin(roll)*np.sin(yaw) - np.cos(roll)*np.cos(yaw)*np.sin(pitch))
+    power_scale = [ps_x, ps_y, ps_z]
     # Compute the effective solar panel surfaces
     eff_surf = np.array(sat_area) * np.array(power_scale)
     # Compute the satellite power
