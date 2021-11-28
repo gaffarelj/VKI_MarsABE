@@ -27,7 +27,7 @@ def comp_pareto(X, Y, front_sign=[1, 1]):
 
 def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, \
     equal_ax=False, add_front=False, front_sign=[1, 1], z_data=None, z_label="", marker="o", cmap="rainbow", \
-    cticks=None, clabels=None, fig=None, ax=None, NB=None, title=None, markersize=None):
+    cticks=None, clabels=None, fig=None, ax=None, NB=None, title=None, markersize=None, annot=None):
     """
     Simple plot
     """
@@ -59,6 +59,9 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
                 ax.scatter(x_data, y_data, marker=marker, s=markersize)
     else:
         ax.plot(x_data, y_data)
+    if annot is not None:
+        for i, text in enumerate(annot):
+            ax.annotate(text, (x_data[i], y_data[i]), textcoords="offset points", xytext=(0,10), ha='center')
     # Add a pareto front (front_sign is used to specify whether it's best to be high or low
     # If [1, -1]: best is to be high for first objective, low for second)
     if add_front:
