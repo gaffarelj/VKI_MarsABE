@@ -129,7 +129,7 @@ for name, sat in satellites_with_tank.items():
     sat.dry_mass -= 0.22
     sat.wet_mass += 0.43
 
-if True:
+if False:
     from matplotlib import pyplot as plt
     plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})
     # Plot satellite the CD vs altitude
