@@ -44,6 +44,7 @@ class thrust_model:
         self.m_treshold = 0
         self.use_battery = use_battery
         self.last_thrust_call = None
+        self.power_treshold = [0, np.inf]
         # Select the thrust model (and associated operating conditions)
         if thrust_mod == 0:
             self.power_treshold = [10, 100]
@@ -108,8 +109,6 @@ class thrust_model:
         """
         Define whether the engine is on or not
         """
-        if self.thrust_mod is None:
-            return False
         # Save the time of the first call to thrust
         if self.last_thrust_call is None:
             self.last_thrust_call = time
@@ -129,6 +128,10 @@ class thrust_model:
         if not (m_flow_ok and power_ok) and self.os_sim.save_thrust:
             self.os_sim.thrusts[time] = 0
         self.os_sim.drags[time] = 0.5*density_fs*velocity_fs**2*cd*self.sat.S_ref
+        # Do this last to make sure that the power is computed (inefficient, but gets data needed)
+        if self.thrust_mod is None:
+            self.os_sim.thrusts[time] = 0
+            return False
         return m_flow_ok and power_ok
 
     def power_available(self, time):
