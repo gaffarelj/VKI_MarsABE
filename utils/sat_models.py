@@ -129,13 +129,21 @@ for name, sat in satellites_with_tank.items():
     sat.dry_mass -= 0.22
     sat.wet_mass += 0.43
 
-# Plot satellite the CD vs altitude
-if False:
+if True:
     from matplotlib import pyplot as plt
     plt.rcParams.update({'font.size': 13, 'figure.figsize': (10.5, 7), 'savefig.format': 'pdf'})
+    # Plot satellite the CD vs altitude
     for s_name, sat in satellites.items():
         plt.plot(np.array(sat.Cd_h)/1e3, sat.Cd_list, label=s_name, linestyle="dotted", marker="o")
     plt.xlabel("Altitude [km]"), plt.ylabel("Drag coefficient [-]")
     plt.xticks([85, 115, 150])
     plt.legend(), plt.grid(), plt.tight_layout()
     plt.savefig(sys.path[0]+"/figures/sat_Cd_h.pdf")
+    plt.close()
+    # Plot satellite mass vs Cd*Sref with solar panel area cmap
+    from tools import plot_utilities as PU
+    mass = [s.dry_mass for s in satellites.values()]
+    CdS  = [np.mean(s.Cd_list)*s.S_ref for s in satellites.values()]
+    SA_S = [np.sum([s.area_x, s.area_y, s.area_z]) for s in satellites.values()]
+    PU.plot_single(mass, CdS, "Mass [kg]", "$C_D \cdot S_{ref}$ [m$^2$]", "comp_sats", scatter=True, \
+        z_data=SA_S, z_label="$\sum$ SA area [m$^2$]", annot=satellites.keys())
