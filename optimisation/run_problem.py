@@ -54,20 +54,20 @@ def get_saved_res(raise_error=True):
 
 if __name__ == "__main__":
     ## Select the thrust model
+    all_obj = ask_choice("Use all objectives (y) or only the altitude and periapsis decay objectives (n)? (y/n): ", "yn", str)
     print("The following thrust models can be used:")
-    print(" 1: BHT-100 Hall thruster (on when power > 107 W)")
     print(" 2: μNRIT 2.5 Radiofrequency ion thruster with Xenon tank (on when power > 13.1 W)")
     print(" 3: μNRIT 2.5 Radiofrequency ion thruster with atmosphere-breathing inlet (on when power > 13.1 W and engine inlet mass flow > 1.456e-8 kg/s)")
 
-    thrust_model = ask_choice("Thrust model selection [1, 2, 3]: ", [1, 3], int)
+    thrust_model = ask_choice("Thrust model selection [2, 3]: ", [2, 3], int)
     if thrust_model == 3:
         satellites = SM.satellites
         ionisation_efficiency = ask_choice("Ionisation efficiency (in ]0, 1[): ", [0, 1], float)
     else:
         satellites = SM.satellites_with_tank
         ionisation_efficiency = 1
-    use_battery = ask_choice("Use the battery ? (y/n): ", "yn", str)
-    plots_path = "optimisation/DC_%i-%s-%.2f_" % (thrust_model, "V" if use_battery else "X", ionisation_efficiency)
+    use_battery = ask_choice("Use the battery? (y/n): ", "yn", str)
+    plots_path = "optimisation/DC_%s_%i-%s-%.2f_" % ("4O" if all_obj else "2O", thrust_model, "V" if use_battery else "X", ionisation_efficiency)
 
     # Setup the design variables range
     min_h_p, max_h_p = 85e3, 150e3
@@ -82,8 +82,8 @@ if __name__ == "__main__":
     )
 
     # Setup the optimisation problem
-    fitness_weights = [1, 1, 1, 1]
-    fitness_names = ["Mean power", "Periapsis decay", "Mean altitude", "Mean Drag/Thrust"]
+    fitness_weights = [1, 1, 1, 1] if all_obj else [1, 1]
+    fitness_names = ["Mean power", "Periapsis decay", "Mean altitude", "Mean Drag/Thrust"] if all_obj else ["Mean altitude", "Periapsis decay"]
 
     # Select whether to run the optimisation or load the latest result file
     run_opti = ask_choice("Run the optimisation (y) or load latest results (n)? (y/n) : ", "yn", str)
@@ -92,12 +92,12 @@ if __name__ == "__main__":
     n_generations = 50
     seed = 12345
     # Setup file save path
-    f_name = "DC_%i-%s-%.2f_%i-%s_%s" % (thrust_model, "V" if use_battery else "X", ionisation_efficiency, \
+    f_name = "DC_%s_%i-%s-%.2f_%i-%s_%s" % ("4O" if all_obj else "2O", thrust_model, "V" if use_battery else "X", ionisation_efficiency, \
         pop_size, seed, time.strftime("%d%m%y_%H%M%S"))
     f_path = sys.path[0] + "/optimisation/results/" + f_name
     if run_opti:        # Run a new optimisation
         current_problem = DCp.DC_problem(design_var_range, fitness_weights, thrust_model=thrust_model, \
-            ionisation_efficiency=ionisation_efficiency, use_battery=use_battery, verbose=False)
+            ionisation_efficiency=ionisation_efficiency, use_battery=use_battery, all_obj=all_obj, verbose=False)
         problem = pygmo.problem(current_problem)
         # Load the last saved generation with the same parameters
         fit_inputs, fit_results, opti_hist, last_g_file = get_saved_res(raise_error=False)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
                     dv = [float(_in[1]), float(_in[2]), \
                         float(_in[3]), float(_in[4]), float(_in[5]), list(satellites.keys()).index(_in[0])]
                     _fit = last_results[i]
-                    fits = [float(_fit[0]), float(_fit[1]), float(_fit[2]), float(_fit[3])]
+                    fits = [float(_fit[_i]) for _i in range(len(fitness_weights))]
                     pop.push_back(dv, fits)
                 DCp.FIT_INPUTS = fit_inputs.tolist()
                 DCp.FIT_RESULTS = fit_results.tolist()
@@ -169,12 +169,16 @@ if __name__ == "__main__":
 
     print("Explored %i different possibilities." % len(fit_inputs))
 
-    power_f, decay_f, h_f, D_T_f = fit_results[:,:4].T
-    pareto_opt = PU.pareto_optimums([power_f, decay_f, h_f, D_T_f])
+    if all_obj:
+        power_f, decay_f, h_f, D_T_f = fit_results[:,:4].T
+        pareto_opt = PU.pareto_optimums([power_f, decay_f, h_f, D_T_f])
+    else:
+        h_f, decay_f, = fit_results[:,:2].T
+        pareto_opt = PU.pareto_optimums([h_f, decay_f])
     print("There are %i Pareto optimum solutions across all four objectives." % np.sum(pareto_opt))
     print("Saving various Pareto plots...")
 
-    plots_title = "Thrust model %i, %s use of the battery" % (thrust_model, "with" if use_battery else "without")
+    plots_title = "%i objectives, thrust model %i, %s use of the battery" % (4 if all_obj else 2, thrust_model, "with" if use_battery else "without")
     if thrust_model == 3:
         plots_title += ", with ionisation efficiency of %s%%" % (ionisation_efficiency*100)
 
@@ -194,31 +198,18 @@ if __name__ == "__main__":
             idx_remove = np.where(fit_results[:,-3] > 100e3)
             prefix = ""
         # Remove at selected indexes
-        obj_power, obj_decay, obj_h, obj_TD = np.delete(fit_results[:,-4], idx_remove), np.delete(fit_results[:,-3], idx_remove), np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
+        if all_obj:
+            obj_power, obj_decay, obj_h, obj_TD = np.delete(fit_results[:,-4], idx_remove), np.delete(fit_results[:,-3], idx_remove), np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
+        else:
+            obj_h, obj_decay = np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
         s_names = np.delete(fit_inputs[:,0], idx_remove)
         # Select color as a function of the satellite
         s_numbers = np.arange(0, len(satellites), 1)
         s_nn_map = dict(zip(list(satellites.keys()), s_numbers))
         ## Make the plots
         # Classic Pareto plots, 2 objectives
-        PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", plots_path+"Pareto_Pd"+prefix, \
-            scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
-        PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", plots_path+"Pareto_Ph"+prefix, \
-            scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
         PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hd"+prefix, \
             scatter=True, add_front=True, title=plots_title)
-        PU.plot_single(obj_h/1e3, obj_TD, "Mean altitude [km]", "Mean Thrust/Drag [-]", plots_path+"Pareto_hT"+prefix, \
-            scatter=True, add_front=True, front_sign=[1,-1], title=plots_title)
-        PU.plot_single(obj_power, obj_TD, "Mean Power [W]", "Mean Thrust/Drag [-]", plots_path+"Pareto_PT"+prefix, \
-            scatter=True, add_front=True, front_sign=[-1,-1], title=plots_title)
-        PU.plot_single(obj_TD, obj_decay/1e3, "Mean Thrust/Drag [-]", "Periapsis decay [km]", plots_path+"Pareto_Td"+prefix, \
-            scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
-        # Plot decay vs mean altitude with power in the colormap
-        power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                        'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
-                        matplotlib.pyplot.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
-        PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdP"+prefix, \
-            scatter=True, add_front=True, z_data=obj_power, z_label="Mean power [W]", cmap=power_cmap, title=plots_title)
         # Plot decay vs mean altitude with satellite name in the colormap
         s_name_cmap = matplotlib.colors.ListedColormap(['red', 'green', 'blue', 'yellow', 'orange'])
         bounds = [0, 1, 2, 3, 4, 5]
@@ -227,9 +218,26 @@ if __name__ == "__main__":
             scatter=True, add_front=True, z_data=[s_nn_map[s_n] for s_n in s_names], z_label="Satellite", \
                 cmap=s_name_cmap, cticks=[0.5, 1.5, 2.5, 3.5, 4.5], \
                 clabels=list(satellites.keys()), NB=(norm, bounds), title=plots_title)
-        # Plot decay vs mean altitude with D/T in the colormap
-        PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdT"+prefix, \
-            scatter=True, add_front=True, z_data=np.clip(obj_TD, 0, 10), z_label="Mean Thrust/Drag [-]", cmap="rainbow", title=plots_title)
+        if all_obj:
+            PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", plots_path+"Pareto_Pd"+prefix, \
+                scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
+            PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", plots_path+"Pareto_Ph"+prefix, \
+                scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
+            PU.plot_single(obj_h/1e3, obj_TD, "Mean altitude [km]", "Mean Thrust/Drag [-]", plots_path+"Pareto_hT"+prefix, \
+                scatter=True, add_front=True, front_sign=[1,-1], title=plots_title)
+            PU.plot_single(obj_power, obj_TD, "Mean Power [W]", "Mean Thrust/Drag [-]", plots_path+"Pareto_PT"+prefix, \
+                scatter=True, add_front=True, front_sign=[-1,-1], title=plots_title)
+            PU.plot_single(obj_TD, obj_decay/1e3, "Mean Thrust/Drag [-]", "Periapsis decay [km]", plots_path+"Pareto_Td"+prefix, \
+                scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
+            # Plot decay vs mean altitude with power in the colormap
+            power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                            'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
+                            matplotlib.pyplot.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
+            PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdP"+prefix, \
+                scatter=True, add_front=True, z_data=obj_power, z_label="Mean power [W]", cmap=power_cmap, title=plots_title)
+            # Plot decay vs mean altitude with D/T in the colormap
+            PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdT"+prefix, \
+                scatter=True, add_front=True, z_data=np.clip(obj_TD, 0, 10), z_label="Mean Thrust/Drag [-]", cmap="rainbow", title=plots_title)
 
     idx_remove = np.where(fit_results[:,-3] >= 100e3)
     # Make a Panda dataframe from the results
@@ -237,8 +245,6 @@ if __name__ == "__main__":
     import plotly.express as px
     s_pd = pd.Series(np.delete(fit_results[:,-3], idx_remove)/1e3, name="Periapsis decay [km]")
     s_mh = pd.Series(np.delete(fit_results[:,-2], idx_remove)/1e3, name="Mean altitude [km]")
-    s_mTD = pd.Series(np.delete(fit_results[:,-1], idx_remove), name="Mean T/D [-]")
-    s_mp = pd.Series(np.delete(fit_results[:,-4], idx_remove), name="Mean power [W]")
     s_sn = pd.Series(np.delete(fit_inputs[:,0], idx_remove), name="Satellite")
     s_i_hp = pd.Series(np.delete(fit_inputs[:,1], idx_remove)/1e3, name="Initial h_p [km]")
     s_i_ha = pd.Series(np.delete(fit_inputs[:,2], idx_remove)/1e3, name="Initial h_a [km]")
@@ -246,26 +252,22 @@ if __name__ == "__main__":
     s_i_omega = pd.Series(np.delete(fit_inputs[:,4], idx_remove)*180/np.pi, name="Initial omega [deg]")
     s_i_Omega = pd.Series(np.delete(fit_inputs[:,5], idx_remove)*180/np.pi, name="Initial Omega [deg]")
     s_pareto_opt = pd.Series(np.delete(pareto_opt, idx_remove), name="Pareto optimum")
-    s_f_P = pd.Series(np.delete(power_f, idx_remove), name="Power fitness [-]")
     s_f_D = pd.Series(np.delete(decay_f, idx_remove), name="Periapsis decay fitness [-]")
     s_f_H = pd.Series(np.delete(h_f, idx_remove), name="Altitude fitness [-]")
-    s_f_TD = pd.Series(np.delete(D_T_f, idx_remove), name="T/D fitness [-]")
-    df = pd.concat([s_pd, s_mh, s_mTD, s_mp, s_sn, s_i_hp, s_i_ha, s_i_i, s_i_omega, s_i_Omega, s_pareto_opt, s_f_P, s_f_D, s_f_H, s_f_TD], axis=1)
+    if all_obj:
+        s_mTD = pd.Series(np.delete(fit_results[:,-1], idx_remove), name="Mean T/D [-]")
+        s_mp = pd.Series(np.delete(fit_results[:,-4], idx_remove), name="Mean power [W]")
+        s_f_P = pd.Series(np.delete(power_f, idx_remove), name="Power fitness [-]")
+        s_f_TD = pd.Series(np.delete(D_T_f, idx_remove), name="T/D fitness [-]")
+        df = pd.concat([s_pd, s_mh, s_mTD, s_mp, s_sn, s_i_hp, s_i_ha, s_i_i, s_i_omega, s_i_Omega, s_pareto_opt, s_f_P, s_f_D, s_f_H, s_f_TD], axis=1)
+        h_data = {"Initial h_p [km]": ":.7f", "Initial h_a [km]": ":.7f", "Initial i [deg]": ":.7f", "Initial omega [deg]": ":.7f", "Initial Omega [deg]": ":.7f", \
+            "Mean power [W]": ":.3f", "Periapsis decay [km]": ":.3f", "Mean altitude [km]": ":.3f", "Mean T/D [-]": ":.5f", "Power fitness [-]": ":.5f", \
+            "Periapsis decay fitness [-]": ":.5f", "Altitude fitness [-]": ":.5f", "T/D fitness [-]": ":.5f"}
+    else:
+        df = pd.concat([s_pd, s_mh, s_sn, s_i_hp, s_i_ha, s_i_i, s_i_omega, s_i_Omega, s_pareto_opt, s_f_D, s_f_H], axis=1)
+        h_data = {"Initial h_p [km]": ":.7f", "Initial h_a [km]": ":.7f", "Initial i [deg]": ":.7f", "Initial omega [deg]": ":.7f", "Initial Omega [deg]": ":.7f", \
+            "Periapsis decay [km]": ":.3f", "Mean altitude [km]": ":.3f", "Periapsis decay fitness [-]": ":.5f", "Altitude fitness [-]": ":.5f"}
     # Make interactive plot
-    fig = px.scatter(df, hover_data={
-        "Initial h_p [km]": ":.7f",
-        "Initial h_a [km]": ":.7f",
-        "Initial i [deg]": ":.7f",
-        "Initial omega [deg]": ":.7f",
-        "Initial Omega [deg]": ":.7f",
-        "Mean power [W]": ":.3f",
-        "Periapsis decay [km]": ":.3f",
-        "Mean altitude [km]": ":.3f",
-        "Mean T/D [-]": ":.5f",
-        "Power fitness [-]": ":.5f",
-        "Periapsis decay fitness [-]": ":.5f",
-        "Altitude fitness [-]": ":.5f",
-        "T/D fitness [-]": ":.5f"}, \
-        x="Mean altitude [km]", y="Periapsis decay [km]", hover_name="Satellite", \
+    fig = px.scatter(df, hover_data=h_data, x="Mean altitude [km]", y="Periapsis decay [km]", hover_name="Satellite", \
         title=plots_title, color="Pareto optimum", color_discrete_map={True: "#2e7d32", False: "#b71c1c"})
     fig.write_html(sys.path[0]+"/figures/"+plots_path+"interactive_pareto.html")

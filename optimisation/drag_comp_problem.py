@@ -13,13 +13,14 @@ FIT_INPUTS, FIT_RESULTS = [], []
 # Drag Compensation problem
 class DC_problem:
 
-    def __init__(self, design_var_range, fitness_weights, thrust_model=1, ionisation_efficiency=1, use_battery=True, verbose=False):
+    def __init__(self, design_var_range, fitness_weights, thrust_model=1, ionisation_efficiency=1, use_battery=True, verbose=False, all_obj=True):
         self.design_var_range = design_var_range
         self.fitness_weights = fitness_weights
         self.verbose = verbose
         self.thrust_model = thrust_model
         self.ionisation_eff = ionisation_efficiency
         self.use_battery = use_battery
+        self.all_obj = all_obj
 
     def get_bounds(self):
         """
@@ -67,8 +68,12 @@ class DC_problem:
         # Save the entire output and return the 1D list of fitnesses
         for output in outputs:
             FIT_RESULTS.append(list(output))
-            power_f, decay_f, h_f, D_T_f, *_ = output
-            fitnesses.append(power_f), fitnesses.append(decay_f), fitnesses.append(h_f), fitnesses.append(D_T_f)
+            if self.all_obj:
+                power_f, decay_f, h_f, D_T_f, *_ = output
+                fitnesses.append(power_f), fitnesses.append(decay_f), fitnesses.append(h_f), fitnesses.append(D_T_f)
+            else:
+                h_f, decay_f, *_ = output
+                fitnesses.append(h_f), fitnesses.append(decay_f)
         
         return fitnesses
 

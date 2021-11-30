@@ -8,11 +8,11 @@ from utils import propagation as P
 from tudatpy.kernel import constants
 
 
-def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, use_battery):
+def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, use_battery, all_obj=True):
     ## Setup the simulation
     # Create the orbital simulation instance, setup to simulate 100 days
     sim_days = 100
-    OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=True, save_thrust=True)
+    OS = P.orbit_simulation(sat, "Mars", sim_days*constants.JULIAN_DAY, save_power=all_obj, save_thrust=all_obj)
     # Create the simulation bodies, and use the MCD
     OS.create_bodies(use_MCD=[False, False], use_GRAM=False)
     # Create the initial state of the satellite
@@ -32,18 +32,22 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, u
     times, _, _ = OS.simulate()
 
     # Extract the results from the simulation
-    power_hist = list(OS.power_dict.values())
+    if all_obj:
+        power_hist = list(OS.power_dict.values())
     h_p_s = OS.get_dep_var("h_p")
     altitudes = OS.get_dep_var("h")
     
-    drags = np.array(list(OS.drags.values()))
-    thrusts = np.array(list(OS.thrusts.values()))
+    if all_obj:
+        drags = np.array(list(OS.drags.values()))
+        thrusts = np.array(list(OS.thrusts.values()))
 
     # Remove the orbital simulation variable to save memory
     del OS
 
     # Compute the simulation performance parameters
-    mean_P, decay, mean_h, mean_T_D = np.mean(power_hist), h_p_s[0] - h_p_s[-1], np.mean(altitudes), np.mean(thrusts/drags)
+    if all_obj:
+        mean_P, mean_T_D = np.mean(power_hist), np.mean(thrusts/drags)
+    mean_h, decay = np.mean(altitudes), h_p_s[0] - h_p_s[-1]
 
     # Give a penalty in the decay if the simulation stopped earlier and the decay was not properly registered
     if times[-1] - times[0] < (sim_days-1)*constants.JULIAN_DAY and decay < 50e3:
@@ -51,10 +55,11 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, u
 
     ## Compute the fitness (=cost); scaling is used because, ideally, all cost values would be in the same range (0-1 for instance)
     # Max mean power; lots of power = smaller value = better (use maximum observed value as scale)
-    power_scale = 35
-    power_f = ( (power_scale-mean_P) / power_scale )
-    if np.mean(power_hist) > power_scale:
-        print("Warning, mean power of %.3f W was above scaling value of %.3f W" % (np.mean(power_hist), power_scale))
+    if all_obj:
+        power_scale = 35
+        power_f = ( (power_scale-mean_P) / power_scale )
+        if np.mean(power_hist) > power_scale:
+            print("Warning, mean power of %.3f W was above scaling value of %.3f W" % (np.mean(power_hist), power_scale))
     # Min decay; if final altitude < 50km, fitness=1 (re-entered atmosphere); else: scale with maximum 100km
     decay_f = 1 if h_p_s[-1] <= 50e3 else decay/100e3
     # Min mean altitude
@@ -64,6 +69,9 @@ def comp_fitness(sat, h_p, h_a, i, omega, Omega, thrust_model, ionisation_eff, u
     else:
         h_f = 0.75 + 0.25 * (mean_h - h_scale[1]) / (h_scale[2] - h_scale[1])
     # Min Drag/Thrust ratio
-    D_T_f = 1 / (mean_T_D + 1)
+    if all_obj:
+        D_T_f = 1 / (mean_T_D + 1)
 
+    if not all_obj:
+        return h_f, decay_f, mean_h, decay
     return power_f, decay_f, h_f, D_T_f, mean_P, decay, mean_h, mean_T_D
