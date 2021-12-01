@@ -47,11 +47,16 @@ class DC_problem:
         global FIT_INPUTS, FIT_RESULTS
         inputs, fitnesses = [], []
         # Reshape the design variables and go trough them
-        design_variables = np.reshape(dvs, (len(dvs)//6, 6))
+        n_dv = 6 if self.all_obj else 4
+        design_variables = np.reshape(dvs, (len(dvs)//n_dv, n_dv))
         sats = SM.satellites if self.thrust_model == 3 else SM.satellites_with_tank
         for dv in design_variables:
             # Extract from design variable
-            h_p_0, h_a_0, i_0, omega_0, Omega_0, sat_index = dv
+            if self.all_obj:
+                h_p_0, h_a_0, i_0, omega_0, Omega_0, sat_index = dv
+            else:
+                h_p_0, h_a_0, i_0, sat_index = dv
+                omega_0, Omega_0 = 0, 0
 
             # Select the satellite
             sat_name = list(sats.keys())[int(sat_index)]
@@ -62,7 +67,7 @@ class DC_problem:
             FIT_INPUTS.append([satellite.name, h_p_0, h_a_0, i_0, omega_0, Omega_0])
         
         # Get the fitness by running the orbital simulations in parallel (use half the number of processors available)
-        with MP.get_context("spawn").Pool(processes=MP.cpu_count()//2) as pool:
+        with MP.get_context("spawn").Pool(processes=int(MP.cpu_count()-4)) as pool:
             outputs = pool.starmap(CF.comp_fitness, inputs)
 
         # Save the entire output and return the 1D list of fitnesses
