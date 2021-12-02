@@ -12,7 +12,7 @@ def shadow_function(occulted_pos, occulted_r, occulting_pos, occulting_r, sat_po
      * sat_pos: [float]*3: position of the satellite in Cartesian coordinates
     Output:
      * shadow number: float between 1 (satellite fully exposed to Sun), and 0 (satellite fully in shadow)
-    Function inspired by Section 3.4 from   
+    Function inspired by Section 3.4 from Montebruck O, Gill E., 2005
     """
     # Make sure the inputs are numpy arrays
     r_sun, r_body, r = np.array(occulted_pos), np.array(occulting_pos), np.array(sat_pos)
