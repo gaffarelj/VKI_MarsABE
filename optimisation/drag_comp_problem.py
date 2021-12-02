@@ -63,7 +63,7 @@ class DC_problem:
             satellite = sats[sat_name]
 
             # Construct the input
-            inputs.append([satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model, self.ionisation_eff, self.use_battery])
+            inputs.append([satellite, h_p_0, h_a_0, i_0, omega_0, Omega_0, self.thrust_model, self.ionisation_eff, self.use_battery, self.all_obj])
             FIT_INPUTS.append([satellite.name, h_p_0, h_a_0, i_0, omega_0, Omega_0])
         
         # Get the fitness by running the orbital simulations in parallel (use half the number of processors available)

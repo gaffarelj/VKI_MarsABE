@@ -118,8 +118,11 @@ if __name__ == "__main__":
                 pop = pygmo.population(problem, size=0, seed=seed, b=pygmo.default_bfe())
                 for i in range(pop_size):
                     _in = last_inputs[i]
-                    dv = [float(_in[1]), float(_in[2]), \
-                        float(_in[3]), float(_in[4]), float(_in[5]), list(satellites.keys()).index(_in[0])]
+                    if all_obj:
+                        dv = [float(_in[1]), float(_in[2]), \
+                            float(_in[3]), float(_in[4]), float(_in[5]), list(satellites.keys()).index(_in[0])]
+                    else:
+                        dv = [float(_in[1]), float(_in[2]), float(_in[3]), list(satellites.keys()).index(_in[0])]
                     _fit = last_results[i]
                     fits = [float(_fit[_i]) for _i in range(len(fitness_weights))]
                     pop.push_back(dv, fits)
@@ -128,6 +131,7 @@ if __name__ == "__main__":
                 opti_hist = opti_hist.tolist()
         if pop is None:
             n_gen = 1
+            last_g_file = None
             opti_hist = []
             print("Generating starting population (of size %i)..." % pop_size)
             pop = pygmo.population(problem, size=pop_size, seed=seed, b=pygmo.default_bfe())
@@ -156,23 +160,17 @@ if __name__ == "__main__":
             # Save the results
             np.savez(f_path+"-%i"%i, inputs=DCp.FIT_INPUTS, results=np.array(DCp.FIT_RESULTS), opti_hist=np.array(opti_hist))
             # Remove results from previous generation
-            if i > 1:
-                if last_g_file is None:
-                    os.remove(f_path+"-%s.npz"%(i-1))
-                else:
-                    os.remove(last_g_file)
-                    last_g_file = None
+            if last_g_file is not None:
+                os.remove(last_g_file)
+                last_g_file = None
+            elif i > 1:
+                os.remove(f_path+"-%s.npz"%(i-1))
 
     # Load the last saved results
     fit_inputs, fit_results, opti_hist, _ = get_saved_res()
     s_names = fit_inputs[:,0].reshape((len(fit_inputs),1))
     fit_inputs = np.array(fit_inputs[:,1:], dtype=float)
     fit_inputs = np.concatenate([s_names, fit_inputs], axis=1, dtype=object)
-
-    # Find the optimum if the sum of fitnesses is used
-    idx_best = np.where(np.sum(fit_results[:,:len(fitness_weights)], axis=1) == np.min(np.sum(fit_results[:,:len(fitness_weights)], axis=1)))[0][0]
-    optimum_input, optimum_result = fit_inputs[idx_best], fit_results[idx_best]
-
     print("Explored %i different possibilities." % len(fit_inputs))
 
     if all_obj:
@@ -188,62 +186,56 @@ if __name__ == "__main__":
     if thrust_model == 3:
         plots_title += ", ionisation efficiency of %s%%" % (ionisation_efficiency*100)
 
-    # Plot the fitness progress over time
+    ## Plot the fitness progress over time
     PU.plot_multiple([list(range(1, opti_hist.shape[0]+1))]*(len(fitness_weights)+1), opti_hist.T, "Generation number", "Best fitness", \
         plots_path+"history", legends=fitness_names+["Average fitness"], colors=["darkorange", "seagreen", "royalblue", "#202020"], \
         lstyle=["solid"]*len(fitness_weights)+["dashed"], title=plots_title)
 
-    # Generate Pareto fronts
-    for zoomed in [False]:#, True]:
-        if zoomed:
-            # Zoom in on region where mean altitude is below 150km and where periapsis decay is within -5km to 5km
-            idx_remove = np.where((fit_results[:,-3] > 5e3) | (fit_results[:,-3] < -5e3) | (fit_results[:,-2] > 150e3))
-            prefix = "_zoomed"
-        else:
-            # Filter periapsis decays above 100km
-            idx_remove = np.where(fit_results[:,-3] > 100e3)
-            prefix = ""
+    ## Generate Pareto fronts
+    if all_obj:
+        # Filter periapsis decays above 100km
+        idx_remove = np.where(fit_results[:,-3] > 100e3)
         # Remove at selected indexes
-        if all_obj:
-            obj_power, obj_decay, obj_h, obj_TD = np.delete(fit_results[:,-4], idx_remove), np.delete(fit_results[:,-3], idx_remove), np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
-        else:
-            obj_h, obj_decay = np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
-        s_names = np.delete(fit_inputs[:,0], idx_remove)
-        # Select color as a function of the satellite
-        s_numbers = np.arange(0, len(satellites), 1)
-        s_nn_map = dict(zip(list(satellites.keys()), s_numbers))
-        ## Make the plots
-        # Classic Pareto plots, 2 objectives
-        PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hd"+prefix, \
-            scatter=True, add_front=True, title=plots_title)
-        # Plot decay vs mean altitude with satellite name in the colormap
-        s_name_cmap = matplotlib.colors.ListedColormap(['red', 'green', 'blue', 'yellow', 'orange'])
-        bounds = [0, 1, 2, 3, 4, 5]
-        norm =  matplotlib.colors.BoundaryNorm(bounds, s_name_cmap.N)
-        PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdS"+prefix, \
-            scatter=True, add_front=True, z_data=[s_nn_map[s_n] for s_n in s_names], z_label="Satellite", \
-                cmap=s_name_cmap, cticks=[0.5, 1.5, 2.5, 3.5, 4.5], \
-                clabels=list(satellites.keys()), NB=(norm, bounds), title=plots_title)
-        if all_obj:
-            PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", plots_path+"Pareto_Pd"+prefix, \
-                scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
-            PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", plots_path+"Pareto_Ph"+prefix, \
-                scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
-            PU.plot_single(obj_h/1e3, obj_TD, "Mean altitude [km]", "Mean Thrust/Drag [-]", plots_path+"Pareto_hT"+prefix, \
-                scatter=True, add_front=True, front_sign=[1,-1], title=plots_title)
-            PU.plot_single(obj_power, obj_TD, "Mean Power [W]", "Mean Thrust/Drag [-]", plots_path+"Pareto_PT"+prefix, \
-                scatter=True, add_front=True, front_sign=[-1,-1], title=plots_title)
-            PU.plot_single(obj_TD, obj_decay/1e3, "Mean Thrust/Drag [-]", "Periapsis decay [km]", plots_path+"Pareto_Td"+prefix, \
-                scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
-            # Plot decay vs mean altitude with power in the colormap
-            power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                            'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
-                            matplotlib.pyplot.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
-            PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdP"+prefix, \
-                scatter=True, add_front=True, z_data=obj_power, z_label="Mean power [W]", cmap=power_cmap, title=plots_title)
-            # Plot decay vs mean altitude with D/T in the colormap
-            PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdT"+prefix, \
-                scatter=True, add_front=True, z_data=np.clip(obj_TD, 0, 10), z_label="Mean Thrust/Drag [-]", cmap="rainbow", title=plots_title)
+        obj_power, obj_decay, obj_h, obj_TD = np.delete(fit_results[:,-4], idx_remove), np.delete(fit_results[:,-3], idx_remove), np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
+    else:
+        idx_remove = np.where(fit_results[:,-1] > 100e3)
+        obj_h, obj_decay = np.delete(fit_results[:,-2], idx_remove), np.delete(fit_results[:,-1], idx_remove)
+    s_names = np.delete(fit_inputs[:,0], idx_remove)
+    # Select color as a function of the satellite
+    s_numbers = np.arange(0, len(satellites), 1)
+    s_nn_map = dict(zip(list(satellites.keys()), s_numbers))
+    ## Make the plots
+    # Classic Pareto plots, 2 objectives
+    PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hd", \
+        scatter=True, add_front=True, title=plots_title)
+    # Plot decay vs mean altitude with satellite name in the colormap
+    s_name_cmap = matplotlib.colors.ListedColormap(['red', 'green', 'blue', 'yellow', 'orange'])
+    bounds = [0, 1, 2, 3, 4, 5]
+    norm =  matplotlib.colors.BoundaryNorm(bounds, s_name_cmap.N)
+    PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdS", \
+        scatter=True, add_front=True, z_data=[s_nn_map[s_n] for s_n in s_names], z_label="Satellite", \
+            cmap=s_name_cmap, cticks=[0.5, 1.5, 2.5, 3.5, 4.5], \
+            clabels=list(satellites.keys()), NB=(norm, bounds), title=plots_title)
+    if all_obj:
+        PU.plot_single(obj_power, obj_decay/1e3, "Mean Power [W]", "Periapsis decay [km]", plots_path+"Pareto_Pd", \
+            scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
+        PU.plot_single(obj_power, obj_h/1e3, "Mean Power [W]", "Mean altitude [km]", plots_path+"Pareto_Ph", \
+            scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
+        PU.plot_single(obj_h/1e3, obj_TD, "Mean altitude [km]", "Mean Thrust/Drag [-]", plots_path+"Pareto_hT", \
+            scatter=True, add_front=True, front_sign=[1,-1], title=plots_title)
+        PU.plot_single(obj_power, obj_TD, "Mean Power [W]", "Mean Thrust/Drag [-]", plots_path+"Pareto_PT", \
+            scatter=True, add_front=True, front_sign=[-1,-1], title=plots_title)
+        PU.plot_single(obj_TD, obj_decay/1e3, "Mean Thrust/Drag [-]", "Periapsis decay [km]", plots_path+"Pareto_Td", \
+            scatter=True, add_front=True, front_sign=[-1,1], title=plots_title)
+        # Plot decay vs mean altitude with power in the colormap
+        power_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+                        'trunc({n},{a:.2f},{b:.2f})'.format(n="plasma", a=0.0, b=0.9),
+                        matplotlib.pyplot.get_cmap("plasma")(np.linspace(0.0, 0.9, 10)))
+        PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdP", \
+            scatter=True, add_front=True, z_data=obj_power, z_label="Mean power [W]", cmap=power_cmap, title=plots_title)
+        # Plot decay vs mean altitude with D/T in the colormap
+        PU.plot_single(obj_h/1e3, obj_decay/1e3, "Mean altitude [km]", "Periapsis decay [km]", plots_path+"Pareto_hdT", \
+            scatter=True, add_front=True, z_data=np.clip(obj_TD, 0, 10), z_label="Mean Thrust/Drag [-]", cmap="rainbow", title=plots_title)
 
     idx_remove = np.where(fit_results[:,-3] >= 100e3)
     # Make a Panda dataframe from the results
