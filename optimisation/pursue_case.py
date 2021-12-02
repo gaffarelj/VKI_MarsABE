@@ -13,8 +13,8 @@ sim_days = 650
 
 ## Propagation main parameters
 s_name, thrust_model, ionisation_eff, use_battery = "CS_2021", 3, 0.50, True
-h_p, h_a = 135e3, 200e3
-i, omega, Omega = np.deg2rad(20), np.deg2rad(60), np.deg2rad(120)
+h_p, h_a = 143e3, 405e3
+i, omega, Omega = np.deg2rad(25), 0, 0
 
 satellites = SM.satellites_with_tank if thrust_model == 2 else SM.satellites
 
@@ -27,7 +27,7 @@ a = OS.R_cb + (h_a+h_p)/2
 e = 1 - (OS.R_cb + min(h_p, h_a)) / a       # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
 OS.create_initial_state(a=a, e=e, i=i, omega=omega, Omega=Omega)
 # Load the accelerations from default config 1: Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
-OS.create_accelerations(default_config=1, thrust=thrust_model, ionisation_eff=ionisation_eff, use_battery=use_battery)
+OS.create_accelerations(default_config=2, thrust=thrust_model, ionisation_eff=ionisation_eff, use_battery=use_battery)
 # Create the integrator, termination settings, dependent variables, and propagator
 OS.create_integrator()
 OS.create_termination_settings()
