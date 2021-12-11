@@ -126,11 +126,11 @@ for j, s_name in enumerate(sat_names):
         n_0 = nrho * species_frac[-2]   # number density of the atomic oxygen
         P = n_0 * T                     # atomic oxygen partial pressure
         alpha = K*P/(1+K*P)             # accommodation coefficient
-        test_accomodation = False
-        if test_accomodation and s_name == sat_names[0] and h == hs[0]:
+        test_accommodation = False
+        if test_accommodation and s_name == sat_names[0] and h == hs[0]:
             P_s = np.linspace(1.5e17, 9e18, 200)
             alpha_s = [K*_P/(1+K*_P) for _P in P_s]
-            PU.plot_single(P_s, alpha_s, "$n_O \cdot T [k m^3]$", "accommodation $\\alpha$", "test_accommodation")
+            PU.plot_single(P_s, alpha_s, "$n_O \cdot T \ [K / m^3]$", "Accommodation coefficient $\\alpha$ [-]", "test_accommodation")
 
         # Print the results
         print("     Knudsen number is %.5e" % Kn)
