@@ -26,7 +26,7 @@ OS.create_bodies(use_MCD=[True, False], use_GRAM=False)
 a = OS.R_cb + (h_a+h_p)/2
 e = 1 - (OS.R_cb + min(h_p, h_a)) / a       # Use min because h_p could actually be higher than h_a due to the way the problem is setup)
 OS.create_initial_state(a=a, e=e, i=i, omega=omega, Omega=Omega)
-# Load the accelerations from default config 1: Central body spherical harmonics of degree/order 4 and aerodynamics, Solar radiation
+# Load the accelerations from default config 2: Central body Spherical Harmonics of Degree/Order 8 and aerodynamics, Solar radiation, Solar and Jupiter Point Mass
 OS.create_accelerations(default_config=2, thrust=thrust_model, ionisation_eff=ionisation_eff, use_battery=use_battery)
 # Create the integrator, termination settings, dependent variables, and propagator
 OS.create_integrator()
