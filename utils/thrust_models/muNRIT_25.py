@@ -33,7 +33,7 @@ def from_power(power):
 # Thrust that can be reached for the given mass flow
 def from_m_flow(m_flow):
     if m_flow < min(muNRIT25_m) or m_flow > max(muNRIT25_m):
-        raise ValueError("The power value (%s) should be in the following range: %s ; %s" % (m_flow, min(muNRIT25_m), max(muNRIT25_m)))
+        raise ValueError("The mass flow value (%s) should be in the following range: %s ; %s" % (m_flow, min(muNRIT25_m), max(muNRIT25_m)))
     thrust = np.interp(m_flow, muNRIT25_m, muNRIT25_T)
     power = np.interp(m_flow, muNRIT25_m, muNRIT25_P)
     Isp = np.interp(m_flow, muNRIT25_m, muNRIT25_I)
