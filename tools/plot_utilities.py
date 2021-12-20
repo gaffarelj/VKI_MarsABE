@@ -27,13 +27,17 @@ def comp_pareto(X, Y, front_sign=[1, 1]):
 
 def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False, scatter=False, \
     equal_ax=False, add_front=False, front_sign=[1, 1], z_data=None, z_label="", marker="o", cmap="rainbow", \
-    cticks=None, clabels=None, fig=None, ax=None, NB=None, title=None, markersize=None, annot=None):
+    cticks=None, clabels=None, fig=None, ax=None, NB=None, title=None, markersize=None, annot=None, \
+    xline=None, yline=None, size=None):
     """
     Simple plot
     """
     # Setup a new figure
     if None in [fig, ax]:
-        fig, ax = plt.subplots()
+        if size is not None:
+            fig, ax = plt.subplots(figsize=size)
+        else:
+            fig, ax = plt.subplots()
     sys.path = [p for p in sys.path if p != ""]
     # Plot
     if scatter:
@@ -67,6 +71,11 @@ def plot_single(x_data, y_data, x_label, y_label, fname, xlog=False, ylog=False,
     if add_front:
         x, y = comp_pareto(x_data, y_data, front_sign)
         ax.step(x, y, where='post', color=(0.35, 0.7, 0.5))
+    # Add lines
+    if xline is not None:
+        plt.axvline(xline, color="black")
+    if yline is not None:
+        plt.axhline(yline, color="black")
     # Set labels
     ax.set_xlabel(x_label), ax.set_ylabel(y_label)
     # Add title
