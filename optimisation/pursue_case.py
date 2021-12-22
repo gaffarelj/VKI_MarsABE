@@ -92,3 +92,23 @@ print("Periapsis decay:", h_p_s[0] - h_p_s[-1])
 power_hist = list(OS.power_dict.values())
 print("Mean power:", np.mean(power_hist))
 print("Mean T/D:", np.mean(thrusts/drags))
+
+# Find time spent below 150km
+to_peri = False
+h_last = None
+times_low = []
+time_low = 0
+for i, h in enumerate(OS.get_dep_var("h")):
+    if h_last is not None:
+        if h > h_last:
+            if to_peri and time_low != 0:
+                times_low.append(time_low)
+                time_low = 0
+            to_peri = False
+        else:
+            to_peri = True
+        dt = times[i] - times[i-1]
+        if h < 150e3:
+            time_low += dt
+    h_last = h
+print("Time per orbit below 150km: %.3f min (~%.1f%% of the orbit)" % (np.mean(times_low)/60, np.mean(times_low)/(150*60)*100))
